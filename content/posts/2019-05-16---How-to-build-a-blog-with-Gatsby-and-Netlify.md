@@ -13,11 +13,11 @@ tags:
 description: "If you too are a developer like me who wants to quickly spin up a blog and start publishing without worrying too much about hosting costs, etc., then I am sure you will find this article helpful."
 ---
 
-I recently started working on building a personal blog where I could carelessly document and share my adventures in coding. I love working with React so I was looking forward to using it for building my blog. This is when I came across [Gatsby](https://www.gatsbyjs.org). If you too are a developer like me who wants to quickly spin up a blog and start publishing without worrying too much about hosting costs, etc., then I am sure you will find this article helpful.
+I recently started working on building a personal blog where I could document and share my adventures in coding. I love working with React so I was looking forward to using it for building my blog. This is when I came across [Gatsby](https://www.gatsbyjs.org). If you too are a developer like me who wants to quickly spin up a blog and start publishing without worrying too much about hosting costs, etc., then I am sure you will find this article helpful.
 
 ### What is Gatsby and why should I use it?
 
-Quick answer: Gatsby is a static-site generator. A static-site generator is basically something that spits out raw HTML, CSS and JS that hosting servers can directly send to browsers without any server-side processing involved. So you don't need PHP or any other server-side scripting language to process and render your web page. You have static web pages already built by the generator ready to be rendered.
+Gatsby is a static-site generator. A static-site generator is basically something that spits out raw HTML, CSS and JS that hosting servers can directly send to browsers without any server-side processing involved. So you don't need PHP or any other server-side scripting language to process and render your web page. You have static web pages already built by the generator ready to be rendered.
 
 So Gatsby is a modern-day site generator based on React. It provides a ton of [features](https://www.gatsbyjs.org/features/) either out of the box or via plugins like CDN, AMP support, PWA support, hot reloading etc. that make building and customizing any kind of website a breeze.
 
