@@ -2,6 +2,7 @@ import React from "react";
 import { useSiteMetadata } from "../../../hooks";
 import { getDiscussURL, getEditPostURL } from "../../../utils";
 import styles from "./PostFooterOptions.module.scss";
+import NewsletterSignupForm from "./NewsletterSignupForm";
 
 const PostFooterOptions = ({ postSlug, date }) => {
   const { url } = useSiteMetadata();
@@ -17,6 +18,11 @@ const PostFooterOptions = ({ postSlug, date }) => {
       <a href={editPostUrl} target="_blank">
         Edit Post on Github
       </a>
+
+      <br />
+      <br />
+
+      <NewsletterSignupForm />
     </div>
   );
 };
