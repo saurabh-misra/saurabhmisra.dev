@@ -110,13 +110,3 @@ Delete the sample files once you are done referencing them.
 Run `git push` to push your changes to the git repo. Netlify will automatically update your site's static content from your github repo as soon as it is updated. Visit your Netlify site to verify that your changes have taken effect.
 
 And that's it. Congratulations! You just published your very own personal blog for free. Go crazy publishing!
-
----
-
-**References**
-
-https://www.gatsbyjs.org/docs/
-
-https://www.gatsbyjs.org/tutorial/
-
-https://github.com/alxshelepenok/gatsby-starter-lumen
