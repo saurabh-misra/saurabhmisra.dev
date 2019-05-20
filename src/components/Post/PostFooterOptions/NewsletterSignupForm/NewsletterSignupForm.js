@@ -50,16 +50,6 @@ class NewsletterSignupForm extends React.Component {
             <div id="mc_embed_signup_scroll">
               <h2>Join the Newsletter</h2>
               <div className="mc-field-group">
-                <label htmlFor="mce-EMAIL">Email Address </label>
-                <input
-                  type="email"
-                  defaultValue=""
-                  name="EMAIL"
-                  className="required email"
-                  id="mce-EMAIL"
-                />
-              </div>
-              <div className="mc-field-group">
                 <label htmlFor="mce-FNAME">First Name </label>
                 <input
                   type="text"
@@ -67,6 +57,16 @@ class NewsletterSignupForm extends React.Component {
                   name="FNAME"
                   className="required"
                   id="mce-FNAME"
+                />
+              </div>
+              <div className="mc-field-group">
+                <label htmlFor="mce-EMAIL">Email Address </label>
+                <input
+                  type="email"
+                  defaultValue=""
+                  name="EMAIL"
+                  className="required email"
+                  id="mce-EMAIL"
                 />
               </div>
               <div
