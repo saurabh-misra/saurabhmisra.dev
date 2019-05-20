@@ -34,6 +34,7 @@ const Post = ({ post }: Props) => {
         {tags && tagSlugs && <Tags tags={tags} tagSlugs={tagSlugs} />}
         <PostFooterOptions
           postSlug={slug}
+          date={date}
           className={styles["post__footer-options"]}
         />
         <Author />
