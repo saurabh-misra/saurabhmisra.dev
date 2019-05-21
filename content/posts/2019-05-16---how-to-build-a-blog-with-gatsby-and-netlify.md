@@ -13,9 +13,9 @@ tags:
 description: "If you too are a developer like me who wants to quickly spin up a blog and start publishing without worrying too much about hosting costs, etc., then I am sure you will find this article helpful."
 ---
 
-I recently started working on building a personal blog where I could document and share my adventures in coding. I love working with React so I was looking forward to using it for building my blog. This is when I came across [Gatsby](https://www.gatsbyjs.org). If you too are a developer like me who wants to quickly spin up a blog and start publishing without worrying too much about hosting costs, etc., then I am sure you will find this article helpful.
+I recently started working on building a personal blog where I could document and share my adventures in coding. I love working with React so I was looking forward to using it for building my blog. This is when I came across [Gatsby](https://www.gatsbyjs.org). I got my website and blog(meaning this site that you are on right now) up and running using Gatsby and Netlify in no time. If you too are a developer like me who wants to quickly spin up a blog and start publishing without worrying too much about hosting costs, etc., then I am sure you will find this article helpful.
 
-### What is Gatsby and why should I use it?
+### What is Gatsby and why should you use it?
 
 Gatsby is a static-site generator. A static-site generator is basically something that spits out raw HTML, CSS and JS that hosting servers can directly send to browsers without any server-side processing involved. So you don't need PHP or any other server-side scripting language to process and render your web page. You have static web pages already built by the generator ready to be rendered.
 
@@ -23,7 +23,7 @@ So Gatsby is a modern-day site generator based on React. It provides a ton of [f
 
 Also, the options for hosting a static-site are plenty and mostly free for starters when you don't have many visitors on your page. You can chose to host your blog on [Github Pages](https://pages.github.com/) which is free and provides many more options as well like custom domains, SSL, etc.
 
-### What is Netlify and why should I use it?
+### What is Netlify and why should you use it?
 
 Although Github offers Github Pages as a free hosting service for static sites, that is not really its main area of concern. If your website crosses the restrictions of free usage, Github may notify you of the same and ask you to host your site elsewhere. This is why we use a dedicated hosting provider like Netlify that integrates with your Github codebase and provides a lot of other [features](https://www.netlify.com/github-pages-vs-netlify/) that you expect from a hosting provider.
 
@@ -37,7 +37,7 @@ With all the new terminology and description of tools taken care of, lets get st
 
 Use this command in your terminal with administrator privileges to install Gatsby.
 
-```
+```bash
 npm install -g gatsby-cli
 ```
 
@@ -71,7 +71,7 @@ Before you click on the link in the email, you will need to give Netlify some mo
 
 In a terminal with administrator privileges, execute the following commands:
 
-```
+```bash
 > git clone https://github.com/[GITHUB_USERNAME]/[REPO_NAME].git
 > cd [REPO_NAME]
 > yarn
@@ -79,7 +79,7 @@ In a terminal with administrator privileges, execute the following commands:
 
 Once all the node modules are done being installed, execute the following command:
 
-```
+```bash
 gatsby develop
 ```
 
