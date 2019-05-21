@@ -38,6 +38,9 @@ const Post = ({ post }: Props) => {
           className={styles["post__footer-options"]}
         />
         <Author />
+        <Link className={styles["post__home-footer-button"]} to="/">
+          All Articles
+        </Link>
       </div>
 
       <div className={styles["post__comments"]}>

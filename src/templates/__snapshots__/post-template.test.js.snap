@@ -372,6 +372,12 @@ exports[`PostTemplate renders correctly 1`] = `
           </div>
         </div>
       </div>
+      <a
+        className="post__home-footer-button"
+        href="/"
+      >
+        All Articles
+      </a>
     </div>
     <div
       className="post__comments"

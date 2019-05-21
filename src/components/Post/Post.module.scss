@@ -18,7 +18,8 @@
     padding: 0 15px;
   }
 
-  &__home-button {
+  &__home-button,
+  &__home-footer-button {
     display: block;
     max-width: 90px;
     height: $button-height;
@@ -39,6 +40,10 @@
       color: $color-primary;
     }
   }
+
+  &__home-footer-button {
+    margin-bottom: 3.25rem;
+  }
 }
 
 @include breakpoint-md {
@@ -57,6 +62,10 @@
       margin: 0;
       top: 30px;
       left: 30px;
+    }
+
+    &__home-footer-button {
+      display: none;
     }
   }
 }
