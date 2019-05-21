@@ -5,6 +5,7 @@ exports[`PostFooterOptions renders correctly 1`] = `
   className="options"
 >
   <a
+    className="options__links"
     href="https://mobile.twitter.com/search?q=http://localhost/posts/foo-bar-baz"
     target="_blank"
   >
@@ -12,6 +13,7 @@ exports[`PostFooterOptions renders correctly 1`] = `
   </a>
    • 
   <a
+    className="options__links"
     href="https://github.com/saurabh-misra/saurabhmisra.dev/edit/master/content/posts/2019-05-21---foo-bar-baz.md"
     target="_blank"
   >
