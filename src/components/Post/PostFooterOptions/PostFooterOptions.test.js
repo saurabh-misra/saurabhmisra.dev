@@ -15,7 +15,14 @@ describe("PostFooterOptions", () => {
   });
 
   it("renders correctly", () => {
-    const tree = renderer.create(<PostFooterOptions />).toJSON();
+    const tree = renderer
+      .create(
+        <PostFooterOptions
+          date={new Date().toString()}
+          postSlug="/posts/foo-bar-baz"
+        />
+      )
+      .toJSON();
     expect(tree).toMatchSnapshot();
   });
 });

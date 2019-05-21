@@ -76,6 +76,147 @@ exports[`PostTemplate renders correctly 1`] = `
         </ul>
       </div>
       <div
+        className="options"
+      >
+        <a
+          href="https://mobile.twitter.com/search?q=http://localhost/posts/foo-bar-baz"
+          target="_blank"
+        >
+          Discuss on Twitter
+        </a>
+         • 
+        <a
+          href="https://github.com/saurabh-misra/saurabhmisra.dev/edit/master/content/posts/2016-09-01---foo-bar-baz.md"
+          target="_blank"
+        >
+          Edit Post on Github
+        </a>
+        <br />
+        <br />
+        <div>
+          <div
+            id="mc_embed_signup"
+            style={
+              Object {
+                "backgroundColor": "aliceblue",
+              }
+            }
+          >
+            <form
+              action="https://gmail.us20.list-manage.com/subscribe/post?u=f7543eb65315caae2cfccc9e1&id=7e935aba1d"
+              className="validate"
+              id="mc-embedded-subscribe-form"
+              method="post"
+              name="mc-embedded-subscribe-form"
+              noValidate=""
+              target="_blank"
+            >
+              <div
+                id="mc_embed_signup_scroll"
+              >
+                <h2>
+                  Join the Newsletter
+                </h2>
+                <div
+                  className="mc-field-group"
+                >
+                  <label
+                    htmlFor="mce-FNAME"
+                  >
+                    First Name 
+                  </label>
+                  <input
+                    className="required"
+                    defaultValue=""
+                    id="mce-FNAME"
+                    name="FNAME"
+                    type="text"
+                  />
+                </div>
+                <div
+                  className="mc-field-group"
+                >
+                  <label
+                    htmlFor="mce-EMAIL"
+                  >
+                    Email Address 
+                  </label>
+                  <input
+                    className="required email"
+                    defaultValue=""
+                    id="mce-EMAIL"
+                    name="EMAIL"
+                    type="email"
+                  />
+                </div>
+                <div
+                  className="clear"
+                  id="mce-responses"
+                  style={
+                    Object {
+                      "marginLeft": 0,
+                      "paddingLeft": 0,
+                    }
+                  }
+                >
+                  <div
+                    className="response"
+                    id="mce-error-response"
+                    style={
+                      Object {
+                        "display": "none",
+                      }
+                    }
+                  />
+                  <div
+                    className="response"
+                    id="mce-success-response"
+                    style={
+                      Object {
+                        "display": "none",
+                      }
+                    }
+                  />
+                </div>
+                 
+                <div
+                  aria-hidden="true"
+                  style={
+                    Object {
+                      "left": -5000,
+                      "position": "absolute",
+                    }
+                  }
+                >
+                  <input
+                    defaultValue=""
+                    name="b_f7543eb65315caae2cfccc9e1_7e935aba1d"
+                    tabIndex="-1"
+                    type="text"
+                  />
+                </div>
+                <div
+                  className="clear"
+                >
+                  <input
+                    className="button"
+                    id="mc-embedded-subscribe"
+                    name="subscribe"
+                    style={
+                      Object {
+                        "backgroundColor": "#f7a046",
+                      }
+                    }
+                    type="submit"
+                    value="Subscribe"
+                  />
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div
         className="author"
       >
         <p

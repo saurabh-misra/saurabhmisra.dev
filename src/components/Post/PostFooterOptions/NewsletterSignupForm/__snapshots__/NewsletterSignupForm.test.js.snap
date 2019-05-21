@@ -29,22 +29,6 @@ exports[`NewsletterSignupForm renders correctly 1`] = `
           className="mc-field-group"
         >
           <label
-            htmlFor="mce-EMAIL"
-          >
-            Email Address 
-          </label>
-          <input
-            className="required email"
-            defaultValue=""
-            id="mce-EMAIL"
-            name="EMAIL"
-            type="email"
-          />
-        </div>
-        <div
-          className="mc-field-group"
-        >
-          <label
             htmlFor="mce-FNAME"
           >
             First Name 
@@ -55,6 +39,22 @@ exports[`NewsletterSignupForm renders correctly 1`] = `
             id="mce-FNAME"
             name="FNAME"
             type="text"
+          />
+        </div>
+        <div
+          className="mc-field-group"
+        >
+          <label
+            htmlFor="mce-EMAIL"
+          >
+            Email Address 
+          </label>
+          <input
+            className="required email"
+            defaultValue=""
+            id="mce-EMAIL"
+            name="EMAIL"
+            type="email"
           />
         </div>
         <div
