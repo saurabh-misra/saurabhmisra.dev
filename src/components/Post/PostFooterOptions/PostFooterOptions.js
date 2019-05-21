@@ -11,11 +11,19 @@ const PostFooterOptions = ({ postSlug, date }) => {
 
   return (
     <div className={styles["options"]}>
-      <a href={twitterDiscussUrl} target="_blank">
+      <a
+        href={twitterDiscussUrl}
+        target="_blank"
+        className={styles["options__links"]}
+      >
         Discuss on Twitter
       </a>
       {" • "}
-      <a href={editPostUrl} target="_blank">
+      <a
+        href={editPostUrl}
+        target="_blank"
+        className={styles["options__links"]}
+      >
         Edit Post on Github
       </a>
 
