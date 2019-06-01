@@ -28,7 +28,7 @@ module.exports = {
     bio:
       "Freelance full-stack remote dev. I strive to create robust and performant digital solutions.",
     contacts: {
-      email: "saurabhmisra87@gmail.com",
+      email: "saurabhmisra.dev@gmail.com",
       twitter: "saurabh__misra",
       github: "saurabh-misra"
     }
