@@ -1,0 +1,433 @@
+---
+title: "Understanding Promises in JavaScript: Part VII - Async-Await"
+date: 2021-01-16
+slug: "/promises-in-javascript-async-await"
+tags:
+  - JavaScript
+  - Promises
+---
+This is Part VII of a series of articles that aim to explain in detail, the need, usage and benefits of Promises in JavaScript.
+
+[Part I:  Asynchronous Programming in JavaScript](/promises-in-javascript-asynchronous-programming)   
+[Part II: Promise States and Syntax](/promises-in-javascript-states-and-syntax)  
+[Part III: Promise Chaining with then(), catch() & finally()](/promises-in-javascript-promise-chaining-then-catch-finally)  
+[Part IV: Static Methods in the Promise API](/promises-in-javascript-static-methods)   
+[Part V: Resolved Promises and Promise Fates](/promises-in-javascript-resolved-promise-fates)  
+[Part VI: Promises vs Callbacks](/promises-vs-callbacks-in-javascript)  
+Part VII: Async-Await  
+
+---
+
+<br/>
+
+Just when you thought Promises couldn't get any better, they just did!😎
+
+Presenting...
+
+(drumroll)🥁🥁🥁
+
+### async/await 🎉
+async/await are keywords and basically syntactic sugar on top of the Promises API that make promises even more awesome. If promises made async code *feel* synchronous, async/await make async code *look* synchronous. Let's dive straight in!
+
+### `async`
+`async` is a keyword that you put in front of a function to make it an *async* function. So all of these are examples of async function declaration.
+
+```js
+async function doSomething(){ ... }
+
+var doSomethingElse = async function(){ ... }
+
+var doSomethingMore = async () => { ... }
+
+```
+
+An async function is guaranteed to always return a promise. Even if we return a non-promise value from inside it, it will return a fulfilled promise, fulfilled with that value. If an error occurs inside the async function, then the returned promise will be rejected with the error reason.
+
+```js
+async function returnValue() {
+    return 1;
+}
+returnValue()
+  .then( console.log ); 
+// 1
+
+async function throwError() {
+    throw "oh no!";
+}
+throwError()
+  .catch( console.log ); 
+// "oh no!"
+
+async function returnPromise() {
+    return Promise.resolve(2);
+}
+returnPromise()
+  .then( console.log ); 
+// 2
+```
+
+### `await`
+The `await` keyword is placed in front of a promise object and signals JS to suspend execution of any consecutive statement until the promise is settled. It can only be used inside an async function. 
+
+```js {7}
+async function doSomething() {
+    
+    var promise =  new Promise( resolve => {
+        setTimeout( () => resolve( 1 ), 1000 );
+    });
+
+    var fulfilledValue = await promise;
+
+    console.log( fulfilledValue );
+
+};
+doSomething();
+
+// 1
+```
+In the above example, when `doSomething()` is invoked, JS starts executing the statements inside it synchronously. The first statement executes synchronously meaning a new Promise is created and assigned to the variable `promise`. The next statement has an `await` keyword and when JS encouters this keyword, it pauses the execution of `doSomething()`. While the execution of `doSomething()` is paused, JS works on executing other stuff like updating the DOM or responding to user interactions. After 1 second, when `promise` is fulfilled with the value 1, JS again resumes execution of the `doSomething()` and assigns the fulfilled value 1 to `fulfilledValue`. It then executes the `console.log()` and logs this fulfilled value onto the console.
+
+You cannot use the `await` keyword in top-level code or inside a function which is not async. It will lead to an error. It only works inside an async function. For example, if we remove the `async` keyword from the above function, it will lead to an error.
+
+```js
+function doSomething() {
+    
+    var promise =  new Promise( resolve => {
+        setTimeout( () => resolve( 1 ), 1000 );
+    });
+
+    var fulfilledValue = await promise;
+
+    console.log( fulfilledValue );
+
+};
+doSomething();
+
+// Uncaught SyntaxError: await is only valid in async functions and async generators
+```
+
+### Error handling
+What happens if the promise that is awaited rejects with an error? Well in that case the `await` keyword will forward the error.
+```js
+async function doSomething() {
+
+  var promise = new Promise((resolve, reject) => {
+    setTimeout(() => reject("oh no!"), 1000);
+  });
+
+  await promise;
+
+};
+doSomething();
+
+// Uncaught (in promise) oh no!
+```
+
+<br/>
+
+In order to handle such errors we can wrap our code inside the async function with a `try`-`catch` block.
+```js
+async function doSomething() {
+
+  try {
+
+    var promise = new Promise( (resolve, reject) => {
+      setTimeout(() => reject("oh no!"), 1000);
+    });
+
+    await promise;
+
+  } catch (err) {
+
+    console.log(err);
+
+  }
+
+};
+doSomething();
+
+// "oh no!"
+```
+
+<br/>
+
+Since the async function returns a promise, we can also attach a `catch()` on the returned promise.
+```js {10}
+async function doSomething() {
+
+  var promise = new Promise((resolve, reject) => {
+    setTimeout(() => reject("oh no!"), 1000);
+  });
+
+  await promise;
+
+};
+doSomething().catch(console.log);
+
+// "oh no!"
+```
+
+### Replace promises with async/await(Example #1)
+Remember the below example from one of the [previous articles](/promises-in-javascript-resolved-promise-fates) in this series where we fetched information about a github repo using promises.
+
+```js
+// fetch all repos
+fetch("https://api.github.com/users/saurabh-misra/repos")
+    .then( response => response.json() )
+    // return the github URL of the 3rd repo in the list
+    .then( repos => repos[2].url )
+    // fetch details for this repo
+    .then( repoUrl => fetch(repoUrl) )
+    .then( response => response.json() )
+    .then( repoInfo => {
+        console.log("Name: ", repoInfo.name);
+        console.log("Description: ", repoInfo.description);
+    })
+    .catch( error => console.log("Error: ", error) );
+
+/*
+Name:  pomodoro-timer
+Description: A simple pomodoro timer web app 
+that helps you focus on your work.
+*/
+```
+
+Let's re-write this example using async-await. 
+
+```js
+async function getRepoInfo() {
+
+  // fetch repos and parse JSON
+  var repoUrl = "https://api.github.com/users/saurabh-misra/repos";
+  var reposResponse = await fetch(repoUrl);
+  var repos = await reposResponse.json();
+
+  // fetch info on one of the repos
+  var repoInfoResponse = await fetch(repos[2].url)
+  var repoInfo = await repoInfoResponse.json();
+
+  return repoInfo;
+
+}
+
+getRepoInfo()
+  .then(repoInfo => {
+    console.log("Name: ", repoInfo.name);
+    console.log("Description: ", repoInfo.description);
+  })
+  .catch(console.log);
+
+
+/*
+Name:  pomodoro-timer
+Description: A simple pomodoro timer web app 
+that helps you focus on your work.
+*/
+```
+
+You can see the code is even more readable now. But more than being readable, it's intuitive! It's natural because this is the way we are used to writing and reading code, right?
+
+This is because our brains find it easier to read/write synchronous code because the code executes in the same sequence that we read/write it. With asynchronous code, this is a bit of a challenge because some code executes now whereas some other code executes later. 
+
+As I mentioned before, Promises make asynchronous code *feel* synchronous since we can interact with the promise object while the asynchronous operation is in progress. And async/await make the code *look* synchronous so that it's easier for our brains to read and understand.
+
+The more we can understand and reason about the code, the lesser the probability of introducing bugs.
+
+### Replace promises with async-await(Example #2)
+Let's consider the case study example involving payment transactions from the [previous section](/promises-vs-callbacks-in-javascript).
+
+```js
+// pseudo code
+
+fetch( /*store cc details*/ )
+  .then( () => fetch( /*verify response*/ ))
+  .then( () => fetch( /*make first payment*/ ))
+  .then( () => fetch( /*verify response*/ ))
+  .then( () => fetch( /*make second payment*/ ))
+  .then( () => fetch( /*verify response*/ ))
+  .then( () => fetch( /*mark order as complete*/ ))
+  .catch( () => {
+    // handle errors
+  })
+  .finally( () => {
+    // perform clean up
+  });
+```
+
+Let's re-write this example using async-await. 
+
+```js
+// pseudo code
+
+async function doPayment() {
+
+  var storeCCDetailsresponse = await fetch("store cc details");
+  await fetch("verify response");
+
+  var firstPaymentResponse = await fetch("make first payment");
+  await fetch("verify response");
+
+  var secondPaymentResponse = await fetch("make second payment");
+  await fetch("verify response");
+
+  await fetch("mark order as complete");
+
+};
+
+doPayment()
+  .catch(console.log);
+.finally(() => {
+  // perform clean-up code.
+});
+
+```
+
+<br/>
+
+Again...much better, right!
+
+### async/await and Paralell Async Operations
+An interesting scenario is when we want to execute two different async operations in parallel using async/await. Let's see how we can achieve this. I'm going to use a small helper like function called `promisifyTimeout()` to basically make `setTimeout()` return a promise and fulfill it when the timeout occurs.
+
+```js
+function promisifyTimeout(interval) {
+  return new Promise(resolve => {
+    setTimeout(resolve, interval);
+  });
+}
+
+async function startParallelTimers() {
+  await promisifyTimeout(1000);
+  console.log("1st timer done."); // executes after 1 second
+
+  await promisifyTimeout(1000);
+  console.log("2nd timer done."); // executes after 2 seconds
+
+  await promisifyTimeout(1000);
+  console.log("3rd timer done."); // executes after 3 seconds
+}
+
+startParallelTimers();
+
+/*
+1st timer done.
+2nd timer done. 
+3rd timer done.
+*/
+```
+If you run the above example, you'll notice that the logs are printed to the console one after the other each a second apart. The timers represent async operations that are not dependent on each other so they can run paralelly but the way we have placed our `await` keywords makes them run sequentially instead i.e the second timer cannot start until the first is done.
+
+Let's refactor our code and re-arrange our `await` keywords.
+
+```js
+function promisifyTimeout( interval ) {
+  return new Promise( resolve => {
+    setTimeout(resolve, interval);
+  });
+}
+
+async function startParallelTimers() {
+  var firstTimeoutPromise = promisifyTimeout(1000);
+  var secondTimeoutPromise = promisifyTimeout(1000);
+  var thirdTimeoutPromise = promisifyTimeout(1000);
+  
+  await firstTimeoutPromise;
+  console.log("1st timer done.");
+  await secondTimeoutPromise;
+  console.log("2nd timer done.");
+  await thirdTimeoutPromise;
+  console.log("3rd timer done.");
+}
+
+startParallelTimers();
+
+/*
+1st timer done.
+2nd timer done. 
+3rd timer done.
+*/
+```
+In this example, the entire output appears together after 1 second. This is because we started the timers together but awaited them later. There was no need to wait for the previous timer to complete before starting the next timer. This is a good pattern we can use to run parallel async operations using `await` which is to initiate them without using `await` and get the promise objects for each of them and then await the promise objects later.
+
+### async/await and the Promise API
+Since `await` works with any function that returns a promise, it plays well with any of the Promise API methods. Here is an example of how it can work with `Promise.all()`
+
+```js
+function promisifyTimeout( fulfilledValue, interval ) {
+  return new Promise( resolve => {
+    setTimeout(() => resolve(fulfilledValue), interval);
+  });
+}
+
+async function startParallelTimers() {
+  var firstTimeoutPromise = promisifyTimeout(1, 1000);
+  var secondTimeoutPromise = promisifyTimeout(2, 1000);
+  var thirdTimeoutPromise = promisifyTimeout(3, 1000);
+  
+  var values = await Promise.all([ 
+    firstTimeoutPromise, 
+    secondTimeoutPromise, 
+    thirdTimeoutPromise 
+  ]);
+  
+  return values;
+}
+
+startParallelTimers().then(console.log);
+
+/*
+Array(3) [ 1, 2, 3 ]
+*/
+```
+
+### async/await and Thenables
+Remember our discussion about thenables from our [previous sections](/promises-in-javascript-resolved-promise-fates). `await` plays well with thenables also. 
+
+```js
+var thenable = {
+  then: function(onFulfilled, onRejected) {
+    setTimeout(() => onFulfilled(1), 1000);
+  }
+};
+
+async function testAwaitWithThenable() {
+  return await thenable;
+}
+
+testAwaitWithThenable().then(console.log);
+
+// 1
+```
+
+### async/await with class methods
+We can also declare class methods as async and use `await` inside them.
+
+```js
+function promisifyTimeout(fulfilledValue, interval) {
+  return new Promise(resolve => {
+    setTimeout(() => resolve(fulfilledValue), interval);
+  });
+}
+
+class Person {
+  async displayGreetingAfterTimeout() {
+    return await promisifyTimeout("Hello👋", 1000);
+  }
+}
+
+new Person()
+  .displayGreetingAfterTimeout()
+  .then(console.log);
+
+// Hello👋
+```
+
+### To Summarize...
+1. async/await keywords are syntactic sugar over promises.
+2. Functions defined with the `async` keyword always return a Promise.
+3. `await` keyword is placed in front of a promise object and can be used to pause the execution of an async function until the promise settles.
+4. Promises make async code *feel* synchronous, `async`/`await` make async code *look* synchronous.
+
+---
+
+Honestly, I always found it difficult to wrap my head around Promises and their usage which is why I decided to study them in detail. This series of articles is a written expression of how I pieced together what I learnt. I hope these articles helped you understand Promises as well and made you feel more comfortable and confident in using them in your projects. Keep on Rocking!🤘

@@ -1,0 +1,365 @@
+---
+title: "Understanding Promises in JavaScript: Part IV - Static Methods in the Promise API"
+date: 2021-01-16
+slug: "/promises-in-javascript-static-methods"
+tags:
+  - JavaScript
+  - Promises
+---
+This is Part IV of a series of articles that aim to explain in detail, the need, usage and benefits of Promises in JavaScript.
+
+[Part I:  Asynchronous Programming in JavaScript](/promises-in-javascript-asynchronous-programming)   
+[Part II: Promise States and Syntax](/promises-in-javascript-states-and-syntax)  
+[Part III: Promise Chaining with then(), catch() & finally()](/promises-in-javascript-promise-chaining-then-catch-finally)  
+Part IV: Static Methods in the Promise API   
+[Part V: Resolved Promises and Promise Fates](/promises-in-javascript-resolved-promise-fates)  
+[Part VI: Promises vs Callbacks](/promises-vs-callbacks-in-javascript)  
+[Part VII: Async-Await](/promises-in-javascript-async-await)  
+
+---
+
+<br/>
+
+In the [previous section](/promises-in-javascript-promise-chaining-then-catch-finally), we saw the various instance methods available on a promise object namely `then()`, `catch()` and `finally()` and how they can be chained together to form a promise chain. 
+
+### Static Methods
+In this section, we are going to explore the various static methods in the Promise API, how to use them and what benefits they bring to the table.
+
+### `Promise.resolve()`
+The promise objects that we have created so far were always initially in the `pending` state and eventually became either `fulfilled` or `rejected` when we called `resolve()` or `reject()` inside the executor function. `Promise.resolve()` enables us to directly create a `fulfilled` promise object with the value that we pass to it.
+
+```js
+// returns an already fulfilled promise
+var promise = Promise.resolve( "fulfilled😇" );
+console.log( promise );
+
+// Promise { <state>: "fulfilled", <value>: "fulfilled😇" }
+```
+In the above example, `promise` directly attains the `fulfilled` state without ever being in the `pending` state. 
+
+`Promise.resolve()` comes in very handy when we want to quickly create a promise object without going through the whole constructor and executor function business. Just pass the value to `Promise.resolve()` as an input and you get back a promise object.
+
+### `Promise.reject()`
+Similar to `Promise.resolve()`, this function enables us to directly create a `rejected` promise object rejected with the reason that we pass to it.
+
+```js
+// returns an already rejected promise
+var promise = Promise.reject( "something went wrong🤦‍♂️" );
+console.log( promise );
+
+/*
+Promise { 
+  <state>: "rejected", 
+  <reason>: "something went wrong🤦‍♂️" 
+}
+
+Uncaught (in promise) something went wrong🤦‍♂️
+*/
+```
+In the above example, `promise` directly attains the `rejected` state without ever being in the `pending` state.
+
+### `Promise.all()`
+This is a very handy function for when we need to execute some asynchronous code only after a bunch of promises are finished executing. So in this case, we are not just waiting for one promise to be settled, we are waiting for one or more promises to be settled. 
+
+This function takes in 1 or more promises as inputs in the form of an *iterable* object or an array. 
+
+##### Wait...what's an *iterable* object?🤔
+We all know that we can loop over or iterate upon arrays and even strings. We couldn't loop over JS objects in the same way though. But with ES6, we now have an *iterable protocol* which says that if an object is constructed in a certain way, it can be iterated upon like an array. I'm not going to go into the full details of what iterables are in this article but you can learn more about them <a href="https://javascript.info/iterable" target="_blank">here<i class="material-icons">open_in_new</i></a>.
+
+Ok back to `Promise.all()`. For convenience, we'll just use an array of promises as an input to `Promise.all()`.
+
+`Promise.all()` returns a new promise. This returned promise object gets fulfilled when all of the input promises fulfill. It gets rejected if any of the input promises gets rejected. This is what makes `Promise.all()` suitable for managing multiple asynchronous operations that are dependent on each other. 
+
+```js
+var promise1 = new Promise( (resolve, reject) => {
+    setTimeout(() => {
+        resolve( 1 );
+    }, 1000);    
+});
+var promise2 = new Promise( (resolve, reject) => {
+    setTimeout(() => {
+        resolve( 2 );
+    }, 2000);    
+});
+var returnedPromise = Promise.all([ promise1, promise2 ]);
+
+// log returnedPromise before any of the promises settle
+console.log( "Initially: ", returnedPromise );
+
+// log returnedPromise after promise1 has settled
+promise1.then( value => {
+  console.log( "After promise1 settles: ", returnedPromise );
+});
+
+// log returnedPromise after promise2 has settled.
+promise2.then( value => {
+  console.log( "After promise2 settles: ", returnedPromise );
+});
+
+
+/*
+Initially: Promise { <state>: "pending" }
+After promise1 settles: Promise { <state>: "pending" }
+After promise2 settles: Promise {
+  <state>: "fulfilled",
+  <value>: [ 1, 2 ] 
+}
+*/
+```
+
+In the above example, `promise1` gets fulfilled after 1 second with a value of "1". But `returnedPromise` from `Promise.all()` doesn't get fulfilled yet. It waits for `promise2` in its input array to be settled as well. When `promise2` also gets fulfilled after 2 seconds with a value of "2", that is when `returnedPromise` gets fulfilled. The value that `returnedPromise` gets fulfilled with, is an array of the individual values that the input promises got fulfilled with, which in this case is `[ 1, 2 ]`.
+
+Let's consider an example where one of the promises gets rejected.
+
+```js {17}
+var promise1 = new Promise( (resolve, reject) => {
+    setTimeout(() => {
+        resolve( 1 );
+    }, 1000);    
+});
+var promise2 = new Promise( (resolve, reject) => {
+    setTimeout(() => {
+        reject( "something went wrong🤦‍♂️" );
+    }, 2000);    
+});
+var promise3 = new Promise( (resolve, reject) => {
+    setTimeout(() => {
+        resolve( 3 );
+    }, 3000);    
+});
+
+var returnedPromise = Promise.all([ promise1, promise2, promise3 ]);
+
+// log returnedPromise before any of the promises settle.
+console.log( "Initially: ", returnedPromise );
+
+// log returnedPromise after promise1 has settled
+promise1.then( value => {
+  console.log( "After promise1 settles: ", returnedPromise );
+});
+
+// log returnedPromise after promise2 settles.
+promise2.catch( value => {
+  console.log( "After promise2 settles: ", returnedPromise );
+});
+
+// log returnedPromise after promise3 settles.
+promise3.then( value => {
+  console.log( "After promise3 settles: ", returnedPromise );
+});
+
+/*
+Initially: Promise { <state>: "pending" }
+
+After promise1 settles: Promise { <state>: "pending" }
+
+After promise2 settles: Promise { 
+  <state>: "rejected", 
+  <reason>: "something went wrong🤦‍♂️" 
+}
+Uncaught (in promise) something went wrong🤦‍♂️
+
+After promise3 settles: Promise { 
+  <state>: "rejected", 
+  <reason>: "something went wrong🤦‍♂️" 
+}
+*/
+```
+
+In the above example, `promise1` gets fulfilled after 1 second. At this point, `returnedPromise` stays in the `pending` state as expected waiting for `promise2` and `promise3` to settle as well. But `promise2` gets rejected. This causes `returnedPromise` to be rejected as well with the same reason with which `promise2` rejected. 
+
+Also, `Promise.all()` doesn't wait for `promise3` to settle. As soon as it encounters a rejection in one of its input promises, `Promise.all()` will reject its returned promise which is why in promise-land, we say that `Promise.all()` *short-circuits* when an input promise is rejected. 
+
+n interesting scenario with `Promise.all()` is passing an empty array as an input. In this case, `Promise.all()` returns an already fulfilled promise with a blank array as the value. 
+
+```js
+var returnedPromise = Promise.all( [] );
+console.log( returnedPromise );
+
+// Promise { <state>: "fulfilled", <value>: [] }
+```
+
+In the previous examples, the returned promise was in the `pending` state initially and was later( or asynchronously) settled. In the above example, `returnedPromise` is already `fulfilled` i.e. it's fulfilled *synchronously*. This is the only case when `Promise.all()` synchronously returns a settled promise otherwise the returned promise is always settled asynchronously.
+
+### `Promise.allSettled()`
+This function is very similar to `Promise.all()` and it picks up where `Promise.all()` left off. `Promise.allSettled()` will actually wait for the completion of all asynchronous operations meaning it will return a promise that will be settled only when each and every input promise has settled. Even if there is a rejection in one of the input promises, the returned promise will still wait for the rest of the them to be settled before finally being settled itself. This is what makes `Promise.allSettled()` suitable for managing multiple asynchronous operations that are not dependent on each other. 
+
+`Promise.allSettled()` also takes an interable or an array as an input and returns a new promise.
+
+```js {17}
+var promise1 = new Promise( (resolve, reject) => {
+    setTimeout(() => {
+        resolve( 1 );
+    }, 1000);    
+});
+var promise2 = new Promise( (resolve, reject) => {
+    setTimeout(() => {
+        reject( "something went wrong🤦‍♂️" );
+    }, 2000);    
+});
+var promise3 = new Promise( (resolve, reject) => {
+    setTimeout(() => {
+        resolve( 3 );
+    }, 3000);    
+});
+
+var returnedPromise = Promise.allSettled([ promise1, promise2, promise3 ]);
+
+// log returnedPromise before any of the promises settle.
+console.log( "Initially: ", returnedPromise );
+
+// log returnedPromise after promise1 has settled
+promise1.then( value => {
+  console.log( "After promise1 settles: ", returnedPromise );
+});
+
+// log returnedPromise after promise2 settles.
+promise2.catch( value => {
+  console.log( "After promise2 settles: ", returnedPromise );
+});
+
+// log returnedPromise after promise3 settles.
+promise3.then( value => {
+  console.log( "After promise3 settles: ", returnedPromise );
+});
+
+/*
+
+Initially: Promise { <state>: "pending" }
+
+After promise1 settles: Promise { <state>: "pending" }
+
+After promise2 settles: Promise { <state>: "pending" }
+
+After promise3 settles: Promise { 
+  <state>: "fulfilled", 
+  <value>: [
+    { "status": "fulfilled", "value": 1 },
+    { "status": "rejected", "reason": "something went wrong🤦‍♂️" },
+    { "status": "fulfilled", "value": 3 }
+  ]
+}
+
+*/
+```
+
+In the above example, notice that `returnedPromise` did not reject when `promise2` rejected. Instead it waited till `promise3` had settled. After all three promises settled, `returnedPromise` got fulfilled. Also note that the value with which `returnedPromise` is fulfilled is different than in the case of `Promise.all()`. Here, the fulfilled value is not an array of simple values with which the input promises were fulfilled. It is instead an array of objects that represent the state of each of the input promises in the same order. If the input promise was fulfilled, the object contains `status` and `value` properties and if the input promise was rejected, it contains `status` and the rejection `reason`.
+
+So in the case of `Promise.allSettled()`, the returned promise will always be fulfilled. Even if all the input promises get rejected, the returned promise will still get fulfilled with an array of objects representing each rejected promise. 
+
+If we pass an empty array as an input to `Promise.allSettled()`, the behavior is similar to `Promise.all()` i.e. it returns (synchronously) an already fulfilled promise with value as a blank array. In all other cases, the returned promise will be in the pending state initially and will be settled asynchronously.
+
+### `Promise.race()`
+This function does exactly what its name suggests, it treats its input promises as if they are in a race and the promise that gets settled first, wins. The victory here is that `Promise.race()` will not wait for the other promises to be settled. As soon as the first input promise gets settled, the returned promise from `Promise.race()` will be either fulfilled with the same value or rejected with the same reason as the first settled input promise.
+
+`Promise.race()` also takes an interable or an array as an input and returns a new promise.
+
+```js {8}
+var promise1 = Promise.resolve( 1 );
+var promise2 = new Promise( (resolve, reject) => {
+    setTimeout(() => {
+        resolve( 2 );
+    }, 1000);    
+});
+
+var returnedPromise = Promise.race([ promise1, promise2 ]);
+
+// after promise1 gets settled 
+promise1.then( value => {
+  console.log( "After promise1 settles: ", returnedPromise );
+});
+
+/*
+After promise1 settles:  
+Promise { <state>: "fulfilled", <value>: 1 }
+*/
+```
+In the above example, since `promise1` is already resolved, `Promise.race()` does not wait for the completion of `promise2` and `returnedPromise` gets fulfilled with the same value as `promise1`. 
+
+If we replace `Promise.resolve()` with `Promise.reject()` in the above example, then `promise1` will get rejected but will still be the first input promise to settle. So `returnedPromise` will get rejected with the same value as `promise1`.
+
+If we pass an empty array to `Promise.race()`, the returned promise will stay in the `pending` state forever since there is no input promise that'll settle first, and in turn settle the returned promise.
+
+### `Promise.any()`
+
+>**Note**: `Promise.any()` is in the PROPOSAL stage and still not fully supported by browsers and platforms so I am not going to go into a lot of detail about it and will update this article when its properly supported at some point in the future. But I have included this just so you know that something like this is in the works and should be available soon.
+
+This function is similar to `Promise.race()`, the only difference being that while `Promise.race()` waits for the first input promise to be *settled*, `Promise.any()` waits for the first input promise to be `fulfilled`. Once an input promise is fulfilled, `Promise.any()` will not wait for other promises to fulfill. 
+
+The returned promise will be fulfilled with the same value as the first input promise that fulfilled. Unlike `Promise.race()`, `Promise.any()` will ignore any input promises that reject until the first input promise fulfills. If no input promises fulfill or if all promises reject, `Promise.any()` will throw an `AggregateError`( a subclass of `Error`) which will group together all individual errors.
+
+### Promise Combinators
+Together, `Promise.all()`, `Promise.allSettled()` and `Promise.race()`(also `Promise.any()` whenever it becomes available in the future) are referred to as Promise Combinators because they combine multiple promises and *flatten* them into a single promise that these functions return.
+
+##### Hmm...interesting🤔
+One peculiar behavior with these Promise combinators is that they accept non-promise values in the input array or iterable. So we can actually have something like this:
+
+```js
+...
+Promise.all([ "foo", promise, 2 ]);
+...
+```
+
+Don't get confused about how the rules we have learnt above apply to such mixed inputs. Let's first see how our Promise combinators behave when we pass an array with such mixed inputs.
+
+```js
+var returnedPromise1 = Promise.all([ "foo", Promise.resolve(1), 2 ]);
+returnedPromise1.then( console.log );
+// [ "foo", 1, 2 ]
+
+var returnedPromise2 = Promise.allSettled([ "foo", Promise.resolve(1), 2 ]);
+returnedPromise2.then( console.log );
+/*
+[
+	{ "status": "fulfilled", "value": "foo" },
+	{ "status": "fulfilled", "value": 1 },
+	{ "status": "fulfilled", "value": 2 }
+]
+*/
+
+var returnedPromise3 = Promise.race([ "foo", Promise.resolve(1), 2 ]);
+returnedPromise3.then( console.log );
+// "foo"
+```
+
+Looking at the output, it seems that the literal values in the input arrays are being treated as promise objects *fulfilled* with those values. That is actually right. If we replace the literal values with `Promise.resolve()`, the behaviour will remain the same.
+
+```js
+var returnedPromise1 = Promise.all([ 
+  Promise.resolve( "foo" ), 
+  Promise.resolve( 1 ), 
+  Promise.resolve( 2 ) 
+]);
+returnedPromise1.then( console.log );
+// [ "foo", 1, 2 ]
+
+var returnedPromise2 = Promise.allSettled([ 
+  Promise.resolve( "foo" ), 
+  Promise.resolve( 1 ), 
+  Promise.resolve( 2 ) 
+]);
+returnedPromise2.then( console.log );
+/*
+[
+	{ "status": "fulfilled", "value": "foo" },
+	{ "status": "fulfilled", "value": 1 },
+	{ "status": "fulfilled", "value": 2 }
+]
+*/
+
+var returnedPromise3 = Promise.race([ 
+  Promise.resolve( "foo" ), 
+  Promise.resolve( 1 ), 
+  Promise.resolve( 2 ) 
+]);
+returnedPromise3.then( console.log );
+// "foo"
+```
+
+So in the end, all values in the input arrays can be thought of as simply promises and the rules we have learnt in the sections above apply to them in the same way.
+
+---
+
+In the [next section](/promises-in-javascript-resolved-promise-fates) in this series, I am going to reveal a peculiar truth about promises that I intentionally chose to hide from you till now. I hope I have stirred your curiosity. See you there!
+
+##### [Next up: Resolved Promises and Promise Fates](/promises-in-javascript-resolved-promise-fates)👉

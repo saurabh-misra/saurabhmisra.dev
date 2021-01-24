@@ -1,0 +1,361 @@
+---
+title: "Understanding Promises in JavaScript: Part V - Resolved Promises and Promise Fates"
+date: 2021-01-16
+slug: "/promises-in-javascript-resolved-promise-fates"
+tags:
+  - JavaScript
+  - Promises
+---
+This is Part V of a series of articles that aim to explain in detail, the need, usage and benefits of Promises in JavaScript.
+
+[Part I:  Asynchronous Programming in JavaScript](/promises-in-javascript-asynchronous-programming)   
+[Part II: Promise States and Syntax](/promises-in-javascript-states-and-syntax)  
+[Part III: Promise Chaining with then(), catch() & finally()](/promises-in-javascript-promise-chaining-then-catch-finally)  
+[Part IV: Static Methods in the Promise API](/promises-in-javascript-static-methods)   
+Part V: Resolved Promises and Promise Fates  
+[Part VI: Promises vs Callbacks](/promises-vs-callbacks-in-javascript)  
+[Part VII: Async-Await](/promises-in-javascript-async-await)  
+
+---
+
+<br/>
+
+In the [previous section](/promises-in-javascript-static-methods), we came across the various static methods in the Promise API and how they can be used to return already settled promises and also work with multiple promises and asynchronous operations.
+
+But I also promised(pun intended) that I'll let out a little secret about promises that I had being holding off on till now. Let's get straight to it!
+
+In all the previous sections, have you noticed something fishy about the usage of the word *resolve*? For example, consider `Promise.resolve()`, if it returns an already fulfilled promise, why isn't it named something like `Promise.fulfill()`? Similarly, remember the 1st argument of the executor function? Although we can name it anything we want, it's standard to use the name `resolve()` for it. But again why is it not named `fulfill()` since all it does is change the state of the promise to `fulfilled`. Where did this word *resolve* come from?
+
+### Promise Fates
+We know that a promise can be in one of the 3 states, `pending`, `fulfilled` and `rejected`. But it also has certain *fates* associated with it. These fates are ***resolved*** and ***unresolved*** and this is how the word *resolve* comes into play. So what decides whether a promise is resolved or unresolved? Let's find out.
+
+So far, we have mostly played around with a single promise representing a single asynchronous operation. **The `then()` handlers attached to this promise only consumed the response from the original promise and returned values like objects, strings, numbers or `undefined`.** The promise returned from `then()` was fulfilled based on these values returned by its handlers. 
+
+```js
+fetch("https://api.github.com/users/saurabh-misra/repos")
+    // returns an object
+    .then( response => response.json() )
+    // returns a string
+    .then( repos => repos[2].name )
+    // returns undefined
+    .then( console.log )
+    .catch( reason => console.error( reason ) );
+
+/*
+pomodoro-timer
+*/
+```
+In the above example, the first `then()` returns an object and the returned promise is fulfilled with this object. The second `then()` returns a string and the returned promise is fulfilled with this string.
+
+But what happens if we return a promise from inside the `then()` handler instead of a simple string or a number? Does the returned promise get fulfilled with this promise? 
+
+Let's consider an example where we have to make two network requests. The second network request needs some inputs returned by the first network request so the second one needs to happen after the first one is finished.
+
+```js {7}
+// fetch all repos
+fetch("https://api.github.com/users/saurabh-misra/repos")
+    .then( response => response.json() )
+    // return the github URL of the 3rd repo in the list
+    .then( repos => repos[2].url )
+    // fetch details for this repo
+    .then( repoUrl => fetch(repoUrl) )
+    .then( response => response.json() )
+    .then( repoInfo => {
+        console.log("Name: ", repoInfo.name);
+        console.log("Description: ", repoInfo.description);
+    })
+    .catch( error => console.log("Error: ", error) );
+
+/*
+Name:  pomodoro-timer
+Description: A simple pomodoro timer web app 
+that helps you focus on your work.
+*/
+```
+The above example is an extension of the previous one. Similar to the previous one, the first `fetch()` call returns a list of all github repos for the particular github user. But instead of displaying the repo name, we choose a specific repo from this list and make a second `fetch()` call using the repo url to extract detailed information about that repo like repo name and description.
+
+Let's refactor this for our convenience so that we break the chain into two representing both the `fetch()` calls.
+
+```js {3,9-13}
+var reposUrl = "https://api.github.com/users/saurabh-misra/repos";
+// fetch all repos
+var promiseFetchRepos = fetch(reposUrl)
+    .then( response => response.json() )
+    // return the github URL of the 3rd repo in the list
+    .then( repos => repos[2].url );
+
+// fetch details for the 3rd repo
+var promiseFetchDetails = promiseFetchRepos
+    .then( repoUrl => {
+        var promiseSecondFetch = fetch(repoUrl);
+        return promiseSecondFetch;
+    });
+
+promiseFetchDetails
+    .then( response => response.json() )
+    .then( repoInfo => {
+        console.log("Name: ", repoInfo.name);
+        console.log("Description: ", repoInfo.description);
+    })
+    .catch( error => console.log("Error: ", error) );
+
+/*
+Name:  pomodoro-timer
+Description: A simple pomodoro timer web app 
+that helps you focus on your work.
+*/
+```
+
+Look at line number 12. Do you notice something you haven't seen before? The fulfilled handler returns a promise object, `promiseSecondfetch` which is returned by the second `fetch()` call. How does this affect `promiseFetchDetails`? If a string or a number was returned, `promiseFetchDetails` would have been fulfilled with that value. But in this case does it get fulfilled with the value as `promiseSecondfetch`? Nope.
+
+The answer is that `promiseFetchDetails` will *follow* `promiseSecondfetch`. But what does that mean?
+
+It's like you and your buddy went to the ice-cream store and you have to chose between vanilla and chocolate. Your buddy is trying to chose while you feel lazy and decide you'll have whatever he is having. So basically you'll just *follow* your buddy. While he's still deciding, you'll wait. If he decides to go with chocolate, you'll have chocolate. If he decides to go with vanilla, you'll have vanilla. 
+
+In the same way, `promiseFetchDetails` will surrender its own ability to fulfil or reject itself and instead *lock on* to the state of `promiseSecondfetch`. If `promiseSecondfetch` is pending, `promiseFetchDetails` will be pending. If `promiseSecondfetch` gets fulfilled with some value, `promiseFetchDetails` will also get fulfilled with the same value. If `promiseSecondfetch` gets rejected with some reason, `promiseFetchDetails` will also get rejected with the same reason. This behaviour is what makes `promiseFetchDetails` a ***resolved promise***.
+
+##### Resolved Promise
+A resolved promise is a promise that is either settled or is following another promise. In both cases, trying to resolve or reject the promise will have no effect on it. 
+
+We have already seen that settled promises cannot be further fulfilled or rejected so that means all ***settled promises are resolved***.
+
+##### Unresolved Promises   
+On other hand, if trying to resolve or reject a promise does have an effect on it, then its known as an *unresolved* promise. In all our previous examples, the promises that we created were in the *pending* state initially. We either fulfilled them with a value or rejected them with a reason and it changed their state which makes them *unresolved*.
+
+##### State and Fate Transitions
+Let's drive this concept home by tracking the state and fate transitions of `promiseFetchDetails` from the previous example. When `promiseFetchDetails` is initialized by the `then()` call, it is initially in the *pending* state. At this point, its fate is *unresolved* as a return/error from any one of the handlers of *its own* `then()` call can resolve or reject it. 
+
+But when the fulfilled handler of `then()` is invoked, it returns a promise i.e. `promiseSecondfetch`. At this point, `promiseFetchDetails` surrenders its ability to resolve or reject on its own and starts following `promiseSecondfetch`. So both, `promiseFetchDetails` and `promiseSecondfetch` are in the *pending* state but now `promiseFetchDetails`'s fate has transitioned to become a *resolved* promise. When `promiseSecondfetch` gets fulfilled a little while later, `promiseFetchDetails` also gets fulfilled with the same value. It still remains a resolved promise but now in the `fulfilled` state.
+
+##### Resolved Promises using `Promise.resolve()`
+We can similarly pass a promise object to `Promise.resolve()` instead of a simple string or number or in general a non-promise value.
+```js {2}
+var promise1 = Promise.resolve( 1 );
+var promise2 = Promise.resolve( promise1 );
+console.log( promise2 );
+
+// Promise { <state>: "fulfilled", <value>: 1 }
+```
+In the above example, the 2nd `Promise.resolve()` is passed a promise object, `promise1`, which is why `promise2` begins following `promise1` and gets fulfilled with the same value as `promise1`.
+
+##### Resolved Promises in the executor function
+We can also specify a promise object as an input while calling `resolve()` in the executor function instead of a non-promise value.
+```js {6}
+var promise1 = Promise.resolve( 1 );
+
+var promise2 = new Promise( resolve => {
+    // async operation goes here...
+
+    resolve( promise1 );
+});
+
+promise2.then( console.log );
+
+// 1
+```
+In the above example, the `resolve()` call is passed a promise object, `promise1` which results in `promise2` following `promise1` and getting fulfilled with the same value as `promise1`.
+
+##### It all makes sense now... 💡
+So this is why we were using the term *resolve* instead of *fulfill* because *fulfill* is specific to non-promise values but *resolve* is more generic and encompasses both promise and non-promise values. 
+
+### Promise Unwrapping
+Another terminology that you might read or hear about quite often is *promise unwrapping*. Its basically just another way to explain the resolved promise situation. When a promise is following another promise, the promise being followed is *unwrapped* and its contents are analyzed, meaning its state and its fulfilled value or rejected reason. The first promise then "assimilates" these contents and makes them its own. So in the examples we have seen so far, the `then()` handlers, `Promise.resolve()` and `resolve()` can all unwrap a promise object.
+
+### The curious case of `Promise.reject()` 🤔
+So how does promise unwrapping work in `Promise.reject()`? Answer is...*it doesn't*. Yes that's right, `Promise.reject()` cannot unwrap promises which means the promise returned by `Promise.reject()` can never follow another promise.
+```js {2}
+var promise1 = Promise.resolve( 1 );
+var promise2 = Promise.reject( promise1 );
+console.log( promise2 );
+/*
+Promise { 
+    <state>: "rejected", 
+    <reason>: Promise { 
+        <state>: "fulfilled", 
+        <value>: 1 
+    }
+}
+
+Uncaught (in promise) Promise { <state>: "fulfilled", <value>: 1 }
+*/
+```
+In the above example, `Promise.reject()` does not unwrap  `promise1`. `promise2` does not follow `promise1` and does not get resolved or rejected with a value/reason of 1. Instead it rejects with the reason as the entire `promise1` object.
+
+This seems weird at first but if you think about it, it is actually expected. `Promise.reject()` represents a failure situation where an error should be thrown. If `Promise.reject()` could unwrap `promise1` in the example above, `promise2` would get fulfilled with the value 1 which would silence the error that `Promise.reject()` was trying to throw in the first place.
+
+The same thing happens for the `reject()` call in the executor function. 
+```js {7}
+var promise1 = Promise.resolve( 1 );
+
+var promise2 = new Promise( (resolve, reject) => {
+
+    // async operation goes here...
+
+    reject( promise1 );
+
+});
+
+promise2
+    .catch( reason => console.log("Rejection reason: ", reason) );
+
+/*
+Rejection reason:  
+Promise { <state>: "fulfilled", <value>: 1 }
+*/
+```
+Here also, the `reject()` function does not unwrap `promise1`. It instead uses it as the rejection reason which is what is logged later in the `catch()` handler.
+
+##### Resolved Promise Chain
+We have seen how one promise can follow another promise but this can go on further. Like the 2nd promise can follow a 3rd promise which will in turn follow a 4th promise and so on. It will be equivalent to the first promise following the last promise in this chain of resolved promises.
+```js
+var promise1 = Promise.resolve( 1 );
+var promise2 = Promise.resolve( promise1 );
+var promise3 = Promise.resolve( promise2 );
+var promise4 = Promise.resolve( promise3 );
+
+console.log( promise4 );
+
+// Promise { <state>: "fulfilled", <value>: 1 }
+```
+In the above example, `promise4` is the first promise that follows the 2nd one i.e. `promise3` and so on till `promise1` which resolves to 1. 
+
+What would happen if there was a `Promise.reject()` call in their somewhere?
+```js {3}
+var promise1 = Promise.resolve( 1 );
+var promise2 = Promise.resolve( promise1 );
+var promise3 = Promise.reject( promise2 );
+var promise4 = Promise.resolve( promise3 );
+var promise5 = Promise.resolve( promise4 );
+
+console.log( promise5 );
+
+/*
+Promise { 
+	<state>: "rejected", 
+    <reason>: Promise { <state>: "fulfilled", <value>: 1 } 
+}
+
+Uncaught (in promise) 
+Promise { <state>: "fulfilled", <value>: 1 } 
+*/
+```
+In the above example, `promise2` follows `promise1` and gets fulfilled with a value of 1. `Promise.reject()` will be unable to unwrap `promise2`. So `promise3` will reject with the entire `promise2` object as the error reason. `promise4` will follow `promise3` and `promise5` will in turn follow `promise4` and both will attain the `rejected` state with the same reason as `promise3`.
+
+##### What about `catch()`?
+We have seen what happens when `then()` handlers return a promise but we have not talked about the behaviour when this happens inside `catch()` and `finally()` handlers. 
+
+Remember that catch is just a `then()` function with `undefined` as the fulfilled handler. So its behaviour is pretty much the same as `then()` which we have already seen but let's consider an example anyway.
+
+```js {3}
+var promise1 = Promise.resolve( 1 );
+Promise.reject( "oh no!" )
+    .catch( reason => promise1 )
+    .then( console.log );
+
+// 1
+```
+In the above example, the returned promise from `catch()` follows `promise1` and gets fulfilled with the value of 1. This value is then passed to `then()`'s fulfilled handler which logs it to the console.
+
+##### What about `finally()`?
+`finally()` behaves differently than `then()` and `catch()` in this case. If you remember, we discussed [here](http://localhost:8000/promises-in-javascript-promise-chaining-then-catch-finally) that the `finally()` handler is meant to do cleanup and not really supposed to return anything meaningful. It does return a promise but that is simply for the purpose of forming a promise chain. So its returned promise *already follows* the original promise on which it was invoked. Returning anything from the `finally()` handler has no effect on this behaviour. Let's see this in action.
+
+```js {3}
+var promise1 = Promise.resolve( 1 );
+Promise.resolve( 2 )
+    .finally( reason => promise1 )
+    .then( console.log );
+
+// 2
+```
+In the above example, the `finally()` handler returns `promise1` but that is ignored. The returned promise from `finally()` is already locked on to the returned promise of the second `Promise.resolve()` which is fulfilled with the value 2. So the returned promise from `finally()` also gets fulfilled with the value 2 and not 1. 
+
+To summarize, the functions that unwrap promises are
+1. `then()` and `catch()` handlers
+2. `Promise.resolve()`
+3. `resolve()` in the executor function
+
+BUT, they can also unwrap a *promise-like object* or a ***thenable***.
+
+Oh no, not another jargon!😵
+
+Sorry about that but I swear this is the last one...in this section! 🤷‍♂️
+
+### Thenables
+Before promises arrived natively in JS, there were(and still are) many separate independent promise implementations in the form of third-party libraries for example <a href="https://github.com/kriskowal/q" target="_blank">Q<i class="material-icons">open_in_new</i></a>, <a href="https://github.com/tildeio/rsvp.js/" target="_blank">RSVP<i class="material-icons">open_in_new</i></a>, etc. Even <a href="https://jquery.com/" target="_blank">jQuery<i class="material-icons">open_in_new</i></a> has its own *custom* implementation that they call `deferreds`. The name and the implementation might differ from library to library but the intention is the same, making asynchronous code behave like synchronous code. 
+
+The Promise functionalities these libraries expose are not native JS promises. They expose their own promise api on their custom *promise-like* objects. We call such non-native promises as thenables *IF* they adhere to certain rules from the <a href="https://promisesaplus.com/" target="_blank">Promise/A+ specification<i class="material-icons">open_in_new</i></a>. This adherence makes it easier for native and non-native promise implementations to play along nicely with each other. 
+
+For example, imagine you were using native JS promises in your application but now your native promise code needs to interact with some third-party library code that returns a custom promise implementation. You'd prefer to make this interaction as seamless as possible or in other words, for convenience, you'd just like to stay in native promise land even while handling the response from the third-party library code. This is where thenables can make things easier for you. The Promise specification has defined a minimum set of requirements that an object has to fulfill in order to be considered a thenable. It states that a thenable is any object or a function that defines a `then()` method. 
+
+So this could be considered a promise-like object or thenable
+```js
+// customPromise defines a `then()` method,
+// so that makes it a thenable.
+var customPromise = {
+    then: function( onFulfilled, onRejected ) {
+        
+        // a very simple 'then' method implementation.
+
+        // promise spec requires onFulfilled to be called asynchronously.
+        setTimeout( () => onFulfilled( 1 ), 1000);
+    }
+};
+```
+
+Some of this code might seem familiar. Keep in mind that this code is an implementation of a custom promise and not usage. That is why we have a definition for the `then()` method whereas so far we have been calling it on a promise object. 
+
+So this is a custom promise object that implements a `then()` method. Since it follows the rules laid out by the spec, it will work seamlessly with native JS promises.
+
+Now let's use this custom Promise object or thenable. Consider this scenario:
+```js {8}
+var thenable = {
+    then: function( onFulfilled, onRejected ) {
+        setTimeout( () => onFulfilled( 1 ), 1000);
+    }
+};
+
+Promise.resolve()
+    .then( () => customPromise )
+    .then( console.log );
+
+// 1
+```
+When JS encounters this custom promise object on line 8 as the return value from the `then()` fulfilled handler, it checks whether this object can be *unwrapped*. Since this is a thenable and defines a `then()` method and follows the Promise specification, JS will be able to unwrap it. 
+
+JS will treat the custom `then()` method of the thenable as an executor function. Just like its native counterpart, JS will pass in 2 arguments(like `resolve()` and `reject()`) to this custom `then()` method and will wait for either of them to be called. This means that the thenable will take on the *pending* state initially. Since the `onFulfilled()` handler is called after 1 second, the thenable will be considered `fulfilled` with whatever value the handler returns, in this case, 1.
+
+This is how JS is able to cast the thenable into a native promise and is able to unwrap it so that the returned promise from our `then()` handler is able to *follow* this thenable just like it would follow a native promise object. Line 9 will log the fulfilled value i.e "1" which confirms that the returned promise from the first `then()` has successfully been resolved with the thenable. 
+
+Let's confirm what happens if the `onRejected` handler of the custom `then()` function is invoked. You can probably guess by now that it will reject the returned promise with the reason returned from the handler and you'd be right.
+```js {3,8}
+var customPromise = {
+    then: function( onFulfilled, onRejected ) {
+        setTimeout( () => onRejected( "oh no!" ), 1000);
+    }
+};
+
+Promise.resolve()
+    .then( () => customPromise )
+    .catch( console.log );
+
+// oh no!
+```
+
+<br />
+
+### To Summarize...
+
+1. Promises, along with having a *state* also have certain *fates* associated with them which are *resolved* and *unresolved*.
+2. Settled Promises and promises that follow other promises are *resolved*. Promises in the pending state that are not following any other promise are *unresolved*.
+3. The functions that can unwrap promises or thenables are `then()` and `catch()` handlers, `Promise.resolve()` and `resolve()` in the executor function.
+4. `Promise.reject()` and `reject()` in the executor function cannot unwrap promises/thenables. Also `finally()` ignores any promise returned from within its handler.
+5. Thenables are promise-like objects that follow Promise/A+ specs and work seamlessly with native Promise API.
+
+---
+
+In the [next section](/promises-vs-callbacks-in-javascript) in this series, we are going to compare Promises with Callbacks and get a better idea of why and when we should use one over the other. See you there!
+
+##### [Next up: Promises vs Callbacks](/promises-vs-callbacks-in-javascript)👉
+
+
+

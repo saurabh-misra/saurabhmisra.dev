@@ -1,0 +1,165 @@
+---
+title: "Understanding Promises in JavaScript: Part I - Asynchronous Programming in JavaScript"
+date: 2021-01-16
+slug: "/promises-in-javascript-asynchronous-programming"
+tags:
+  - JavaScript
+  - Promises
+---
+This is Part I of a series of articles that aim to explain in detail, the need, usage and benefits of Promises in JavaScript.
+
+Part I:  Asynchronous Programming in JavaScript  
+[Part II: Promise States and Syntax](/promises-in-javascript-states-and-syntax)  
+[Part III: Promise Chaining with then(), catch() & finally()](/promises-in-javascript-promise-chaining-then-catch-finally)  
+[Part IV: Static Methods in the Promise API](/promises-in-javascript-static-methods)   
+[Part V: Resolved Promises and Promise Fates](/promises-in-javascript-resolved-promise-fates)  
+[Part VI: Promises vs Callbacks](/promises-vs-callbacks-in-javascript)  
+[Part VII: Async-Await](/promises-in-javascript-async-await)  
+
+---
+
+Up until a few years ago, the server did most of the heavy lifting when it came to handling business logic. The client-side didn't do a lot except respond to user interactions, change something in the DOM every now and then and make the occassional AJAX request to process a form submission. 
+
+But things have changed a lot during the past couple of years with the JavaScript's evolution into a first-class programming language. Today, web apps have  diversified into Single Page Applications or SPAs(think GMail) and Progressive Web Apps or PWAs(think Twitter) that are heavily powered by JavaScript. JavaScript usage is not limited to just building native-app like fluid UIs in web apps but extends to building APIs, mobile apps and even desktop apps.
+
+So how is a single-threaded language like JavaScript able to contend with other more powerful multi-threaded programming languages(like C# or Java) in such a multitude of software development scenarios? The answer lies in JavaScript's unique way of handling concurrency and asynchronicity. With its growing popularity, its crucial that JS developers understand the tools for handling asynchronicity. Let's find out more!
+
+>**Note:** These series of articles mainly revolve around client-side JavaScript that runs in the browser. The core concepts, for the most part, also apply as-is to server-side JavaScript using NodeJS. 
+
+### Synchronous JavaScript
+Synchronous execution of code basically means executing code sequentially one statement at a time. A statement cannot be executed unless the statement before it has finished executing. This is termed as the *blocking* nature of synchronous code because the current operation *blocks* the execution of the next operation.  
+
+```js
+var first = "I'll be executed first";
+
+var second = "I'll be executed next";
+
+console.log("I'll be executed last");
+```
+In the above example, each statement will be executed in sequence after the previous has finished executing.
+
+JavaScript is single-threaded meaning that the JavaScript process runs a single thread, called the main thread where our code is executed synchronously.
+
+While the execution of the statements in the previous example happens almost instantaneously, operations such as network requests and timeouts could end up taking an indeterminate amount of time. If such operations are handled synchronously, they would freeze the browser which would pause all rendering and user interactions.
+
+Consider the following example with an `alert` simulating such a time-consuming operation.
+```js
+// simulate a time-consuming operation.
+alert("I'm going to freeze this browser!😈");
+
+console.log("Yayy! The alert is gone.🎉");
+```
+In the above example, the alert behaves synchronously and blocks the execution of the statement after it and freezes the browser window/tab until you click OK.
+
+This is why JavaScript executes time consuming operations asynchronously so that the browser can continue rendering and accepting user inputs. 
+
+### Asynchronous JavaScript
+Asynchronous execution of code basically means that a certain part of your code will be executed *at a later point in time* after an asynchronous operation completes. An asynchronous operation is something that takes an unknown amount of time for completion eg. network requests, timeouts, etc. It can also be an event which can occur at any point in the future for example, user interaction events like button clicks which will then kick off the execution of some code inside the click event handler. While the asynchronous operation is in progress, your program need not wait for it to complete and can continue to run and so, is *not blocked*. 
+
+Let's consider the previous example with the blocking `alert()` replaced with `setTimeout()`.
+
+```js
+// asynchronous
+setTimeout( function onTimeout() {
+  console.log("I'll run asynchronously so I won't freeze anything.😇");
+}, 1000); 
+
+console.log("Woo hoo!! No more freezing!🎉");
+
+/*
+Woo hoo!! No more freezing!🎉
+
+I'll run asynchronously so I won't freeze anything.😇
+*/
+```
+Since `setTimeout()` is asynchronous, the program is not blocked and JS proceeds ahead to execute the statements that come after it. After the 1 second timeout, the asynchronous code inside the callback `onTimeout()` callback is executed. If `setTimeout()` was not asynchronous, the program would pause and the browser would freeze for a whole second just like in the previous example that used `alert()`. 
+
+But if JavaScript is single-threaded and is executing some other program while the 1 second timer is in progress, who is keeping track of the time for `setTimeout()`? That is the job of the environment in which JS runs. On the client-side that environment is your browser while on the server-side, its NodeJS.
+
+Whenever JS encounters the start of an asynchronous operation like a timeout or a network request, it signals the environment, and the environment takes over the charge of handling it. When the asynchronous operation completes, the environment signals JS which in turn executes asynchronous code.
+
+So in the previous example, when JS initiates the timeout, it hands over the responsibility of keeping track of the time to the browser. JS also supplies a callback function, `onTimeout()`,  that contains our asynchronous code. In the meantime, JS will keep executing other code. After 1 second, the browser will tell JS, "Hey! the timeout has completed so you should invoke this callback you gave me.". 
+
+Let's consider the scenario when we make a network request. We'll use the traditional `XMLHttpRequest` for this.
+
+```js
+// asynchronous
+var xhr = new XMLHttpRequest();
+xhr.addEventListener("load", function onLoad() {
+  console.log("I'll run asynchronously so I won't block anything.😇");
+});
+xhr.open("GET", "https://api.github.com/users/saurabh-misra");
+xhr.send();
+
+console.log("Woo hoo!! No more freezing!🎉");
+
+/*
+Woo hoo!! No more freezing!🎉
+
+I'll run asynchronously so I won't block anything.😇
+*/
+```
+Similar to the `setTimeout()` scenario, JS will initialize the network request and hand things over to the browser. It will also tell the browser to call the `onLoad()` function once the request is complete. The browser will take care of sending the request and waiting for the response. In the meantime, JS will continue to execute the rest of the program and will print the text provided to `console.log()`. When the request completes, the browser will tell JS to execute `onLoad()`.
+
+On the same lines, when we add a click event listener to a DOM element say a button, the code inside the handler is executed...you guessed it, *asynchronously*! Which means at a later point in time whenever the user clicks on the configured DOM element. 
+
+```js
+var btn = document.getElementById( "btn" );
+
+// asynchronous
+btn.addEventListener( "click", function onButtonClick(){
+  console.log( "I'll run asynchronously so I won't block anything.😇" );
+});
+
+console.log("Woo hoo!! No more freezing!🎉");
+
+/*
+Woo hoo!! No more freezing!🎉
+
+I'll run asynchronously so I won't block anything.😇
+*/
+```
+<p>
+<a href="https://jsbin.com/mamatipipa/edit?html,js,console,output" target="_blank">Run in JSBin<i class="material-icons">open_in_new</i></a>   
+</p>
+
+In the above example, the JS engine instructs the environment to let it know whenever a click event occurs on the configured `button` element and passes it the `onButtonClick()` handler. When the user clicks the button at some point in the future, the browser informs the JS engine about it and tells it to invoke the handler.
+
+##### So is JavaScript synchronous, asynchronous or both?
+JavaScript is synchronous, period! By itself, it has no clue how to behave asynchronously or how to delay the execution of a part of your code. But it teams up with the browser/environment to do all kinds of asynchronous stuff. Sweet eh!
+
+Our job as developers is to gracefully manage the state of our application while dealing with these asynchronous operations. We have a couple of options to achieve this. The first is to use the traditional Asynchronous Callbacks and the second are the new and powerful Promises made even more irresistible by Async/Await.
+
+### Asynchronous Callbacks
+Asynchronous callbacks are basically just functions that wrap asynchronous code and are passed as input arguments to other functions that initiate asynchronous operations. In our previous examples, `onTimeout()`, `onLoad()` and `onButtonClick()` are all examples of asynchronous callbacks. The idea is that these functions will be *called back* when the asynchronous operation completes.
+
+But remember that not all callbacks are asynchronous callbacks.
+
+```js
+const cars = ['BMW', 'Mercedes', 'Audi'];
+
+// synchronous
+cars.forEach(function displayCar(car, index){
+  console.log( (index+1) + '. ' + car );
+});
+
+/*
+1. BMW
+2. Mercedes
+3. Audi
+*/
+```
+In this example, `displayCar()` is passed in as an argument to the `forEach()` function. But `forEach()` is synchronous and does not initiate an asynchronous operation. So the code inside `displayCar()` is executed synchronously. So even though `displayCar()` is a callback function, it is not an asynchronous callback function.
+
+So while all asynchronous callbacks are callbacks, not all callbacks are asynchronous.🤯
+
+Traditional callbacks are adequate for simpler scenarios where only a few asynchronous operations need to be managed. But they prove incompetent in the increasingly complex scenarios JavaScript is used in nowadays.
+
+### Promises🤘
+Promises have been introduced for the sole purpose of empowering JavaScript and enabling JavaScript developers to make asynchronous operations more manageable. We are going to go into a lot more detail and discuss Promise syntax and the benefits they bring to the table as compared to callbacks in the following sections.
+
+<br />
+
+##### [Next up: Promise States and Syntax](/promises-in-javascript-states-and-syntax)👉
+
+

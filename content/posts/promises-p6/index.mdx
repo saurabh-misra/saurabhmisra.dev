@@ -1,0 +1,363 @@
+---
+title: "Understanding Promises in JavaScript: Part VI - Promises vs Callbacks"
+date: 2021-01-16
+slug: "/promises-vs-callbacks-in-javascript"
+tags:
+  - JavaScript
+  - Promises
+---
+This is Part VI of a series of articles that aim to explain in detail, the need, usage and benefits of Promises in JavaScript.
+
+[Part I:  Asynchronous Programming in JavaScript](/promises-in-javascript-asynchronous-programming)   
+[Part II: Promise States and Syntax](/promises-in-javascript-states-and-syntax)  
+[Part III: Promise Chaining with then(), catch() & finally()](/promises-in-javascript-promise-chaining-then-catch-finally)  
+[Part IV: Static Methods in the Promise API](/promises-in-javascript-static-methods)   
+[Part V: Resolved Promises and Promise Fates](/promises-in-javascript-resolved-promise-fates)  
+Part VI: Promises vs Callbacks  
+[Part VII: Async-Await](/promises-in-javascript-async-await)  
+
+---
+
+<br/>
+
+In this section, we are going to look at the differences between async callbacks and promises. I am going to assume that by now you must have already used async callbacks or at least know how to use them. Now that we also know how to work with and use Promises, I think now is a great time to discuss why we need to use promises if we already had a way to handle asynchronous operations by using async callbacks.
+
+For simpler, smaller apps where there are not many async operations involved, async callbacks might be a simpler alternative to promises. But for larger, more complex apps where you as a developer, need to manage multiple consecutive or paralell asynchronous operations, managing all of them using callbacks can get ugly in a lot of ways. 
+
+Nowadays a lot of the apps are fat-client apps meaning a lot of the business logic is handled on the client-side using JS so the probability that you'll have to deal with multiple async operations at some point in your app development is quite high. 
+
+Also, promises are a dedicated way to manage async operations. They are especially built for that purpose. That is not the case with callbacks because they are used generically in other non-async contexts also. What this means is that using a specific tool for the job at hand can prove to be more efficient than a generic tool. 
+
+Let's take a look at some of the shortcomings of async callbacks.
+
+### Callback problem #1: Callback hell
+A single callback based AJAX call might look something like this.
+
+```js
+// jQuery based pseudo-code
+$.ajax({
+    ...
+    success: function(){
+        // handle success    
+    },
+    error: function(){
+        // handle error
+    }
+});
+```
+
+<br/>
+
+What happens if we need to make 2 AJAX calls one after the other. Consider the same example from the previous sections where we fetch some basic github repo information.
+
+
+```js
+// jQuery AJAX call
+$.ajax({
+  url: "https://api.github.com/users/saurabh-misra/repos",
+  success: function(repos) {
+    // jQuery AJAX call
+    $.ajax({
+      url: repos[2].url,
+      success: function(repoInfo) {
+        console.log("Name: ", repoInfo.name);
+        console.log("Description: ", repoInfo.description);
+      },
+      error: function(error) {
+        console.error(error);
+      }
+    });
+
+  },
+  error: function() {
+    console.error(error);
+  }
+});
+
+/*
+Name: pomodoro-timer
+Description: A simple pomodoro timer web app 
+that helps you focus on your work.
+*/
+
+```
+<p>
+  <a href="https://jsbin.com/pihesesice/edit?js,console" target="_blank">Run in JSBin<i class="material-icons">open_in_new</i></a>   
+</p>
+
+Notice how the code gets indented towards the right because of the nested AJAX call. Imagine what this code would look like if several such consecutive AJAX calls were involved.
+
+```js
+// jQuery based pseudo code
+$.ajax({
+    success: function(response){
+        $.ajax({
+            success: function(){
+                $.ajax({
+                    success: function(){                  
+                        $.ajax({
+                            success: function(){     
+                                $.ajax({
+                                    success: function(){
+                                        // handle success    
+                                    }
+                                });    
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+});
+```
+
+This kind of indented code is called as ***callback hell*** or the ***pyramid of doom***. It's not difficult to understand why these names are given to this kind of code structure. But the callback hell problem is not limited to indentation alone. This code is indeed hard to read but the problem with this kind of code is more subtle. Let's try to make this more readable by encapsulating each AJAX call in a function
+```js
+// jQuery pseudo code
+
+function doAJAXCallOne(){
+    $.ajax({
+        success: function(){
+            // handle success    
+        }
+    });
+}
+
+function doAJAXCallTwo(){
+    $.ajax({
+        success: function(){
+            doAJAXCallOne();       
+        }
+    });
+}
+
+function doAJAXCallThree(){
+    $.ajax({
+        success: function(){
+            doAJAXCallTwo();       
+        }
+    });
+}
+
+function doAJAXCallFour(){
+    $.ajax({
+        success: function(){
+            doAJAXCallThree();       
+        }
+    });
+}
+
+function doAJAXCallFive(){
+    $.ajax({
+        success: function(){
+            doAJAXCallFour();       
+        }
+    });
+}
+```
+
+There you have it! We have taken care of the indentation problem. This code uses the same callback mechanism but is much more readable. 
+
+##### So is the problem solved? 
+Far from it. The more subtle problem with this kind of code is not the indentation but the mental strain your brain needs to go through while navigating through this code for understanding how it works or debugging. It may not seem like much in the above example because it's pseudo-code without actual success/error handling code but an actual script with these many ajax calls and handlers will prove my point.
+
+You might be thinking that such kinds of situations are rare but that is not the case, at least not nowadays. I have had the displeasure of trying to find my way through such heavily nested callback-based code to make some changes to it and it was not fun. After the second or the third level of nesting, I had to literally go back to remember where I was before I tried to proceed. 
+
+Imagine bouncing around from one callback to another with all that code while keeping in mind what part of the code will execute immediately whereas what will execute later i.e. the code inside the callbacks.
+
+So the code is still hard to read and navigate through. The problem with hard to read code is that when we don't fully understand what it's doing and make changes to it, we open our doors to bugs.
+
+### A Case Study
+As I mentioned I faced this problem of callback hell first-hand which is why I'm going to discuss it to make it clearer why callbacks could be a bad idea for multiple async operations and how promises can save the day. The project that I work on required integration with a payment gateway. This payment solutions provider exposed a set of APIs that developers could call to make a purchase.
+
+I can't use the actual code here of course so here is a rough pseudo-code representation of what was actually happening.
+
+```js
+// pseudo code
+
+// Make ajax request to store CC info in client's payment gateway account
+ajax({
+  success: function() {
+    // Make an ajax call to verify this response
+    ajax({
+      success: function() {
+        // Make ajax request to process one part of the payment
+        ajax({
+          success: function() {
+            // Make an ajax call to verify this response
+            ajax({
+              success: function() {
+                // Make ajax request to process second part of the payment
+                ajax({
+                  success: function() {
+                    // Make an ajax call to verify this response
+                    ajax({
+                      success: function() {
+                        // Make ajax call to mark order as complete in our own API
+                        ajax({
+                          success: function() {
+                            // handle final success
+                          },
+                          error: function() {
+                            // handle errors
+                          }
+                        });
+                      },
+                      error: function() {
+                        // handle errors
+                      }
+                    });
+                  },
+                  error: function() {
+                    // handle errors
+                  }
+                });
+              },
+              error: function() {
+                // handle errors
+              }
+            });
+          },
+          error: function() {
+            // handle errors
+          }
+        });
+      },
+      error: function() {
+        // handle errors
+      }
+    });
+  },
+  error: function() {
+    // handle errors
+  }
+});
+
+
+```
+
+<br/>
+
+*Lo and behold, callback hell in all its glory!*
+
+This is a highly simplified version of the code of course. My teammate however did a splendid job of making this more readable by encapsulating it into various functions.
+
+```js
+// pseudo code
+
+function handleErrors(){ ... };
+
+function verifyResponse( fnMakeNextAJAXCall ){ 
+	ajax({
+		success: function(){
+			fnMakeNextAJAXCall();
+		},
+		error: handleErrors
+	});
+}
+
+function storeCCDetails(){
+	ajax({
+		success: function(){
+			verifyResponse( processFirstPayment );
+		},
+		error: handleErrors
+	});
+}
+
+function processFirstPayment(){
+	ajax({
+		success: function(){
+			verifyResponse( processSecondPayment );
+		},
+		error: handleErrors
+	});
+}
+
+function processSecondPayment(){
+	ajax({
+		success: function(){
+			verifyResponse( markOrderAsComplete );
+		},
+		error: handleErrors
+	});
+}
+
+function markOrderAsComplete(){
+	ajax({
+		success: function(){
+			// handle success
+		},
+		error: handleErrors
+	});
+}
+
+storeCCDetails();
+```
+Again, the indentation problem is definitely resolved and this is much more readable. But try navigating through the code. Start with the call to `storeCCDetails()` at the bottom. Do you find yourself bouncing around from one function to the other? Now imagine doing that when these functions have several hundreds of lines of code inside them. 
+
+There is not really anything more than this that one can do to make callback based code more manageable. 
+
+But let's see how promises can take this to the next level.
+
+```js
+// pseudo code
+
+fetch( /*store cc details*/ )
+  .then( () => fetch( /*verify response*/ ))
+  .then( () => fetch( /*make first payment*/ ))
+  .then( () => fetch( /*verify response*/ ))
+  .then( () => fetch( /*make second payment*/ ))
+  .then( () => fetch( /*verify response*/ ))
+  .then( () => fetch( /*mark order as complete*/ ))
+  .catch( () => {
+    // handle errors
+  })
+  .finally( () => {
+    // perform clean up
+  });
+```
+
+Whoa!!😱 I don't know about you but to me, this code seems like a breath of fresh air as compared to the previous two code samples. No more nesting! No more pyramids of doom! No more jumping around! We can understand the entire sequence of events with just a single glance. 
+
+A developer who sees this code for the first time will easily be able to grasp the sequence of events and predict the impact of any change that needs to be made. This will reduce the probability of any bugs being introduced. 
+
+### Callback problem #2: Inversion of control
+With callbacks, the entire *control* of the execution of our async code is in the hands of the function/service/code to which we pass the callback as an argument. 
+
+For instance, in the above examples, we are wrapping our async code in an anonymous function and passing it as the `success()` callback to jQuery's ajax function. Now jQuery is a pretty stable library but for example, you are using a different third-party library and you send a callback and this library has a bug and it ends up either not calling your `success()` callback function or maybe calling it more than once. 
+
+This is probably never going to happen but imagine if it does happen. If this library is used instead of jQuery in the above payment transaction example, it can cause skipped or duplicate payments and can lead to some really angry customers. Not to mention it would be a nightmare for you or your dev team in trying to debug what or why this is happening. 
+
+This is known as *inversion of control* since we are losing control of the execution of a certain part of our own program i.e. the asynchronous code inside the callback.
+
+##### With Promises, you're in control...
+With promises, the control remains within our app. If we choose a 3rd-party library that supports promises, it will return a promise and we will wrap our async code in a `then()` handler and attach it to this promise. Now the execution of this code depends upon the whether the promise gets fulfilled or rejected, and the promise object resides within our own app so no more surrendering control to another service. 
+
+Also, we already know that promises can be either fulfilled or rejected only once and so our async code inside the fulfilled and rejected handlers will always be executed only once no matter what. So we don't have to worry about the payment issues we discussed above.
+
+### If and When...
+Callbacks are great for *events* like a click event, where we need to do something *when* the event happens. The event can happen multiple times and we need to execute the same code that many times. But async operations are different because we are not concerned with *when* the async operation succeeds or fails. We are more interested in *if* it succeeds or fails so that we can execute code accordingly. 
+
+This is the basic difference between Promises and Async Callbacks i.e. their approach towards managing asynchronous operations. Async Callbacks are more interested in *when* an async operation started, succeeded or failed. Promises are only interested in the status of the async operation i.e. *if* the operation is still in progress or *if* it has succeeded or *if* it has failed.
+
+### More Power
+
+We have already discussed the methods and static functions that the Promise API exposes which offer more control over managing async operations. These are things that are either not possible with async callbacks or require relatively complex implementations to be made possible. 
+
+So not only do Promises solve problems with callbacks, they introduce loads of new features and techniques for writing more manageable asynchronous code.
+
+### To Summarize...
+
+When multiple async operations are involved, async callbacks start posing problems such as *callback hell* and *inversion of control* that make it harder for us devs to read, debug and maintain code.
+
+Promises are a specific solution for managing asynchronous operations and don't suffer from any of the problems related with async callbacks. Instead, they bring more power in the form of Promise API methods and several other features.
+
+It might be a bit difficult to wrap your head around promises at first but the more you use them, the more second nature they'll become and will seem just as simple and straightforward as callbacks. Moreover, most of the recent and new online tutorials and courses, libraries and their documentations, QnA forums, etc. have all started using promises in some shape, fashion or form so the sooner you get used to them, the better.
+
+---
+
+If you thought promises made code more readable, wait till you check out `async`-`await`. That is the topic of discussion in the [final article](/promises-in-javascript-async-await) in this series. See you there! 
+
+##### [Next up: Async-Await](/promises-in-javascript-async-await)👉

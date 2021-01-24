@@ -1,0 +1,572 @@
+---
+title: "Understanding Promises in JavaScript: Part III - Promise Chaining with then(), catch() & finally()"
+date: 2021-01-16
+slug: "/promises-in-javascript-promise-chaining-then-catch-finally"
+tags:
+  - JavaScript
+  - Promises
+---
+This is Part III of a series of articles that aim to explain in detail, the need, usage and benefits of Promises in JavaScript.
+
+[Part I:  Asynchronous Programming in JavaScript](/promises-in-javascript-asynchronous-programming)   
+[Part II: Promise States and Syntax](/promises-in-javascript-states-and-syntax)   
+Part III: Promise Chaining with then(), catch() & finally()   
+[Part IV: Static Methods in the Promise API](/promises-in-javascript-static-methods)   
+[Part V: Resolved Promises and Promise Fates](/promises-in-javascript-resolved-promise-fates)  
+[Part VI: Promises vs Callbacks](/promises-vs-callbacks-in-javascript)  
+[Part VII: Async-Await](/promises-in-javascript-async-await)  
+
+---
+
+<br/>
+
+In the [previous section](), we have learnt how to create Promises using the `Promise()` constructor. We also saw the various states a promise can be in as well as how to make the promise transition from `pending` to either `fulfilled` or `rejected` states. 
+
+### Consuming Promises
+This article is going to focus on how to consume promises. As I mentioned in the previous article that for the most part, you'll need to consume promise objects returned by Web APIs or third-party APIs. When I say consume I mean you'll need to *configure* the promise so that your success scenario code runs when the promise goes from `pending` to `fulfilled` and your failure scenario code runs when it transitions from `pending` to `rejected`.
+
+Based on the examples we have seen in the previous section, you can visualize the promise object as kind of like a *wrapper* around an asynchronous operation. This wrapper exposes several API methods that enable us to run success/failure scenario scripts, perform error handling, manage multiple asynchronous operations and much more. 
+
+We have instance methods called on a particular promise object as well as static methods invoked directly on the `Promise` class. We'll focus on the instance methods in this article and tackle static methods in the next one.
+
+There are 3 instance methods available on a promise object, they are `then()`, `catch()` and `finally()`. Let's look at them one by one.
+
+### The `then()` method
+The promise object has a method called `then()` that lets you associate handlers to execute code when the promise is `fulfilled` or `rejected`. It accepts two functions as arguments. The first one acts as the handler for the `fulfilled` state and the other one for the `rejected` state. 
+
+Let's look at an example with the fulfilled scenario handler first.
+
+```js {10}
+var promise = new Promise( (resolve, reject) => {
+
+    setTimeout(() => {
+        resolve( "I am now fulfilled😇" );
+    }, 1000);
+    
+});
+
+var handleFulfilled = value => { console.log( value ); };
+promise.then( handleFulfilled );
+
+// I am now fulfilled😇
+```
+In the above example, `then()` will hook the `handleFulfilled()` handler to the promise object so that it gets invoked if the promise is fulfilled. Not only that but the `handleFulfilled()` function will also receive the `value` the promise is fulfilled with(the value we pass to the `resolve()` call) as an input. After the 1 second timeout, the promise transitions to the `fulfilled` state and `handleFulfilled()` gets called and logs the value we passed to the `resolve()` function onto the console.
+
+Let's look at the same example with the failure scenario handler added as well.
+
+```js {10,11}
+var promise = new Promise( (resolve, reject) => {
+
+    setTimeout(() => {
+        reject( "something went wrong🤦‍♂️" );
+    }, 1000);
+    
+});
+
+var handleFulfilled = value => { console.log( value ); };
+var handleRejected = reason => { console.log( reason ); };
+promise.then( handleFulfilled, handleRejected );
+
+// something went wrong🤦‍♂️
+```
+
+The `handleRejected()` function works like an error handler and catches the error thrown by `reject()`. The error reason we called `reject()` with, is passed to the handler as an input. In this case, after the 1 second timeout, the promise gets rejected and our handler is invoked. It simply logs the reason to the console and suppresses the error.
+
+**The `then()` method returns a new promise object.** When the original promise gets settled and either of the two handlers are invoked, the eventual state of this returned promise depends upon what happens inside the `handleFulfilled()` and `handleRejected()` handlers. 
+
+Just like `resolve()` and `reject()` were responsible for changing the state of the original promise, `handleFulfilled()` and `handleRejected()` will be responsible for changing the state of the promise returned by `then()`. 
+
+If either of these handlers return a value, the returned promise will get fulfilled with that value. If they don't return anything, the returned promise will get fulfilled with `undefined`. If either of these handlers throw an error, the returned promise will get rejected. 
+
+```js
+var origPromise = new Promise( (resolve, reject) => {
+
+    setTimeout(() => {
+        resolve( "original promise is fulfilled😇" );
+    }, 1000);
+    
+});
+
+var handleFulfilled = value => { 
+  console.log( value ); 
+  return "returned promise is also fulfilled😇😇";
+};
+var returnedPromise = origPromise.then( handleFulfilled );
+
+// log the returned promise in the console 
+// before the async op has completed.
+console.log( "Returned Promise before:", returnedPromise );
+
+// log the returned promise in the console 
+// after the async op has completed.
+setTimeout(() => {
+  console.log( "Returned Promise after:", returnedPromise );
+}, 2000);
+
+/*
+OUTPUT
+Returned Promise before: Promise { <state>: "pending" }
+
+original promise is fulfilled😇
+
+Returned Promise after: Promise { 
+    <state>: "fulfilled", 
+    <value>: "returned promise is also fulfilled😇😇" 
+  }
+*/
+```
+
+In the above example, the `then()` method returns a new promise i.e `returnedPromise`. It initially remains in the `pending` state. When `origPromise` resolves after the 1 second timeout, the `handleFulfilled()`handler is invoked which returns a string. Since it returns a *value*, `returnedPromise` gets fulfilled with this value or string. We have a second `setTimeout()` on line 21 to log `returnedPromise` after 2 seconds i.e well after the 1 second timeout and after both promises have resolved.
+
+##### What if there is an error in the fulfilled handler?
+If in the above example, instead of returning a value, if an error occurs inside the `handleFulfilled()` handler, `returnedPromise` will be rejected with the error reason returned from `handleFulfilled()`. If no reason is specified, it'll be rejected with `undefined`.
+
+```js {11}
+var origPromise = new Promise( (resolve, reject) => {
+
+    setTimeout(() => {
+        resolve( "original promise is fulfilled😇" );
+    }, 1000);
+    
+});
+
+var handleFulfilled = value => { 
+    console.log( value ); 
+    throw("Something went wrong🤦‍♂️"); 
+};
+var returnedPromise = origPromise.then( handleFulfilled );
+
+// log the returned promise in the console 
+// before the async op has completed.
+console.log( "Returned Promise before:", returnedPromise );
+
+// log the returned promise in the console 
+// after the async op has completed.
+setTimeout(() => {
+  console.log( "Returned Promise after:", returnedPromise );
+}, 2000);
+
+/*
+OUTPUT
+Returned Promise before: Promise { <state>: "pending" }
+
+original promise is fulfilled😇
+
+Uncaught (in promise) Something went wrong🤦‍♂️
+Returned Promise after: Promise { 
+        <state>: "rejected",
+        <reason>: "Something went wrong🤦‍♂️" 
+    }
+*/
+```
+
+<br/>
+
+The same behaviour applies to the `handleRejected()` handler. If it returns a value, then  `returnedPromise` will be fulfilled with that value. If an error occurs, `returnedPromise` will be rejected with the error reason.
+
+##### Hmm...interesting!🤔
+An interesting scenario is when we don't specify any handlers with the `then()` call. Yes, that's right! **Both the input arguments to `then()` are optional**. If we skip them, the returned promise will just mimic the original promise.
+
+```js {9}
+var origPromise = new Promise( (resolve, reject) => {
+
+    setTimeout(() => {
+        resolve( "original promise is fulfilled😇" );
+    }, 1000);
+    
+});
+
+var returnedPromise = origPromise.then();
+
+// log the returned promise in the console 
+// before the async op has completed.
+console.log( "Returned Promise before:", returnedPromise );
+
+// log the returned promise in the console 
+// after the async op has completed.
+setTimeout(() => {
+  console.log( "Returned Promise after:", returnedPromise );
+}, 2000);
+
+/*
+OUTPUT
+
+Returned Promise before: Promise { <state>: "pending" }
+
+Returned Promise after: Promise { 
+        <state>: "fulfilled", 
+        <value>: "original promise is fulfilled😇" 
+    }
+*/
+```
+
+In the above example, we have not passed any handlers to the `then()` method. This is why when `origPromise` gets fulfilled with a value, `returnedPromise` gets fulfilled with the same value.
+
+If `origPromise` gets rejected with a reason, `returnedPromise` will get rejected with the same reason.
+
+### Promise Chaining⛓
+The fact that `then()` returns a new promise is a powerful tool in the promise arsenal. We can attach `then()` methods one after the other forming a chain of `then()` methods. Each `then()` method's handler is executed in the order in which it was attached in the chain. The value returned by a `then()` method's handler is passed on to the `handleFulfilled` handler of the next `then()` method. An error thrown by a `then()` method's handler is caught by the first subsequent `then()` method further down in the chain that has a rejected handler defined. If no rejected handler is defined by any of the subsequent `then()` methods, then an uncaught exception will be thrown.
+
+```js
+var thingsToBuyPromise = new Promise( (resolve, reject) => {
+
+    setTimeout(() => {
+        resolve( "Cheese🧀" );
+    }, 1000);
+    
+});
+
+thingsToBuyPromise
+	// 1st
+	.then( value => {
+		console.log( "1. " + value ); // 1. Cheese🧀
+		return "Milk🥛"; 
+	})
+	// 2nd
+	.then( value => {
+		console.log( "2. " + value ); // 2. Milk🥛
+		return ("Butter🧈"); 
+	})
+	// 3rd
+	.then( value => {
+		console.log( "3. " + value ); // 3. Butter🧈
+		throw( "Wait! I'm lactose intolerant🤦‍♂️" ); 
+	})
+	// 4th: catches error thrown by any of the above `then()`s.
+	.then( undefined, reason => {
+		console.log( reason );
+		throw( "Cancel that list and make a new one!" );
+	})
+	// 5th: catches errors thrown only by the above `then()`.
+	.then( undefined, reason => { 
+		console.log( reason );
+		return "Fruits🍎"; 
+	})
+	// 6th
+	.then( value => {
+		console.log( "1. " + value ); // 1. Fruits🍎
+		return "Veggies🥕";
+	})
+	// 7th
+	.then( value => {
+		console.log( "2. " + value ); // 2. Veggies🥕
+		return "That's it...";
+	});
+/* 
+
+OUTPUT:
+
+1. Cheese🧀
+2. Milk🥛
+3. Butter🧈
+Wait! I'm lactose intolerant🤦‍♂️
+Cancel that list and make a new one!
+1. Fruits🍎
+2. Veggies🥕
+
+*/
+```
+In the above example, the `thingsToBuyPromise` gets fulfilled with the value *"Cheese"*. This value is passed to the 1st `then()`'s fulfilled handler. This handler returns another value *"Milk"* which fulfils the returned promise from this 1st `then()`. This invokes the fulfilled handler of the 2nd `then()` which receives the value *"Milk"* and returns another value *"Butter"*. This fulfills the 2nd `then()`'s returned promise. This in turn invokes the fulfilled handler of the 3rd `then()` which unfortunately throws an error. This error is caught by the rejected handler of the 4th `then()`. This `then()` also throws an error which is caught by the 5th `then()`. By now, you can probably guess how things progress.
+
+Go ahead and remove the 4th and the 5th `then()` from the chain and see what happens. *SPOILER ALERT*!! The error thrown by the 3rd `then()` will result in an uncaught exception since there will be no rejected handler in any of the subsequent `then()` methods to catch the error. The 6th and 7th `then()`'s handlers won't be executed at all because of the error.
+
+If you are wondering why we have set the fulfilled handler of the 4th and 5th `then()` to `undefined` in the above example, then its simply because we are only interested in catching errors in that part of the chain. In fact, the Promise API exposes a `catch()` method which does exactly that. Let's check it out!
+
+### The `catch()` method
+This method, as its name suggests is used for catching errors. It works just like a `then()` without a fulfilled handler: `then(undefined, handleRejected){...}` . In fact, this is exactly how `catch()` internally operates i.e it calls a `then()` with the 1st argument as `undefined` and a rejected handler function as the 2nd argument. This handler function is the only input that `catch()` accepts.
+
+The syntax looks like this:
+
+```js {10}
+var promise = new Promise( (resolve, reject) => {
+
+    setTimeout(() => {
+        reject( "something went wrong🤦‍♂️" );
+    }, 1000);
+    
+});
+
+var handleRejected = reason => { console.log(reason); }
+promise.catch( handleRejected );
+
+/* 
+OUTPUT:
+something went wrong🤦‍♂️
+*/
+```
+
+Just like `then()`, `catch()` also returns a promise object and so just like `then()`, it can also be chained. Let's modify our chaining example to include a `catch()`.
+
+```js {26-34}
+var thingsToBuyPromise = new Promise( (resolve, reject) => {
+
+    setTimeout(() => {
+        resolve( "Cheese🧀" );
+    }, 1000);
+    
+});
+
+thingsToBuyPromise
+	// 1st
+	.then( value => {
+		console.log( "1. " + value ); // 1. Cheese🧀
+		return "Milk🥛"; 
+	})
+	// 2nd
+	.then( value => {
+		console.log( "2. " + value ); // 2. Milk🥛
+		return ("Butter🧈"); 
+	})
+	// 3rd
+	.then( value => {
+		console.log( "3. " + value ); // 3. Butter🧈
+		throw( "Wait! I'm lactose intolerant🤦‍♂️" ); 
+	})
+	// 4th: catches error thrown by any of the above `then()`s.
+	.catch( reason => {
+		console.log( reason );
+		throw( "Cancel that list and make a new one!" );
+	})
+	// 5th: catches errors thrown only by the above `then()`.
+	.catch( reason => { 
+		console.log( reason );
+		return "Fruits🍎"; 
+	})
+	// 6th
+	.then( value => {
+		console.log( "1. " + value ); // 1. Fruits🍎
+		return "Veggies🥕";
+	})
+	// 7th
+	.then( value => {
+		console.log( "2. " + value ); // 2. Veggies🥕
+		return "That's it...";
+	});
+/* 
+
+OUTPUT:
+
+1. Cheese🧀
+2. Milk🥛
+3. Butter🧈
+Wait! I'm lactose intolerant🤦‍♂️
+Cancel that list and make a new one!
+1. Fruits🍎
+2. Veggies🥕
+
+*/
+```
+All we have done is replace the 4th and 5th `then()` from the previous example with a `catch()`. The rest is exactly the same. But it is definitely more convenient and looks much cleaner this way without having to specify `undefined` anywhere.
+
+We can have any number and combination of `then()` and `catch()` methods one after the other, in the promise chain.
+
+So far we have learnt that the `catch()` method can catch errors that are:
+1. thrown as a result of calling `reject()` in the executor function and
+2. thrown inside handlers of any preceding `then()` or `catch()` methods higher up in the promise chain.
+
+It can also catch any errors thrown *directly* inside the executor function before calling the `resolve()` or `reject()` functions. Consider the following example. We throw an error before calling `resolve()`. This rejects the promise with the reason specified in the error thrown. Since the promise is rejected, `catch()`'s handler gets invoked as expected.
+
+```js
+var promise = new Promise( (resolve, reject) => {
+
+    throw( "something went wrong🤦‍♂️" );
+    resolve();
+    
+});
+
+promise.catch(
+    reason => { console.log( reason ); }
+);
+
+/* OUTPUT
+
+something went wrong🤦‍♂️
+    
+*/
+```
+
+In the above example, if we replace `resolve()` with `reject()`, then the same thing will happen. The promise will get rejected with the reason specified in the error thrown instead of the reason passed to the `reject()` function.
+
+##### Hmm...interesting🤔
+However, if we throw an error after calling `resolve()` or `reject()`, then the error is *silenced*. 
+
+```js
+var promise = new Promise( (resolve, reject) => {
+
+    resolve( "fulfilled😇" );
+    throw( "something went wrong🤦‍♂️" ); // silenced
+        
+});
+
+promise.then(    
+	value => { // will be executed
+		console.log( value ); 
+	}, 
+	reason => { // won't be executed
+		console.log( reason ); 
+	} 
+);
+
+/* OUTPUT
+
+fulfilled😇
+    
+*/
+```
+
+This happens because as we have seen, throwing an error means changing the state of the promise to `rejected`. But we have already called `resolve()` and the promise has been `fulfilled`. Once settled, the state of the promise *cannot* change which is why the error is silenced. The same thing will happen if we use `reject()` instead of `resolve()` in the above example. The promise will be rejected with the reason passed to `reject()` and the thrown error will be silenced. 
+
+As a general rule of thumb, if you need to create a Promise object using the constructor, make sure calling `resolve()` or `reject()` is the last thing you do inside the executor function.
+
+##### U Can't `catch()` this
+Now that we know what kind of errors `catch()` is able to catch, there is one scenario where `catch()` won't work. It won't be able to catch errors that occur in your asynchronous code. Consider the following example:
+
+```js
+var promise = new Promise( (resolve, reject) => {
+
+    setTimeout(() => {
+        // this is async code. Any errors thrown here will not be caught.
+        throw( "something went wrong🤦‍♂️" );
+      	resolve( "fulfilled😇" );
+    }, 1000);
+    
+});
+
+var handleRejected = reason => { console.log(reason); };
+// the rejected handler never gets invoked.
+promise.catch( handleRejected ); 
+
+/*
+Uncaught something went wrong🤦‍♂️
+*/
+```
+
+In the above example, an error occurs in the `setTimeout()` callback before we can call `resolve()` and fulfill the promise. It is not directly inside the executor function as we have seen in the previous examples. You can say that the promise is not aware about this error which is why this error is not caught by our `catch()` handler function and results in an uncaught exception. 
+
+**So to summarize**, `catch()` will only catch errors that are:
+1. thrown directly inside the executor function before calling the `resolve()` or `reject()` functions
+2. thrown as a result of calling `reject()` on the original promise and
+3. thrown inside handlers of any preceding `then()` or `catch()` higher up in the promise chain.
+
+But it won't catch errors that are thrown inside your asynchronous code.
+
+### The `finally()` method
+If we have a `catch()` method, we are bound to have a `finally()` method as well. The main purpose with this method is to execute *cleanup* code that should be run irrespective of whether the promise was fulfilled or rejected. 
+
+For example, if we submit a form through AJAX and show a spinning icon to indicate that the process is in progress, irrespective of whether the AJAX request returns a success or error response, as soon as their is a response, we need to hide the spinning icon. So the code to hide the icon will go into the `finally()` method's handler. We could get away with placing this code in both the handlers in a `then()` but that would lead to duplication which is not good coding practice. 
+
+The `finally()` method accepts a single function as an input. But unlike the handlers in `then()` and `catch()`, `finally()`'s input function does not accept any arguments. This is because this function will be invoked for both, `fulfilled` and `rejected` states and it won't have a way to determine whether the value it receives is a fulfilled *value* or rejection *error reason*.
+
+```js {12}
+var promise = new Promise( (resolve, reject) => {
+
+    setTimeout(() => {
+        resolve( "fulfilled😇" );
+    }, 1000);
+    
+});
+
+var handleFinally = () => { 
+	console.log( "finally handler invoked" ); 
+}
+promise.finally( handleFinally );
+
+/* 
+finally handler invoked
+*/
+```
+
+Just like `then()`, `finally()` also returns a promise object so it can also be chained. But there are some differences between `then()` and `finally()` in the way the returned promise is settled. 
+
+```js
+var origPromise = new Promise( (resolve, reject) => { 
+    resolve( "fulfilled😇" ); 
+});
+
+var handleFinally = () => "fulfilled by finally";
+
+var returnedPromise = origPromise.finally( handleFinally );
+
+// run after 1 second so that returnedPromise gets settled.
+setTimeout( () => { 
+	console.log( returnedPromise ); 
+}, 1000 );
+
+/* 
+Promise { 
+	<state>: "fulfilled", 
+	<value>: "fulfilled😇" 
+}
+*/
+```
+
+In the previous examples that used `then()`, the returned promise from `then()` got fulfilled with the value returned from its handlers. But in the above example, `returnedPromise` from `finally()` gets fulfilled with the same value as `origPromise` and not with the value that its handler function returned. This is because just like the `finally()` input function does not accept any inputs, `finally()` is not expected to return anything as well. The expectation is that it'll perform some basic cleanup and not have any affect in the flow of information through the promise chain. This is why any value we return in the `finally` handler will be ignored.
+
+But no matter how basic, where there is code, there is probability of an exception and `finally()` is no exception(see what I did there😎). So if an error occurs inside the `finally()` handler function, then `returnedPromise` will get rejected with the error reason.
+
+```js
+var origPromise = new Promise( (resolve, reject) => { 
+    resolve( "fulfilled" ); 
+});
+
+var handleFinally = () => { throw( "something went wrong🤦‍♂️" ) };
+
+var returnedPromise = origPromise.finally( handleFinally );
+
+// execute after 1 second so that returnedPromise gets settled.
+setTimeout( () => { 
+    console.log( returnedPromise ); 
+}, 1000 );
+
+/*
+Uncaught (in promise) something went wrong🤦‍♂️
+Promise { 
+	<state>: "rejected", 
+	<reason>: "something went wrong🤦‍♂️" 
+}
+*/
+```
+
+Technically, we can have any combination of `then()`, `catch()` and `finally()`, but a typical promise chain looks like this...
+
+```js
+...
+...
+.then( handleFulfilled1 )
+.then( handleFulfilled2 )
+.then( handleFulfilled3 )
+.catch( handleRejected )
+.finally( handleSettled )
+```
+
+So basically, we process the response from the async operation and pass the required input to the next `then()` handler in the promise chain. We perform our error handling using `catch()` towards the end of the promise chain and at the end, we perform our cleanup using `finally()`. Also, in practice, its recommended to use `then()` for handling fulfillment and `catch()` for rejection scenarios. This is why we have not included the rejection handlers in the above `then()` calls.
+
+### Finishing Touches
+I would like to end this tutorial with a more real-life example than the ones above. We are going to use the `fetch()` Web API(that uses promises) for making a network request to fetch some data and then run it through a promise chain and see what that looks like.
+
+```js
+fetch("https://api.github.com/users/saurabh-misra/repos")
+	// parse the JSON response into a JS object
+	.then( response => response.json() )
+	// log the name of one of the repos
+	.then( repos => { 
+		console.log( "Repo name: ", repos[2].name ); 
+	})
+	.catch( reason => console.error( reason ) )
+	.finally( () => console.log( "all done" ) );
+
+/*
+Repo Name: pomodoro-timer
+all done
+*/
+```
+The 1st `then()` parses the response into a JS object and the 2nd logs the name of a specific repo on to the console. We have `catch()` in place if anything goes wrong and a `finally()` to perform any cleanup if we need to. 
+
+You can see the convenience that a promise chain brings to the table where each link in the chain serves a specific purpose and passes down information to the next link in the chain.
+
+---
+
+In the [next article](/promises-in-javascript-static-methods) in this series, we are going to explore more Promise API superpowers courtesy of its *static* methods and how to manage multiple asynchronous operations with them. I'm sure you'll love it so see you there!
+
+##### [Next up: Static Methods in the Promise API](/promises-in-javascript-static-methods)👉
+

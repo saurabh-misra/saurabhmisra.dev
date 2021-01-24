@@ -1,0 +1,129 @@
+---
+title: "Understanding Promises in JavaScript: Part II - Promise States and Syntax"
+date: 2021-01-16
+slug: "/promises-in-javascript-states-and-syntax"
+tags:
+  - JavaScript
+  - Promises
+---
+This is Part II of a series of articles that aim to explain in detail, the need, usage and benefits of Promises in JavaScript.
+
+[Part I:  Asynchronous Programming in JavaScript](/promises-in-javascript-asynchronous-programming)   
+Part II: Promise States and Syntax  
+[Part III: Promise Chaining with then(), catch() & finally()](/promises-in-javascript-promise-chaining-then-catch-finally)  
+[Part IV: Static Methods in the Promise API](/promises-in-javascript-static-methods)   
+[Part V: Resolved Promises and Promise Fates](/promises-in-javascript-resolved-promise-fates)  
+[Part VI: Promises vs Callbacks](/promises-vs-callbacks-in-javascript)  
+[Part VII: Async-Await](/promises-in-javascript-async-await)  
+
+---
+<br/>
+
+In the [previous article](/promises-in-javascript-asynchronous-programming) in this series, we learnt that asynchronous operations are executed by the environment or outside JS. So using callbacks, JS and in turn our code has had no way to interact with these operations while they were in progress or even after they had finished executing. All we could do is wrap our success and failure code in callback handlers and pass them to these operations and leave it upto them to invoke these handlers as and when they complete.
+
+### What is a Promise?
+A promise is a special kind of JS object which *represents* an asynchronous operation. It's like a placeholder object that you can use instead of the actual response from the asynchronous operation while it's in progress. The promise object will make the response available to you as soon as the asynchronous operation completes. You can even interact with the promise object after the asynchronous operation is complete which is something that wasn't possible before.
+
+Since a promise object is just like a regular JS object available immediately in our code, we can write code and interact with it synchronously. Imagine that! With promises, we can interact with asynchronous operations...synchronously! 
+
+Promises basically give synchronous superpowers to asynchronous operations. 🦸‍♂️ 
+
+### Promise States
+
+Since an asynchronous operation can be either in progress, successfull or failed, Promises can also be in 3 corresponding states:
+1. ***pending*** - means the asynchronous operation is in progress.
+2. ***fulfilled*** - means the asynchronous operation has completed successfully.
+3. ***rejected*** - means the asynchronous operation has failed.
+
+You'll also hear the term ***settled*** with Promises. A Promise is said to be *settled* if it is either in the `fulfilled` or `rejected` state but not in the `pending` state. This is not actually a *state* of the promise but just a term used for convenience to mean that the promise is not pending.
+
+### Creating a Promise
+We can create Promises by using the `Promise()` constructor. This constructor takes in a single argument which is a function called the *executor* function. The *executor* function, in turn, accepts two functions as inputs. The standard convention is to name these two functions as `resolve()` and `reject()`, however, you can name them whatever you like. 
+
+```js
+var executor = ( resolve, reject ) => {};
+var promise = new Promise( executor );
+console.log( promise );
+
+// Promise { <state>: 'pending' }
+```
+
+The above bare-bones Promise creation statement creates a promise object in the initial `pending` state.
+
+### Resolving a Promise
+The executor function houses the code that initiates an asynchronous operation. If this operation completes successfully, we invoke `resolve()` which changes the promise state from `pending` to `fulfilled`. 
+```js
+var promise = new Promise( (resolve, reject) => {
+
+    setTimeout(() => {
+        resolve();
+        console.log( promise );
+    }, 1000);
+    
+});
+
+// Promise { <state>: "fulfilled", <value>: undefined }
+```
+In the above example, we initiate an asynchronous operation using a `setTimeout()` inside the executor function. When the timeout completes, we call `resolve()` to instruct the promise that the timeout has completed successfully. This will change the status of the Promise from `pending` to `fulfilled` so when the `console.log()` prints the promise, you can see that the state of the promise is now `fulfilled`.
+
+A promise is always fulfilled with a value. Since we have not provided a value, it's fulfilled with `undefined`. If we provide a value as an input argument to `resolve()`, the promise will be fulfilled with that value. 
+```js
+var promise = new Promise( (resolve, reject) => {
+
+    setTimeout(() => {
+        resolve( "I am now fulfilled😇" );
+        console.log( promise );
+    }, 1000);
+    
+});
+
+// Promise { <state>: "fulfilled", <value>: "I am now fulfilled😇" }
+```
+<br/>
+
+### Rejecting a Promise
+If the asynchronous operation fails, we invoke `reject()` inside the executor function which changes the state from `pending` to `rejected`. Similar to `resolve()`, if you don't specify a reason for this error, it'll be set as `undefined`.
+```js
+var promise = new Promise( (resolve, reject) => {
+
+    setTimeout(() => {
+        reject();
+        console.log( promise );
+    }, 1000);
+    
+});
+
+// Promise { <state>: "rejected", <reason>: undefined }
+// Uncaught (in promise) undefined
+```
+
+If you do specify a reason as an input argument to `reject()`, then the promise will be rejected with that reason.
+
+```js
+var promise = new Promise( (resolve, reject) => {
+
+    setTimeout(() => {
+        reject( "something went wrong...💩" );
+        console.log( promise );
+    }, 1000);
+    
+});
+
+// Promise { <state>: "rejected", <reason>: "something went wrong...💩" }
+// Uncaught (in promise) something went wrong...💩
+```
+
+<br/>
+
+>**Note:** You don't have to worry about defining `resolve()` and `reject()`. The Promise constructor takes care of that internally. You only need to call these functions inside the executor function when necessary. Think about it like this, the promise object knows what to do when an asynchrounous operation succeeds or fails, meaning it knows what to do when you call `resolve()` or `reject()`. But it doesn't know when that happens and how to interpret completion as either success or failure. So we tell it that by calling `resolve()` on success and `reject()` on failure.
+
+### State change is a one-way street
+Once the promise goes from the `pending` state to either `fulfilled` or `rejected`, it stays there...like...for good. It cannot go back to `pending`. Neither can a `fulfilled` promise be `rejected` or vice versa. A `fulfilled` promise cannot be fulfilled again and a `rejected` promise cannot be rejected again. This ensures that our program will run asynchronous code for either the success scenario or the failure scenario, but never both. It also ensures that the program will execute either of them only once. These are guarantees that we don't have with callbacks since we pass them away as arguments and have no control over how they are invoked.
+
+---
+
+So we know how to create promises using the `Promise()` constructor and how promises transition from one state to another. But in actual web development, you'll find yourself consuming promises already created by Web APIs or third party libraries much more often than creating them using the `Promise()` constructor. The `Promise()` constructor is mostly used for promisifying or wrapping older APIs(like we have done with `setTimeout()` in the previous examples) so that they return promises. The next section will introduce you to methods for promise consumption like `then()` and `catch()` and how we can chain promises together to give more structure to our asynchronous code. See you there!
+
+<br />
+
+##### [Next up: Promise Chaining with then(), catch() & finally()](/promises-in-javascript-promise-chaining-then-catch-finally)👉

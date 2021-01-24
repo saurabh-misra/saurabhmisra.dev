@@ -1,0 +1,34 @@
+{
+  "private": true,
+  "name": "saurabhmisra-dev-blog",
+  "description": "Website and Blog by Saurabh Misra",
+  "version": "1.2.5",
+  "author": "Saurabh Misra <saurabhmisra87@gmail.com>",
+  "license": "MIT",
+  "starter-name": "gatsby-starter-minimal-blog",
+  "scripts": {
+    "build": "gatsby build",
+    "develop": "gatsby develop",
+    "develop:cypress": "cross-env CYPRESS_SUPPORT=y yarn develop",
+    "build:cypress": "cross-env CYPRESS_SUPPORT=y yarn build",
+    "start": "gatsby develop",
+    "serve": "gatsby serve",
+    "clean": "gatsby clean"
+  },
+  "dependencies": {
+    "@lekoarts/gatsby-theme-minimal-blog": "^2.7.5",
+    "gatsby": "^2.30.2",
+    "gatsby-plugin-google-analytics": "^2.9.0",
+    "gatsby-plugin-google-fonts": "^1.0.1",
+    "gatsby-plugin-manifest": "^2.10.0",
+    "gatsby-plugin-netlify": "^2.9.0",
+    "gatsby-plugin-offline": "^2.2.4",
+    "gatsby-plugin-sitemap": "^2.10.0",
+    "gatsby-plugin-webpack-bundle-analyser-v2": "^1.1.18",
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0"
+  },
+  "devDependencies": {
+    "cross-env": "^5.2.0"
+  }
+}
