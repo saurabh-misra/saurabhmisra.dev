@@ -1,0 +1,40 @@
+---
+title: Netlify Redirects using _redirects file does not work for a Gatsby site
+date: "2021-01-28"
+slug: "/netlify-gatsby-redirects-does-not-work"
+tags:
+  - "Gatsby"
+  - "Netlify"
+  - "Web Development"
+  - "Quick Tip"
+---
+
+This is just a quick tip in case you're facing the same issue as I did today. I was trying to setup a redirect on Netlify for my Gatsby site. I read in Netlify's [documentation](https://docs.netlify.com/routing/redirects/#syntax-for-the-redirects-file) that one of the options to setup redirects is to use a `_redirects` file. I went ahead with this option and placed this file with my redirects at the root of my Gatsby site codebase and published it and it didn't work.😞 
+
+A bit of googling around revealed that we need to take care of two things to make this work.
+
+#### 1. You should have `gatsby-plugin-netlify` installed. 
+I already had this installed so no further action was required on my end. If you don't have this installed then you can install this using the following command.
+
+```
+npm install gatsby-plugin-netlify
+```
+
+<br/>
+
+#### 2. Place your `_redirects` file in a folder called `static` at the root of your Gatsby codebase 
+
+If this directory does not exist then create it.
+
+This works because Netlify requires that the `_redirects` file should be placed inside your web root, not your gatsby codebase. Gatsby builds your site from your source code and then places all the publicly accessible files in a `public` directory which becomes the web root of your site. This is where we would want to place our `_redirects` file. But Netlify builds the gatsby site for us dynamically so we have no way to specify that we want to place this file in our web root. 
+
+But luckily for us, the contents of the `static` folder are moved to the web root during the build step. We can verify this locally by executing the `gatsby develop` command. 
+
+After adding the `_redirects` file to the `static` folder, run `gatsby develop` and when it's done running, you'll be able to see the `_redirects` file automatically added to your `public` folder.
+
+This is what worked for me and hopefully it'll work for you too.
+
+---
+
+##### References
+<a href="https://levelup.gitconnected.com/how-to-add-netlify-redirects-to-a-gatsby-site-ae678518cc91" target="_blank">https://levelup.gitconnected.com/how-to-add-netlify-redirects-to-a-gatsby-site-ae678518cc91<i class="material-icons">open_in_new</i></a>
