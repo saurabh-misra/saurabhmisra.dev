@@ -1,5 +1,5 @@
 ---
-title: Netlify Redirects using _redirects file does not work for a Gatsby site
+title: Fix issues with Netlify _redirects file not working for a Gatsby site
 date: "2021-01-28"
 slug: "/netlify-gatsby-redirects-does-not-work"
 tags:
@@ -9,7 +9,7 @@ tags:
   - "Quick Tip"
 ---
 
-This is just a quick tip in case you're facing the same issue as I did today. I was trying to setup a redirect on Netlify for my Gatsby site. I read in Netlify's [documentation](https://docs.netlify.com/routing/redirects/#syntax-for-the-redirects-file) that one of the options to setup redirects is to use a `_redirects` file. I went ahead with this option and placed this file with my redirects at the root of my Gatsby site codebase and published it and it didn't work.😞 
+This is just a quick tip in case you're facing the same issue as I did today. I was trying to setup a redirect on Netlify for my Gatsby site. I read in Netlify's [documentation](https://docs.netlify.com/routing/redirects/#syntax-for-the-redirects-file) that one of the options to setup redirects is to use a `_redirects` file. I went ahead with this option and placed this file at the root of my Gatsby site codebase and published it and...it didn't work.😞 
 
 A bit of googling around revealed that we need to take care of two things to make this work.
 
