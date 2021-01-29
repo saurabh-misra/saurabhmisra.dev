@@ -1,0 +1,29 @@
+---
+title: Use wpdb->query() for bulk inserts/updates in Wordpress
+date: "2021-01-29"
+slug: "/wpdb-query-bulk-insert-update-wordpress"
+tags:
+  - "Wordpress"
+  - "Quick Tip"
+---
+
+So here is a quick tip about doing bulk inserts or updates on Wordpress. 
+
+To give you some context, I wrote a script the other day to insert thousands of rows into a custom WP table using `$wpdb->insert()` inside a `foreach` loop. It took so much time that I had to divide the script to run in batches of 10,000 records at a time. Each batch took around 30 seconds to complete. I had around 50,000 records so the total time was around 3 minutes.
+
+I then experimented with `$wpdb->query()` instead of `$wpdb->insert()`. Inside the `foreach` loop I simply concatenated the insert statement values and ran them together after the loop ended. 
+
+```php
+$values = [1, 2, 3];
+$insertQuery = "INSERT INTO wp_custom_table(col1) VALUES";
+$insertQueryValues = array();
+foreach($values as $value) {
+  array_push( $insertQueryValues, "(" . $value . ")" );
+}
+$insertQuery .= implode( ",", $insertQueryValues );
+$wpdb->query( $insertQuery );
+```
+
+This simple change allowed me to insert 10,000 records in half a second. I was able to insert the full 50,000 records in less than 3 seconds.😲
+
+So bottom line is use `$wpdb->query()` for bulk inserts and updates. Use `$wpdb->insert()` or `$wpdb->update()` for inserting/updating less number of records only.
