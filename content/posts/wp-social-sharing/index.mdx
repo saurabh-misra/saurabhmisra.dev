@@ -1,0 +1,119 @@
+---
+title: Implement Social Sharing buttons in Wordpress using the AddToAny plugin
+date: "2021-01-31"
+slug: "/social-sharing-wordpress-addtoany-plugin"
+tags:
+  - "Wordpress"
+  - "Social Sharing"
+  - "AddToAny"
+---
+
+So the other day I was tasked with enabling custom social sharing buttons on a Wordpress website. I only needed this on a specific custom page in my theme and not on all posts and pages. I also needed to customize the behaviour of these buttons. For example, I needed to pre-define the text and link that would be pre-populated when a user clicked on these buttons.  
+
+I experimented with various options such as 
+1. [Jetpack](https://wordpress.org/plugins/jetpack/): I couldn't set this up because I was on a staging environment.
+2. [Shared Counts](https://wordpress.org/plugins/shared-counts/): This was a nice one but lacked the customization options I needed or they were a bit complicated to implement. 
+3. [Sassy Social Share](https://wordpress.org/plugins/sassy-social-share/): I tried a lot but I couldn't get this to work with a shortcode.
+4. [Social Media Share Buttons & Pop Up Social Sharing Icons by UltimatelySocial](https://wordpress.org/plugins/ultimate-social-media-icons/): This felt like it could work but I lost interest early on because the settings were flooded with CTAs to buy their premium version.
+
+I finally settled on a free plugin called [AddToAny](https://wordpress.org/plugins/add-to-any/).
+
+Here are some of things I really liked about it:
+
+1. It's completely free.
+2. It has a very clean and minimal settings interface free from CTAs and other bloat. 
+3. It worked like a charm on the very first try(this actually mattered because some plugins didn't).
+4. Customizing it felt like a breeze. It has options for specifying custom CSS and JS right in its settings interface. So you don't need to enter custom scripts anywhere else.
+5. Good documentation
+
+The standard interface of the buttons is enabled on all posts and pages by default. This is how it looks:
+<img src="addtoany-1.jpg" />
+
+You can also get this working on a custom page like I did using a shortcode like this:
+```
+[addtoany]
+```
+
+I also wanted to specify the URL and text to be shared when somebody clicked on these buttons. It is as simple as this:
+```
+   
+[addtoany url="https://www.example.com/page.html" title="Some Example Page"]
+
+```
+
+Next I needed to customize the buttons to have text like "Share" or "Tweet" along with the icons. I couldn't figure out a way to do this with the shortcode. I could have specified this as a custom button image in the AddToAny settings but I wanted a way to simply do this using HTML and CSS. The AddToAny documentation was exhaustive enough to suggest a way to do this.
+
+You can simply insert the HTML template for adding the social sharing buttons along with all the necessary classes like this instead of a shortcode.
+```html
+<div class="a2a_kit a2a_kit_size_32 a2a_default_style"> 
+  <a class="a2a_button_facebook"></a> 
+  <a class="a2a_button_twitter"></a> 
+</div>
+```
+
+This will do the same thing what the shortcode did i.e. display facebook and twitter social sharing buttons.
+
+I needed the custom URL and text and it is just as simple to specify that here as it was in the shortcode version.
+
+```html
+<div class="a2a_kit a2a_kit_size_32 a2a_default_style"
+  data-a2a-url="https://www.example.com/page.html"
+  data-a2a-title="Some Example Page"
+  > 
+  <a class="a2a_button_facebook"></a> 
+  <a class="a2a_button_twitter"></a> 
+</div>
+```
+
+So far so good. Finally I needed to customize the buttons with custom text and CSS along with the icons. Here is the HTML and CSS I wrote for that in case you need it. I just added the words "Share" and "Tweet" as the text inside the anchor tags and I added the CSS in the "Additional CSS" section of the plugin settings.
+
+
+```html
+<div class="a2a_kit a2a_kit_size_32 a2a_default_style"
+  data-a2a-url="https://www.example.com/page.html"
+  data-a2a-title="Some Example Page"
+  > 
+  <a class="a2a_button_facebook">Share</a> 
+  <a class="a2a_button_twitter">Tweet</a> 
+</div>
+```
+
+<br />
+
+```css
+.a2a_kit.a2a_default_style {
+	margin-top: 20px;
+}
+.a2a_kit.a2a_default_style a {
+    border-radius: 4px;
+    color: white;
+    line-height: inherit;
+    padding: 5px 10px 5px 2px;
+    text-decoration: none;
+	float: none;
+	display: inline-block;
+}
+.a2a_kit.a2a_default_style .a2a_button_facebook {
+	background-color: #1577f2;
+	margin-right: 10px;
+}
+.a2a_kit.a2a_default_style .a2a_button_twitter {
+	background-color: #56acee;
+}
+.a2a_kit.a2a_default_style a:hover .a2a_svg {
+	opacity: inherit;
+}
+.a2a_kit.a2a_default_style a:hover {
+	opacity: 0.9;
+}
+```
+
+The end result was just the way I needed these buttons to look and behave.
+<img src="addtoany-2.jpg" />
+
+>**Note:** Sharing the custom URL and title on Twitter worked without any hassles but Facebook does things a little differently. It scrapes the page that the shared URL refers to and looks for Open Graph Meta tags. You need to make sure that these meta tags contain the information that you need shared on Facebook. You can read more about it in the ["Implementing Meta Tags" section in the AddToAny docs](https://www.addtoany.com/ext/meta-tags).
+
+---
+
+##### References
+[https://www.addtoany.com/buttons/customize/standalone_services](https://www.addtoany.com/buttons/customize/standalone_services)
