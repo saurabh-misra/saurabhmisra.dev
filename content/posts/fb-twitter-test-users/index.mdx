@@ -1,0 +1,32 @@
+---
+title: How to setup test users on Facebook and Twitter to test Social Sharing
+date: "2021-01-31"
+slug: "/facebook-twitter-test-users"
+tags:
+  - "Social Sharing"
+  - "Testing"
+  - "Quick Tip"
+---
+
+So the other day I needed to test social sharing buttons I had placed on a Wordpress website under development on a staging site. Before we went live, we needed to be sure that the Twitter button could share a pre-defined message and link and the same with Facebook. But I couldn't post on my personal Facebook and Twitter account so I was curious to know what options are available for setting up a sandbox account or test users on FB and twitter.
+
+Turns out, Facebook provides a very straightforward way to setup test users. More information can be found in their documentation here: [https://developers.facebook.com/docs/development/build-and-test/test-users/](https://developers.facebook.com/docs/development/build-and-test/test-users/).
+
+Twitter however does not provide any such ability. Even if you create a dummy account for testing purposes, your tweets normally would still be visible to the world.
+
+But there is a workaround. As per a suggestion in [this SO thread](https://stackoverflow.com/a/12965235/1932141), you can create a Twitter account and set your Tweets to ***Protected***.
+
+You can do that by going to Settings → Privacy and Safety → Audience and Tagging and checking the **Protect Your Tweets** checkbox.
+
+<img src="protect-your-tweets.jpg" width="100%" />
+
+The Protected tweets setting ensures that your tweets are only visible to your followers and no one can follow you without first getting your approval. If anyone wants to follow you, they must send a follow request which you can then allow or deny. More info [here](https://help.twitter.com/en/safety-and-security/public-and-protected-tweets).
+
+
+So I setup a test user and unchecked this option thus making sure that my tweets are not visible publicly. I don't intend to have anyone follow this test Twitter account so even if someone sends me a follow request, I'll deny it.
+
+I also went ahead and unchecked both the options in the below screenshot. These options appear in Settings → Privacy and Safety → Discoverability and contacts.
+
+<img src="twitter-discoverability-contacts.jpg" width="100%" />
+
+Hope this helps!👍
