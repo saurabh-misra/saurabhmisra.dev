@@ -1,0 +1,125 @@
+---
+title: How to run a case-sensitive search in SQL Server using Collations
+date: "2021-01-31"
+slug: "/case-sensitive-search-sql-server-collations"
+tags:
+  - "SQL Server"
+  - "Collations"
+---
+
+So the other day I was tasked with running a search in SQL Server to find all rows in a particular entity table with a particular column called `status` set to **ACTIVE** in all caps.
+
+Most of the rows in this table had the value as `Active` for the `status` column but I was not sure whether it also had value as `ACTIVE`.
+
+So first I ran a query to find all distinct status values. 
+
+```sql
+SELECT DISTINCT [status] 
+FROM (
+  SELECT 'Active' as status
+  UNION
+  SELECT 'Active' as status
+  UNION
+  SELECT 'ACTIVE' as status
+  UNION
+  SELECT 'Active' as status
+) temp
+
+/* OUTPUT:
+
+status
+------
+Active
+
+*/
+```
+
+Did you see what happened? The all caps `ACTIVE` value is just ignored and we only get the other value in the result set.
+
+This is because most SQL Server installations are *case-insensitive*.
+
+So if you run a query like this to return only those rows with `status` set to `ACTIVE` in all caps, it won't work. It'll return rows with `status` column value set to `Active` and `ACTIVE` both.
+
+```sql
+SELECT * 
+FROM (
+  SELECT 1 as id, 'Active' as status
+  UNION
+  SELECT 2 as id, 'Active' as status
+  UNION
+  SELECT 3 as id, 'ACTIVE' as status
+  UNION
+  SELECT 4 as id, 'Active' as status
+) temp
+WHERE [status] = 'ACTIVE';
+
+/* OUTPUT:
+
+id          status
+----------- ------
+1           Active
+2           Active
+3           ACTIVE
+4           Active
+
+*/
+```
+
+### Enter, SQL Server Collations
+Collations are a set of rules in SQL Server for storing and fetching data. These rules are defined on a server, database or column level and can even be specified in queries.
+
+The two main collations we need to know at this point are:
+
+- `SQL_Latin1_General_CP1_CI_AS` where CI stands for **c**ase-**i**nsensitive
+- `SQL_Latin1_General_CP1_CS_AS` where CS stands for **c**ase-**s**ensitive
+
+So how can we use this to make our search case-sensitive? The answer is using the `COLLATE` clause.
+
+### `COLLATE` clause
+
+We can make our search queries run case-sensitively by using the `COLLATE` clause followed by the name of the case-sensitive collation like this:
+
+```sql {11}
+SELECT * 
+FROM (
+  SELECT 1 as id, 'Active' as status
+  UNION
+  SELECT 2 as id, 'Active' as status
+  UNION
+  SELECT 3 as id, 'ACTIVE' as status
+  UNION
+  SELECT 4 as id, 'Active' as status
+) temp
+WHERE [status] = 'ACTIVE' COLLATE SQL_Latin1_General_CP1_CS_AS;
+
+/* OUTPUT:
+
+id          status
+----------- ------
+3           ACTIVE
+
+*/
+```
+
+Woo hoo!🤘 Mission accomplished! We now get only those rows that have `status` column value as all caps `ACTIVE`.
+
+### Helpful tips
+We can also find out the collation specified for servers, databases and columns using these helpful T-SQL queries.
+
+```sql
+-- Server-Level Collation
+SELECT SERVERPROPERTY('collation') AS 'Server Collation';
+
+-- Database-Level Collation
+SELECT DATABASEPROPERTYEX(
+  '<your-database-name>', 
+  'Collation'
+) AS 'Database Collation';
+
+-- Column-Level Collation
+SELECT 
+    name as 'Column', 
+    collation_name as 'Column Collation'
+FROM sys.columns 
+WHERE name = N'<your-column-name>';
+```
