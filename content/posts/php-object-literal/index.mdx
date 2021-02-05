@@ -1,0 +1,65 @@
+---
+title: How to create an object literal in PHP
+date: "2021-02-05"
+slug: "/create-object-literal-php"
+tags:
+  - "PHP"
+  - "Quick Tip"
+---
+
+We all know that we can create object literals in JavaScript like this:
+
+```js
+const person = {
+  "name": "Saurabh",
+  "profession": "Software Developer"
+};
+```
+
+But recently I needed to use a temporary object literal in my PHP code. A little bit of googling around revealed that there is no direct way to create an object literal in PHP.
+
+We can of course use an associative array literal like this:
+
+```php
+$person = array( 
+  "name" => "Saurabh", 
+  "profession" => "Software Developer" 
+);
+
+echo $person["name"] . "<br/>";
+echo $person["profession"];
+```
+
+But in my particular use case, I needed to use an object and not an associative array.
+
+Fortunately there are workarounds. 
+
+### Type cast an associative array to an object
+You can type cast an associative array into an object. The keys of the associative array become the properties of the object and and are assigned values respectively.
+
+```php
+$person = (object)array( 
+  "name" => "Saurabh", 
+  "profession" => "Software Developer" 
+);
+
+echo $person->name . "<br/>";
+echo $person->profession;
+```
+
+### Instantiate an empty generic php object
+You can also create an empty generic PHP object and then specify properties and values on it like this.
+```php
+$person = new stdClass();
+$person->name = "Saurabh";
+$person->profession = "Software Developer";
+
+echo $person->name . "<br/>";
+echo $person->profession;
+```
+
+---
+
+##### References: 
+
+[https://stackoverflow.com/a/9644977/1932141](https://stackoverflow.com/a/9644977/1932141)
