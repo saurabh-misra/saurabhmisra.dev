@@ -1,0 +1,61 @@
+---
+title: Add a dropdown filter to the table header using DataTable jQuery plugin
+date: "2021-02-07"
+slug: "/add-dropdown-filter-header-datatable-jquery"
+tags:
+  - "jQuery"
+  - "DataTable"
+  - "Quick Tip"
+---
+
+This is just a quick tip for anyone looking to customize the headers on a table configured with the <a href="https://datatables.net/" target="_blank">jQuery DataTable plugin</a> and also as a quicker way for my future self to find this information.
+
+The other day I received request to add a dropdown filter in the header of a table that I had configured with the DataTable plugin.
+
+The setup before the customization is pretty basic with the table and the usual DataTable initialization script. <a href="https://jsfiddle.net/saurabhmisra87/nL7j4p08/2/" target="_blank">Click here</a> for a full working example. 
+
+```js
+$("table.my-table").DataTable({});
+```
+
+Now to replace one of the headers with a `<select>` that will act as filter, we need to add the below script to the initialization statement. I have added comments to explain what each line is doing. <a href="https://jsfiddle.net/saurabhmisra87/pgL1yv95/16/" target="_blank">Click here</a> for a full working example.
+
+```js
+$(document).ready(function() {
+  $("table.my-table").DataTable({
+    // execute callback when DataTable is completely initialiazed
+    "initComplete": function() {
+      // Select the column whose header we need replaced using its index(0 based)
+      this.api().column(2).every(function() {
+        var column = this;
+        // Put the HTML of the <select /> filter along with any default options 
+        var select = $('<select class="form-control input-sm"><option value="">All</option></select>')
+          // remove all content from this column's header and 
+          // append the above <select /> element HTML code into it 
+          .appendTo($(column.header()).empty())
+          // execute callback when an option is selected in our <select /> filter
+          .on('change', function() {
+            // escape special characters for DataTable to perform search
+            var val = $.fn.dataTable.util.escapeRegex(
+              $(this).val()
+            );
+
+            // Perform the search with the <select /> filter value and re-render the DataTable
+            column
+              .search(val ? '^' + val + '$' : '', true, false)
+              .draw();
+          });
+        // fill the <select /> filter with unique values from the column's data
+        column.data().unique().sort().each(function(d, j) {
+          select.append("<option value='" + d + "'>" + d + "</option>")
+        });
+      });
+    },
+    // disable sorting on the column with the filter in its header.
+    "columnDefs": [{
+      targets: [2],
+      orderable: false
+    }]
+  });
+});
+```
