@@ -1,0 +1,36 @@
+---
+title: jQuery DataTable plugin-Change the headers while exporting as excel
+date: "2021-02-13"
+slug: "/datatable-plugin-change-headers-excel-export"
+tags:
+  - "jQuery"
+  - "DataTable"
+  - "Quick Tip"
+---
+
+Exporting as excel in a DataTable configured table is pretty straight forward. But what if we want to change the header while exporting as excel so that the web view has a different header and the excel has a different one.
+
+But why would anyone need to do that? Well lets take the example from this [previous post](/add-dropdown-filter-header-datatable-jquery) where the table has a `<select>` filter in the header instead of a column name. We definitely need the column name as the header in the excel file so lets try to do that.
+
+To achieve this, we need to add the below code to the initialization object.
+
+```js
+...
+"buttons": [{
+  "extend": 'excel',
+  "exportOptions": {
+    "format": {
+      "header": function(content, index) {
+        // Here 2 is the index of the column 
+        // whose header name we want to change(0 based)
+        return index === 2 ? "Gender" : content;
+      }
+    }
+  }
+}]
+...
+```
+<br/>
+<p>
+<a href="https://jsfiddle.net/saurabhmisra87/hL6xw1sk/18/" target="_blank">Click here</a> for a full working example.
+</p>
