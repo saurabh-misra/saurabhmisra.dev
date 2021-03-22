@@ -1,0 +1,775 @@
+---
+title: Common Table Expressions(CTE) in SQL Server
+date: "2021-03-22"
+slug: "/sql-server-common-table-expressions-cte"
+tags:
+  - "SQL Server"
+  - "CTE"
+---
+
+### What is a Common Table Expression? 
+A Common Table Expression or CTE is a temporary result set that has a name and we can reference this result set using that name within SELECT, INSERT, UPDATE and DELETE statements.
+
+Wait...aren't views supposed to be result sets with names that we can reference within SELECT, INSERT, UPDATE and DELETE statements?
+
+Yes and CTEs are similar to views in that sense BUT there are some major differences:
+- CTEs are temporary meaning they are not stored as a DB object like views. They are only available within the scope of the current query. 
+- CTEs can reference themselves and thus enable recursion. 
+
+We'll check out these differences in more detail later but for now lets first look at how to create and use CTEs.
+
+### Creating and Using a CTE
+We're going to stick to tradition and use the most cliched example in the history of all programming related tutorials, the "Hello World!" example🤷‍♂️.
+
+```sql
+-- create a CTE
+WITH cte_greeting
+AS (
+	SELECT 'Hello World!' as 'greeting'
+)
+
+-- use the CTE
+SELECT * FROM cte_greeting;
+
+/*
+
+greeting
+------------
+Hello World!
+
+*/
+```
+
+The structure of a basic CTE is pretty simple. 
+
+```
+WITH <cte_name> (<optional_list_of_column_names>)
+AS (
+  <query_definition>
+)
+```
+
+And using the CTE is pretty straight forward as well. You simply reference it like a table or view in a SELECT statement.
+
+```
+SELECT <list of columns> FROM <cte_name>;
+```
+
+In our "Hello World!" example, you'll notice we have skipped the optional column list. We can only do this if the query definition inside the CTE has defined names for all its columns otherwise we need to provide names for those columns in the column list.
+
+So if we don't provide a column name in the column list and also omit the column name in the query definition, it'll throw an error.
+
+```sql
+WITH cte_greeting
+AS (
+	SELECT 'Hello World!'
+)
+SELECT * FROM cte_greeting;
+
+/*
+
+No column name was specified for column 1 of 'cte_greeting'.
+
+*/
+```
+
+To resolve this we can re-instate the column name in the query definition like before or instead, provide a column name in the column list like this:
+
+```sql
+WITH cte_greeting( my_greeting )
+AS (
+	SELECT 'Hello World!'
+)
+SELECT * FROM cte_greeting;
+
+/*
+
+my_greeting
+------------
+Hello World!
+
+*/
+```
+
+If we specify a column name in the column list as well as in the query definition then the name in the column list will take precedence and will override the column name in the query definition when we run the CTE in the SELECT clause. 
+
+```sql
+WITH cte_greeting( my_greeting )
+AS (
+	SELECT 'Hello World!' as 'greeting'
+)
+SELECT * FROM cte_greeting;
+
+/*
+
+my_greeting
+------------
+Hello World!
+
+*/
+```
+
+Also make sure the column names in the column list are the same number(and sequence) as in the query definition otherwise it'll throw an error.
+
+```sql
+WITH cte_greeting( my_greeting )
+AS (
+	SELECT 'Hello World!' as 'greeting1', 'Good Morning!' as 'greeting2'
+)
+SELECT * FROM cte_greeting;
+
+/*
+
+'cte_greeting' has more columns than were specified in the column list.
+
+*/
+```
+
+<br />
+
+##### A CTE should be used immediately
+Remember that CTEs are a temporary result set so you must use a CTE immediately in a SQL statement after defining it otherwise you'll get an error.
+
+```sql {5}
+WITH cte_greeting( my_greeting )
+AS (
+	SELECT 'Hello World!'
+)
+SELECT 'some other sql statement'
+SELECT * FROM cte_greeting
+
+/*
+
+Common table expression defined but not used.
+
+*/
+```
+
+<br/>
+
+##### Multiple CTEs
+You can define multiple CTEs and then use them in the same SELECT statement. All you have to do is use a comma to separate your CTE definitions.
+
+```sql
+WITH cte_greeting1( greeting1 )
+AS (
+	SELECT 'Hello World!'
+),
+cte_greeting2( greeting2 )
+AS (
+	SELECT 'Good Morning!'
+)
+SELECT greeting1 as 'greetings' FROM cte_greeting1
+UNION
+SELECT greeting2 as 'greetings' FROM cte_greeting2
+
+/*
+
+greetings
+-------------
+Hello World!
+Good Morning!
+
+*/
+```
+
+Lets look at a slightly more complicated example. Please go ahead and create the sample table below and fill it up with some random statistical data.
+
+```sql
+CREATE TABLE tblMarvelMovies (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	name varchar(50),
+	rating DECIMAL(2,1),
+	gross_revenue_millions DECIMAL(5,2)
+);
+INSERT tblMarvelMovies (name, rating, gross_revenue_millions) 
+VALUES ('Avengers: Endgame', 7.1, 777.27)
+INSERT tblMarvelMovies (name, rating, gross_revenue_millions) 
+VALUES ('Avengers: Infinity War', 8.9, 560.13)
+INSERT tblMarvelMovies (name, rating, gross_revenue_millions) 
+VALUES ('Avengers: Age of Ultron', 6.0, 874.85)
+INSERT tblMarvelMovies (name, rating, gross_revenue_millions) 
+VALUES ('The Avengers', 6.1, 918.44)
+INSERT tblMarvelMovies (name, rating, gross_revenue_millions) 
+VALUES ('Iron Man', 8.5, 918.75)
+INSERT tblMarvelMovies (name, rating, gross_revenue_millions) 
+VALUES ('Iron Man 2', 7.1, 798.97)
+INSERT tblMarvelMovies (name, rating, gross_revenue_millions) 
+VALUES ('Iron Man 3', 6.4, 524.08)
+INSERT tblMarvelMovies (name, rating, gross_revenue_millions) 
+VALUES ('Guardians of the Galaxy', 8.7, 711.11)
+INSERT tblMarvelMovies (name, rating, gross_revenue_millions) 
+VALUES ('Guardians of the Galaxy Vol. 2', 8.2, 963.13)
+INSERT tblMarvelMovies (name, rating, gross_revenue_millions) 
+VALUES ('Thor', 6.1, 871.70)
+INSERT tblMarvelMovies (name, rating, gross_revenue_millions) 
+VALUES ('Thor: The Dark World', 6.1, 898.57)
+INSERT tblMarvelMovies (name, rating, gross_revenue_millions) 
+VALUES ('Thor: Ragnarok', 6.4, 841.32)
+INSERT tblMarvelMovies (name, rating, gross_revenue_millions) 
+VALUES ('Captain America: The First Avenger', 9.5, 938.28)
+INSERT tblMarvelMovies (name, rating, gross_revenue_millions) 
+VALUES ('Captain America: The Winter Soldier', 8.7, 868.83)
+INSERT tblMarvelMovies (name, rating, gross_revenue_millions) 
+VALUES ('Captain America: Civil War', 8.3, 855.60)
+```
+
+Yes, I'm a fan of the Marvel movies! 🤷‍♂️
+
+Now, lets construct a query to find the total gross revenue earned and the average rating grouped by the movie series. So basically total revenue and average rating for the Avengers movie series, the Iron Man movie series, the Captain America movie series, etc. 
+
+```sql
+SELECT 
+	series_category, 
+	SUM(gross_revenue_millions) as 'total_gross_revenue', 
+	CAST(AVG(rating) as DECIMAL(2,1)) as 'avg_rating'
+FROM (
+	SELECT 
+		CASE 
+			WHEN name like '%Avengers%' THEN 'The Avengers'
+			WHEN name like '%Iron Man%' THEN 'Iron Man'
+			WHEN name like '%Guardians%' THEN 'Guardians of the Galaxy'
+			WHEN name like '%Thor%' THEN 'Thor'
+			WHEN name like '%Captain%' THEN 'Captain America'
+		END as 'series_category',
+		gross_revenue_millions,
+		rating
+	FROM tblMarvelMovies 
+) temp
+GROUP BY series_category
+ORDER BY avg_rating desc;
+
+/*
+
+series_category         total_gross_revenue    avg_rating
+----------------------- ---------------------- -----------
+Captain America         2662.71                8.8
+Guardians of the Galaxy 1674.24                8.5
+Iron Man                2241.80                7.3
+The Avengers            3130.69                7.0
+Thor                    2611.59                6.2
+
+*/
+```
+
+Lets look at how we can make the main query a bit simpler and easier to read using a CTE.
+
+```sql
+-- complex logic encapsulated within CTE
+WITH cte_series
+AS (
+	SELECT 
+		CASE 
+			WHEN name like '%Avengers%' THEN 'The Avengers'
+			WHEN name like '%Iron Man%' THEN 'Iron Man'
+			WHEN name like '%Guardians%' THEN 'Guardians of the Galaxy'
+			WHEN name like '%Thor%' THEN 'Thor'
+			WHEN name like '%Captain%' THEN 'Captain America'
+		END as 'series_category',
+		gross_revenue_millions,
+		rating
+	FROM tblMarvelMovies 
+)
+-- simpler and more readable main query
+SELECT 
+	series_category, 
+	SUM(gross_revenue_millions) as 'total_gross_revenue', 
+	CAST(AVG(rating) as DECIMAL(2,1)) as 'avg_rating'
+FROM cte_series
+GROUP BY series_category
+ORDER BY avg_rating desc;
+
+/*
+
+series_category         total_gross_revenue    avg_rating
+----------------------- ---------------------- -----------
+Captain America         2662.71                8.8
+Guardians of the Galaxy 1674.24                8.5
+Iron Man                2241.80                7.3
+The Avengers            3130.69                7.0
+Thor                    2611.59                6.2
+
+*/
+```
+
+Woo hoo! The main query no longer has to deal with a sub-query. All the CASE WHEN THEN statements are encapsulated in to the CTE. The result is a simpler looking, more maintainable and readable main query.
+
+The benefit of making the main query simpler might not be very apparent in the example we have used above but in real life, more often than not, we encounter queries that look like a giant heap of complicated logic or inline sub-queries used in JOINs, WHERE and SELECT clauses. In such situations, we can clean the main query up into one or multiple CTEs. 
+
+It's kind of like how we separate concerns by encapsulating logic into functions in other application programming languages so that the main function that performs a lot of different tasks becomes more readable and maintainable.
+
+So if you have a complex query that you want to clean up, ask yourself whether it would make more sense to encapsulate this complexity in a view or a CTE. If you think the complex query parts are not going to be used elsewhere like in other database objects or stored procedures or functions, then a view might be overkill but this is exactly where CTEs will come in handy.
+
+
+### Recursive CTEs
+One of the most unique and useful features of a CTE is that you can reference a CTE by its name inside itself and create a recursive CTE similar to how we create recursive functions in application programming languages.
+
+Lets code a simple recursive CTE that produces a result of rows from 1 to 10.
+
+```sql
+WITH cte_recursive( sequence )
+AS (
+	-- anchor member
+	SELECT 1 as 'sequence'
+
+	UNION ALL
+
+	-- recursive member
+	SELECT (sequence+1) as 'sequence'
+	FROM cte_recursive
+	WHERE sequence < 10 -- termination condition 
+)
+SELECT * FROM cte_recursive;
+
+/*
+
+sequence
+-----------
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+
+*/
+```
+
+Lets understand how this works starting with how a recursive CTE is constructed. There are 3 building blocks of a recursive CTE:
+
+##### 1. Anchor member ⚓
+The SELECT statement on line 4 provides the initial result set and is known as the *anchor member*. 
+
+##### 2. Recursive Member 🔃
+The SELECT statement on line 9 references the same CTE inside which it is being defined which enables recursion which is why it is known as the *recursive member*. This member is connected with the anchor member using a UNION ALL. 
+
+##### 3. Termination condition 🛑
+If you have worked with recursive functions before then you know you need a way to stop the recursion otherwise you'll run into stack overflow issues. In this example, we stop the recursion using a simple WHERE clause condition but there are other ways to stop the recursion also as you'll see in examples that follow.
+
+
+##### How it all works?
+
+The anchor member provides the initial result set and there after each iteration of the CTE operates on the result set produced by the previous iteration and produces a new result set for the next iteration until the termination condition stops the recursion. In the end, all these result sets are combined to produce the final result set.
+
+Here is a walkthrough of the results sets produced by each iteration of the recursive CTE in the previous example.
+
+```
+Result set T0 ( returned by anchor member )
+
+sequence
+---------
+1
+	
+
+Iteration 1 - Result set T1
+
+sequence
+---------
+2
+	
+
+Iteration 2 - Result set T2
+
+sequence
+---------
+3
+		
+...
+...
+...
+	
+
+Iteration 9 - Result set T9
+
+sequence
+---------
+10
+
+Iteration 10 ( termination condition ends recursion )
+```
+
+After the recursion ends, all the result sets from each iteration are joined together into the final result set.
+
+```
+sequence
+-----------
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+```
+
+<br/>
+
+#### `MAXRECURSION` query hint
+In our previous recursive CTE example, lets remove the termination condition and see what happens.
+
+```sql
+WITH cte_recursive( sequence )
+AS (
+	-- anchor member
+	SELECT 1 as 'sequence'
+
+	UNION ALL
+
+	-- recursive member
+	SELECT (sequence+1) as 'sequence'
+	FROM cte_recursive
+)
+SELECT * FROM cte_recursive;
+```
+
+<br />
+
+<img src="cte-no-termination-condition.jpg" width="100%" />
+
+By default, SQL Server limits the maximum number of iterations in a recursive CTE to 100. This is like a fallback to make sure that the CTE doesn't run infinitely because of an incorrectly scripted termination condition. So since we haven't specified a termination condition, our CTE kept on going till 100 iterations. It printed 101 and then reached the maximum recursion limit and terminated with the error in the screenshot. 
+
+We can control this recursion limit using the `MAXRECURSION` query hint which we can specify using the `OPTION` clause. Lets set the max recursion limit to a lower value like 10 and see what happens.
+
+```sql
+WITH cte_recursive( sequence )
+AS (
+	-- anchor member
+	SELECT 1 as 'sequence'
+
+	UNION ALL
+
+	-- recursive member
+	SELECT (sequence+1) as 'sequence'
+	FROM cte_recursive
+)
+SELECT * FROM cte_recursive
+OPTION ( MAXRECURSION 10 );
+```
+
+<br />
+
+<img src="cte-maxrecursion-option.jpg" width="100%" />
+
+This time, instead of printing numbers from 1 to 101, the CTE prints numbers from 1 to 11 and then terminates because we have explicitly set the max recursion limit to 10. We can set this to a number higher than 100 as well.
+
+#### Multiple anchor and recursive members
+Since there is a clear distinction between the anchor and the recursive member in the fact that the recursive member references its own CTE, it is possible to have multiple anchor and/or recursive members. 
+
+
+Lets see how a CTE works with multiple anchor members.
+
+```sql
+WITH cte_recursive( sequence, anchor_member )
+AS (
+	-- anchor member 1
+	SELECT 5 as 'sequence', 'first' as 'anchor_member'
+
+	UNION
+	
+	-- anchor member 2
+	SELECT 8 as 'sequence', 'second' as 'anchor_member'
+
+	UNION ALL
+
+	-- recursive member
+	SELECT (sequence+1) as 'sequence', anchor_member
+	FROM cte_recursive
+	WHERE sequence < 10 -- termination condition 
+)
+SELECT * FROM cte_recursive;
+
+/*
+
+sequence    anchor_member
+----------- -------------
+5           first
+8           second
+9           second
+10          second
+6           first
+7           first
+8           first
+9           first
+10          first
+
+*/
+```
+
+In the above example, we have two anchor members joined by a UNION and then we have the recursive member. The first 2 rows are provided by the anchor members. The `anchor_member` column helps identify which anchor member's result set is being recursed over. The recursive member first operates on the result set of the second anchor member. After completely recursing over the second anchor member, it moves on to the first one.
+
+Lets now take an example with multiple recursive members. Please note that I have changed the termination condition so that we don't end up with a giant result set.
+
+```sql
+WITH cte_recursive( sequence, recursive_member, iteration )
+AS (
+	-- anchor member
+	SELECT 
+		1 as 'sequence', 
+		cast('' as varchar(10)) as 'recursive_member', 
+		0 as iteration
+
+	UNION ALL
+
+	-- recursive member 1
+	SELECT 
+		(sequence+1) as 'sequence', 
+		cast('first' as varchar(10)) as 'recursive_member', 
+		(iteration+1) as iteration
+	FROM cte_recursive
+	WHERE sequence < 4 -- termination condition 
+
+	UNION ALL
+
+	-- recursive member 2
+	SELECT 
+		(sequence+1) as 'sequence', 
+		cast('second' as varchar(10)) as 'recursive_member', 
+		(iteration+1) as iteration
+	FROM cte_recursive
+	WHERE sequence < 4 -- termination condition 
+)
+SELECT * FROM cte_recursive;
+
+/*
+
+sequence    recursive_member iteration
+----------- ---------------- -----------
+1                            0
+2           first            1
+2           second           1
+3           first            2
+3           second           2
+4           first            3
+4           second           3
+4           first            3
+4           second           3
+3           first            2
+3           second           2
+4           first            3
+4           second           3
+4           first            3
+4           second           3
+
+*/
+```
+
+Ok so we have two recursive members now. Why are we using `CAST()` for the `recursive_member` columns? That is because the CTE is not aware of the datatype and length of the literal values we have used as column values so we must specify that else it'll throw an error. Go ahead and remove those `CAST()` calls and see what the error is all about.
+
+If you need help understanding how the above result set is generated, follow the flow of control represented by numbers on the arrows in the image below.
+
+<img src="cte-multiple-recursive-control-flow.jpg" width="100%" />
+
+Also here is the division in the result sets generated by each iteration of the CTEs.
+```
+T0
+
+sequence    recursive_member iteration
+----------- ---------------- -----------
+1                            0
+
+
+T1
+
+sequence    recursive_member iteration
+----------- ---------------- -----------
+2           first            1
+2           second           1
+
+
+T2
+
+sequence    recursive_member iteration
+----------- ---------------- -----------
+3           first            2
+3           second           2
+
+
+T3
+
+sequence    recursive_member iteration
+----------- ---------------- -----------
+4           first            3
+4           second           3
+
+
+T4
+
+sequence    recursive_member iteration
+----------- ---------------- -----------
+4           first            3
+4           second           3
+
+
+T5
+
+sequence    recursive_member iteration
+----------- ---------------- -----------
+3           first            2
+3           second           2
+
+
+T6
+
+sequence    recursive_member iteration
+----------- ---------------- -----------
+4           first            3
+4           second           3
+
+
+T7
+
+sequence    recursive_member iteration
+----------- ---------------- -----------
+4           first            3
+4           second           3
+```
+
+<br />
+
+#### A realistic example
+We have been working with generating result sets of numbers because I wanted to give you an idea of how CTEs operate on data with every iteration but now that we have understood all that, lets look at an example with the kind of data that we usually deal with when working with databases.
+
+Recursive queries are commonly used to operate on hierarchical data. So for our example, we are again going to use the much cliched, self-referencing employee-manager data table. 
+
+```sql
+CREATE TABLE tblEmployees (
+	emp_id INT IDENTITY(1,1) PRIMARY KEY,
+	name varchar(50) NOT NULL,
+	designation varchar(50) NOT NULL,
+	manager_id INT NULL
+);
+
+SET IDENTITY_INSERT tblEmployees ON;
+INSERT INTO tblEmployees(emp_id, name, designation, manager_id) 
+VALUES( 1, 'Michael Scott', 'Regional Manager', 9 );
+INSERT INTO tblEmployees(emp_id, name, designation, manager_id) 
+VALUES( 2, 'Dwight Schrute', 'Assistant to the Regional Manager', 1 );
+INSERT INTO tblEmployees(emp_id, name, designation, manager_id) 
+VALUES( 3, 'Jim Halpert', 'Salesman', 1 );
+INSERT INTO tblEmployees(emp_id, name, designation, manager_id) 
+VALUES( 4, 'Pam Beasley', 'Receptionist', 1 );
+INSERT INTO tblEmployees(emp_id, name, designation, manager_id) 
+VALUES( 5, 'Kevin Malone', 'Accountant', 6 );
+INSERT INTO tblEmployees(emp_id, name, designation, manager_id) 
+VALUES( 6, 'Angela Martin', 'Head Accountant', 1 );
+INSERT INTO tblEmployees(emp_id, name, designation, manager_id) 
+VALUES( 7, 'Oscar Gutierrez', 'Accountant', 6 );
+INSERT INTO tblEmployees(emp_id, name, designation, manager_id) 
+VALUES( 8, 'David Wallace', 'CEO', NULL );
+INSERT INTO tblEmployees(emp_id, name, designation, manager_id) 
+VALUES( 9, 'Jan', 'Vice-President', 8 );
+SET IDENTITY_INSERT tblEmployees OFF;
+```
+
+Yes, I am a fan of "The Office" TV series! 🤷‍♂️
+
+So our job is pretty simple, to arrange this data hierarchically starting from the top-level executive to the bottom-level employees using a CTE.
+
+```sql
+WITH cte_emp_levels( emp_id, name, designation, manager_id, level )
+AS (
+	-- anchor member
+	SELECT emp_id, name, designation, manager_id, 0 as 'level'
+	FROM tblEmployees
+	WHERE manager_id IS NULL
+
+	UNION ALL
+
+	-- recursive member
+	SELECT e.emp_id, e.name, e.designation, e.manager_id, ( level + 1 ) as 'level'
+	FROM tblEmployees e
+	INNER JOIN cte_emp_levels c ON e.manager_id = c.emp_id
+)
+SELECT * FROM cte_emp_levels;
+```
+
+and here is the output:
+
+<img src="cte-real-life-example-1.jpg" width="100%" />
+
+Mission Accomplished!!😎
+
+Do you see something missing though? Where the heck is the termination condition!!?🤔
+
+*It's implicit*. See the INNER JOIN in the recursive member. Well when it reaches the bottom-level employees, it does not find anyone else who is managed by them. When no records are returned, the recursion is terminated.
+
+Here is a walkthrough of the result sets generated by each iteration of the CTE.
+
+The CEO is not managed by anyone so the anchor member returns his record first.
+```
+T0 - result set returned by anchor member
+
+emp_id      name            designation  manager_id  level
+----------- --------------- ------------ ----------- -----------
+8           David Wallace   CEO          NULL        0
+```
+
+In our data, the only person managed by the CEO is Vice-President Jan.
+
+```
+T1
+
+emp_id      name   designation		manager_id  level
+----------- ------ ---------------- ----------- -----------
+9           Jan    Vice-President   8           1
+```
+
+In our data, the only person managed by the Vice-President is Michael, the Regional Manager.
+
+```
+T2
+
+emp_id      name   			designation			manager_id  level
+----------- --------------- ------------------- ----------- -----------
+1           Michael Scott   Regional Manager  	9           2
+```
+
+Salesmen, receptionists and the head of accounting all report to Michael.
+
+```
+T3
+
+emp_id      name   			designation							manager_id  level
+----------- --------------- ----------------------------------- ----------- -----------
+2           Dwight Schrute  Assistant to the Regional Manager   1           3
+3           Jim Halpert     Salesman                            1           3
+4           Pam Beasley     Receptionist                        1           3
+6           Angela Martin   Head Accountant                     1           3
+```
+
+And finally, we have accountants who report to the head of accounting, Angela.
+
+```
+T4
+
+emp_id      name   				designation		manager_id  level
+----------- ------------------- --------------- ----------- -----------
+5           Kevin Malone        Accountant      6           4
+7           Oscar Gutierrez     Accountant      6           4
+```
+
+<br />
+
+---
+
+I hope this article helps and encourages you to use CTEs in your queries. There are a varierty of use cases where CTEs, particularly recursive CTEs can come very handy. I'll try to list out and explain these scenarios in upcoming posts. Keep on rocking! 🤘
+
+---
+
+<br />
+
+##### References and Further Reading
+https://docs.microsoft.com/en-us/previous-versions/sql/sql-server-2008-r2/ms186243(v=sql.105)?redirectedfrom=MSDN
+
+https://stackoverflow.com/questions/30918633/sql-cte-vs-view
+
+https://stackoverflow.com/questions/4740748/when-to-use-common-table-expression-cte
+
+https://www.sqlshack.com/sql-server-common-table-expressions-cte/
