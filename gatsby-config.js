@@ -43,6 +43,10 @@ module.exports = {
         title: `Blog`,
         slug: `/blog`,
       },
+      {
+        title: `Privacy Policy-How Much Do I Spend`,
+        slug: `/pages/privacy-policy/how-much-do-i-spend`,
+      },
     ],
   },
   plugins: [
@@ -58,6 +62,10 @@ module.exports = {
           {
             title: `About`,
             slug: `/about`,
+          },
+          {
+            title: `Privacy Policy-How Much Do I Spend`,
+            slug: `/pages/privacy-policy/how-much-do-i-spend`,
           },
         ],
         externalLinks: [
