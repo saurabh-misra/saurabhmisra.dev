@@ -1,0 +1,265 @@
+---
+title: 4 ways to convert delimited string data into individual rows in SQL Server
+date: "2021-05-07"
+slug: "/sql-server-convert-delimited-string-into-rows"
+tags:
+  - "SQL Server"
+  - "CTE"
+description: "Learn how to use a CTE, CROSS APPLY on XML, STRING_SPLIT() and a WHILE loop to convert delimited or comma-separated strings into individual rows in SQL Server." 
+---
+
+If I had a nickel for everytime I had to convert a comma-separated string into individual rows in SQL Server, I'd be filthy rich right now.💰
+
+No really, I have had to do this enough times that I finally decided to write about my most preferred ways to achieve this.
+
+Lets first create a dummy table with some dummy comma-separated strings as data that we can then use for all our queries.
+
+```sql
+CREATE TABLE tblCsvData (
+    id INT,
+    csv VARCHAR(MAX)
+)
+INSERT tblCsvData SELECT 1, '18,20,45,68';
+INSERT tblCsvData SELECT 2, 'Jon,Sansa,Arya,Robb,Bran,Rickon';
+INSERT tblCsvData SELECT 3, '56';
+```
+
+### 1. Using a CTE
+This is my most preferred way since it is simple and understandeable.
+
+>If you don't know how to write Common Table Expressions or CTEs in SQL Server, I would highly suggest that you [read this article](/sql-server-common-table-expressions-cte) first to help you get up to speed with them before proceeding.
+
+```sql
+-- create the CTE
+WITH cte_split(id, split_values, csv) AS
+(
+	-- anchor member
+    SELECT
+        id,
+        LEFT(csv, CHARINDEX(',', csv + ',') - 1),
+        STUFF(csv, 1, CHARINDEX(',', csv + ','), '')
+    FROM tblCsvData
+
+    UNION ALL
+
+	-- recursive member
+    SELECT
+        id,
+        LEFT(csv, CHARINDEX(',', csv + ',') - 1),
+        STUFF(csv, 1, CHARINDEX(',', csv + ','), '')
+    FROM cte_split
+    -- termination condition
+    WHERE csv > ''
+)
+-- use the CTE and generate the final result set
+SELECT id, split_values
+FROM cte_split
+ORDER BY id;
+
+/* 
+id          split_values
+----------- ------------
+1           18
+1           20
+1           45
+1           68
+2           Jon
+2           Sansa
+2           Arya
+2           Robb
+2           Bran
+2           Rickon
+3           56
+*/
+```
+
+Lets go through this step-by-step by first looking at why we are using `LEFT()` and `STUFF()`.
+
+`LEFT()` will basically extract the individual values from CSV strings that we'll then use to generate the rows. So in the anchor member, it will extract `18` out of `18,20,45,68` and `Jon` out of `Jon,Sansa,Arya,Robb,Bran,Rickon`.
+
+`STUFF()` will kind of do the opposite. It will replace the individual row value extracted by `LEFT()` with a `''` meaning it'll remove the individual row values from the CSV data which will then be used by the future iterations of the CTE. So in the anchor member, it will extract `20,45,68` out of `18,20,45,68` and `Sansa,Arya,Robb,Bran,Rickon` out of `Jon,Sansa,Arya,Robb,Bran,Rickon`. These extracted values will be passed on to the next iteration of the CTE.
+
+Consider the below example with a modified anchor member query to better understand the role of `LEFT()` and `STUFF()`.
+
+```sql
+-- anchor member
+SELECT
+    id,
+    csv,
+    LEFT(csv, CHARINDEX(',', csv + ',') - 1) as 'split_values',
+    STUFF(csv, 1, CHARINDEX(',', csv + ','), '') as 'future_cte_iteration_value'
+FROM tblCsvData
+
+/*
+id          csv                                 split_values   future_cte_iteration_value
+----------- ----------------------------------- -------------  ------------------------------
+1           18,20,45,68                         18        	   20,45,68
+2           Jon,Sansa,Arya,Robb,Bran,Rickon     Jon       	   Sansa,Arya,Robb,Bran,Rickon
+3           56                                  56        
+*/
+```
+
+Wondering why we are concatenating a `,` with the csv data in `CHARINDEX()`? Try removing the concat operators and running the query. You get an error. The concatenation helps the query handle single values with no commas like `56`.
+
+If you want to understand how each iteration of the CTE processes and produces different rows, then run this modified version of the first query.
+
+```sql
+-- create the CTE
+WITH cte_split(id, split_values, csv, iteration) AS
+(
+	-- anchor member
+    SELECT
+      id,
+      LEFT(csv, CHARINDEX(',', csv + ',') - 1),
+      STUFF(csv, 1, CHARINDEX(',', csv + ','), ''),
+		  0 as iteration
+    FROM tblCsvData
+
+    UNION ALL
+
+	-- recursive member
+    SELECT
+      id,
+      LEFT(csv, CHARINDEX(',', csv + ',') - 1),
+      STUFF(csv, 1, CHARINDEX(',', csv + ','), ''),
+		  iteration + 1 as 'iteration'
+    FROM cte_split
+    WHERE
+      csv > ''
+)
+-- use the CTE and generate the final result set
+SELECT *
+FROM cte_split
+ORDER BY iteration,id;
+
+/*
+id          split_values csv                            iteration
+----------- ------------ ------------------------------ -----------
+1           18           20,45,68                       0
+2           Jon          Sansa,Arya,Robb,Bran,Rickon    0
+3           56                                          0
+1           20           45,68                          1
+2           Sansa        Arya,Robb,Bran,Rickon          1
+1           45           68                             2
+2           Arya         Robb,Bran,Rickon               2
+1           68                                          3
+2           Robb         Bran,Rickon                    3
+2           Bran         Rickon                         4
+2           Rickon                                      5
+*/
+```
+
+### 2. `CROSS APPLY` on XML
+This method is shorter but uses XQuery which I personally am not a big fan of. But you can use this if you want. In the query, just replace `tblCsvData` with your table and the column `csv` with your column that has delimited values.
+
+```sql
+-- main query
+SELECT 
+	temp.id,
+	Split.a.value('.', 'VARCHAR(100)') AS 'split_values'  
+FROM (
+  SELECT 
+		id,
+		CAST('<M>' + REPLACE(csv, ',', '</M><M>') + '</M>' AS XML) AS xml_data  
+  FROM tblCsvData
+ ) AS temp CROSS APPLY xml_data.nodes('/M') AS Split(a); 
+
+/*
+id          split_values
+----------- --------------
+1           18
+1           20
+1           45
+1           68
+2           Jon
+2           Sansa
+2           Arya
+2           Robb
+2           Bran
+2           Rickon
+3           56
+*/
+```
+
+### 3. `STRING_SPLIT()`
+This method has been introduced in SQL Server 2016 and seems to be a dedicated solution to our problem. I have never had a chance to use it as the project servers that I work on(and my own computer) are not using SQL Server 2016 but if you are using that version then this will probably be a better and more straight forward option than using a CTE or XML. 
+
+You can find more information about it [here](https://docs.microsoft.com/en-us/sql/t-sql/functions/string-split-transact-sql?view=sql-server-ver15).
+
+
+### 4. The good old `WHILE` loop
+If the above *"SQL Server specific"* ways don't work for you, we can always rely on old-school application programming methods like using a LOOP.
+
+So we'll create a function that will take in a comma separated string and return a set of rows of the split values.
+
+```sql
+CREATE FUNCTION [dbo].[udf_split_strings_with_while] (
+	@p_csv_string varchar(100)
+)
+RETURNS @tblSplitData TABLE (
+	split_values varchar(50)
+)
+AS 
+BEGIN
+	WHILE len(@p_csv_string) > 0
+	BEGIN	
+		DECLARE @split_value varchar(50);
+		DECLARE @first_comma_index int = CHARINDEX(',', @p_csv_string);
+
+		-- if a comma exists in the csv string, then...
+		IF @first_comma_index > 0
+		BEGIN
+			-- extract the single left most value from the csv string and use that as the split value.
+			SET @split_value = LEFT(@p_csv_string, @first_comma_index - 1);
+			-- extract the rest of the csv string leaving out the split value.
+			SET @p_csv_string = STUFF(@p_csv_string, 1, @first_comma_index, '');
+		END
+		ELSE
+		BEGIN
+			-- use the entire string as the split value
+			SET @split_value = @p_csv_string;
+			-- set the original csv string as blank
+			SET @p_csv_string = '';
+		END
+
+		-- insert the split value into the return table.
+		INSERT INTO @tblSplitData VALUES( @split_value );
+	END
+
+	RETURN;
+END
+```
+
+We'll then use this function in a query and pass it comma-separated string data one row at a time. For each row of comma-separated values, the function will return one or more rows of split values.
+
+```sql
+-- query that uses our split function
+SELECT a.id, b.split_values 
+FROM tblCsvData a 
+CROSS APPLY udf_split_strings_with_while( a.csv ) b;
+
+/*
+id          split_values
+----------- -------------
+1           18
+1           20
+1           45
+1           68
+2           Jon
+2           Sansa
+2           Arya
+2           Robb
+2           Bran
+2           Rickon
+3           56
+*/
+```
+
+`CROSS APPLY` is similar to an `INNER JOIN` but it has the advantage that it can work with complex expressions instead of simple result set producing queries. We have used `CROSS APPLY` because an `INNER JOIN` wouldn't work with a function call on the right which uses a column value(`a.csv`) from the table on the left.
+
+### BONUS METHOD: Tally table
+This is a popular approach for this problem. For the splitting use-cases that I have encountered, this seemed like somewhat of an overkill in my opinion. But you can try this out if it suits your needs and if none of the above discussed methods work for you the way you want them to. 
+[Here is an answer on stackoverflow](https://stackoverflow.com/a/36305493/1932141) illustrating the use of this method in splitting delimited strings.
+
+---
+[This stackoverflow question](https://stackoverflow.com/a/5493616/1932141) helped me out a great deal in writing this article. Do check it out in case you need more insight and tips on how to split delimited strings into rows. Thanks for reading and keep on rocking!🤘
