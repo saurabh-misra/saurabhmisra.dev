@@ -94,3 +94,18 @@ div.author hr {
     width: 100%;
   }
 }
+@media only screen and (min-width: 768px) {
+  .homepage section {
+    margin-bottom: 8rem;
+  }
+}
+@media only screen and (min-width: 640px) {
+  .homepage section.latest-posts-section,
+  .homepage section.publications-section,
+  .homepage section.projects-section {
+    margin-bottom: 6rem;
+  }
+}
+.about-me-page-pic {
+  border: 5px solid bisque;
+}
