@@ -30,7 +30,7 @@ module.exports = {
       },
       {
         name: `Email`,
-        url: `mailto:saurabhmisra.dev@gmail.com`,
+        url: `mailto:hello@saurabhmisra.dev`,
       },
       {
         name: `Github`,
@@ -71,7 +71,7 @@ module.exports = {
           },
           {
             name: `Email`,
-            url: `mailto:saurabhmisra.dev@gmail.com`,
+            url: `mailto:hello@saurabhmisra.dev`,
           },
           {
             name: `Github`,
