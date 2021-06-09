@@ -109,3 +109,7 @@ div.author hr {
 .about-me-page-pic {
   border: 5px solid bisque;
 }
+.output-screenshots {
+  width: 100%;
+  border: 2px solid #eee;
+}
