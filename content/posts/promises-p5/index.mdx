@@ -258,7 +258,7 @@ Promise.reject( "oh no!" )
 In the above example, the returned promise from `catch()` follows `promise1` and gets fulfilled with the value of 1. This value is then passed to `then()`'s fulfilled handler which logs it to the console.
 
 ##### What about `finally()`?
-`finally()` behaves differently than `then()` and `catch()` in this case. If you remember, we discussed [here](http://localhost:8000/promises-in-javascript-promise-chaining-then-catch-finally) that the `finally()` handler is meant to do cleanup and not really supposed to return anything meaningful. It does return a promise but that is simply for the purpose of forming a promise chain. So its returned promise *already follows* the original promise on which it was invoked. Returning anything from the `finally()` handler has no effect on this behaviour. Let's see this in action.
+`finally()` behaves differently than `then()` and `catch()` in this case. In [Part III](/promises-in-javascript-promise-chaining-then-catch-finally) of this series, we discussed that the `finally()` handler is meant to do cleanup and not really supposed to return anything meaningful. It does return a promise but that is simply for the purpose of forming a promise chain. So its returned promise *already follows* the original promise on which it was invoked. Returning anything from the `finally()` handler has no effect on this behaviour. Let's see this in action.
 
 ```js {3}
 var promise1 = Promise.resolve( 1 );
