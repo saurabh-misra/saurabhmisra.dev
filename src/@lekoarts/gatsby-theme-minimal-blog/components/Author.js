@@ -11,10 +11,10 @@ export default function Author() {
         </div>
         <div className="content-container">
           <p className="main-content">
-            Hi!👋, I'm <strong>Saurabh Misra</strong>, a full-stack software developer. 
+            Namaste🙏! I'm <strong>Saurabh Misra</strong>, a full-stack software developer. 
           </p> 
           <p className="sub-content">
-            I write articles and tutorials about...well...full-stack software development. I mostly publish stuff on Javascript, React, PHP and Wordpress. If that is something that interests you, then you are more than welcome to subscribe to my newsletter.
+            I write articles and tutorials about full-stack software development mostly using Javascript, ReactJS and NodeJS. If that is something that interests you, then you are more than welcome to subscribe to my newsletter.
           </p>
           <form
             action="https://buttondown.email/api/emails/embed-subscribe/saurabhmisra.dev"
@@ -23,7 +23,7 @@ export default function Author() {
             onsubmit="window.open('https://buttondown.email/saurabhmisra.dev', 'popupwindow')"
             class="embeddable-buttondown-form"
           >
-            <input type="email" name="email" id="bd-email" placeholder="chandler@bing.com" />
+            <input type="email" name="email" id="bd-email" placeholder="johnwick@example.com" />
             <input type="hidden" value="1" name="embed" />
             <input type="submit" value="Subscribe" />
           </form>

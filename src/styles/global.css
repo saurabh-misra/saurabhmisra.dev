@@ -25,7 +25,7 @@ div.author .content-container p {
   margin: 0;
 }
 div.author .main-content {
-  font-size: 28px;
+  font-size: 26px;
 }
 div.author .sub-content {
   font-size: 1.25rem;
@@ -108,8 +108,44 @@ div.author hr {
 }
 .about-me-page-pic {
   border: 5px solid bisque;
+  border-radius: 5px;
 }
 .output-screenshots {
   width: 100%;
   border: 2px solid #eee;
+}
+.mobile-screenshots {
+  width: 300px;
+  margin: auto;
+  display: block;
+}
+.image-caption {
+  display: block;
+  text-align: center;
+}
+
+/* TROPHY PANEL */
+.trophy-panel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.trophy-panel .emoji {
+  flex: 1; 
+  font-size: 60px;
+}
+.trophy-panel .text {
+  flex: 9;
+  margin: 0;
+  padding: 0;
+}
+@media screen and (min-width: 640px){
+  .trophy-panel .text {
+    font-size: 1rem;
+  }
+}
+@media screen and (min-width: 768px) {
+  .trophy-panel .text {
+    font-size: 1.25rem;
+  }
 }

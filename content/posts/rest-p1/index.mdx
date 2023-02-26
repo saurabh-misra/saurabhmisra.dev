@@ -1,0 +1,224 @@
+---
+title: "REST Architecture and RESTful APIs-The Basics"
+date: 2021-07-22
+slug: "/rest-architecture-basics"
+tags:
+  - REST API
+description: REST is an architectural style which defines a set of constraints for implementing APIs and dictates how representations of the state(current or intended) of a resource can be transferred between a client(API consumer) and a server(API service provider).
+banner: ./assets/images/banner.jpg
+---
+
+import androidWeatherAppScreenshot from "./assets/images/android-weather-app-screenshot.jpg";
+import stackoverflowLoginPageScreenshot from "./assets/images/stackoverflow-login-page-screenshot.jpg";
+import restP1banner from "./assets/images/banner.jpg";
+
+<img src={restP1banner} width="100%" alt="REST API Part 1 Banner Image" />
+<em class="image-caption">Icons by <a href="https://www.iconfinder.com/WHCompare" target="_blank">Alexiuz AS</a></em>
+
+As a software developer, you might have come across the terms REST APIs or RESTful APIs. You might have never used them before and are curious to know what they are. Maybe you have used some third-party APIs in your applications or even created some of your own REST API implementations without fully knowing what makes an API truly RESTful. 
+
+**This article aims to demystify Web Services, APIs, Web APIs and explain how the REST architecture fits into the picture along with a basic overview of its core concepts.**
+
+>This is a 3-part guide with this article being the first in the series. The next article explains the [6 architectural constraints that APIs must adhere to in order to be termed truly RESTful](/rest-architectural-constraints). The third article will be more hands-on and will help you learn [how you can design your very own truly RESTful APIs](/restful-api-tutorial) using a step-by-step tutorial. 
+
+Let's quickly establish some context by looking into what an API is and what are Web Services or Web APIs.
+
+## What is an API?
+API stands for Application Programming Interface. An API exposes certain *endpoints* or *API services* that enable communication between two software applications. 
+
+Just like a Graphical User Interface or GUI facilitates human interaction with a software application, for example, by using buttons and links and input fields, an API also enables interaction, but...between different software applications. 
+
+APIs also provide a layer of abstraction as they hide the nitty-gritty implementation details from the client application or the consumer of the API service. So the client application or API consumer only needs to know how to call the API service and what inputs to provide to it in order to perform the desired operation or retrieve desired information. It doesn't need to know how or where that information is stored or any underlying business logic. 
+
+For example, consider <a href="https://tinyjpg.com/developers" target="_blank">TinyJPGs API services</a> that compress the size of JPEG images along with other image processing operations. API clients don't need to understand how the compression actually happens. They only need to understand how to invoke the API service and what inputs to provide to it.
+
+An API is generic and can be implemented for any kind of software system like operating system, web-based systems, database systems, etc.
+
+## What is a Web Service?
+A Web Service is a form of an API that facilitates communication between two software applications *over the web*. 
+
+We all have browsed websites over the web. Our browser, the client sends an HTTP request to the server. The server processes the request and sends an HTML response back to the browser.
+
+This is fine for a browser-server interaction. But what happens when one kind of application on one server needs to communicate with another kind of application on another server? This is where Web Services come into play. 
+
+This interaction between one application and another is carried out using formats like JSON or XML over an HTTP or HTTPS connection. Why JSON or XML? Well because they are more suitable for application-and-application web interaction instead of formats like say for example, HTML which is more suited for application-and-human interaction. 
+
+## What is a Web API? How is it different from a Web Service?
+Web APIs are similar to Web Services. You can consider it as a younger sibling of Web Services. 
+
+Web services have historically been associated with SOAP, WSDL and XML based interfaces. They have faced some criticism in being complicated to use and have been associated with performance issues due to the use of XML.
+
+Web APIs can be considered to be a more evolved, simpler, light-weight approach that emphasizes REST-based communication between applications. 
+
+Most of the web today has already switched(or is in the process of switching) to Web APIs which is why for the remainder of this article series, we'll be focussing on Web APIs. If you want to learn more about web services and how they differ from Web APIs, you can read this <a href="https://en.wikipedia.org/wiki/Web_service#Web_API" target="_blank">Wikipedia article</a>.
+
+### So what is the difference between an API and a Web API?
+APIs are more generic while Web APIs are specific to the Web. So all Web APIs are APIs but all APIs are not Web APIs.
+
+## Real-life applications of Web APIs
+Web APIs are used pretty much everywhere and drive a major portion of the World Wide Web today. They enable any application to leverage the services of other digital service providers and quickly build on its own feature-set. This provides fast paced application development on any kind of platform like web, mobile or desktop while ensuring a seamless user experience. 
+
+Let's see some examples of APIs in action in the real world.
+
+#### Example #1: Weather data APIs
+A good example is the Weather app on Android(see screenshot below) which uses the <a href="https://weather.com" target="_blank">weather.com</a> API to source its weather data. In this screenshot, the source of data is mentioned at the bottom right corner of the app.
+<img src={androidWeatherAppScreenshot} alt="screenshot of the Weather App on Android illustrating its use of Weather.com's API" className="mobile-screenshots" />
+
+Here the android app plays the role of an *API client* and consumes the APIs exposed by <a href="https://weather.com" target="_blank">weather.com</a> that acts as the *API server*.
+
+#### Example #2: User authentication APIs
+Another example is a website using APIs from <a href="https://developers.google.com/identity/gsi/web/guides/overview" target="_blank">Google</a>, <a href="https://developers.facebook.com/docs/facebook-login/" target="_blank">Facebook</a>, <a href="https://developer.twitter.com/en/docs/authentication/guides/log-in-with-twitter" target="_blank">Twitter</a>, etc. to authenticate the user. The below screenshot of the <a href="https://stackoverflow.com/users/login" target="_blank">stackoverflow.com login page</a> illustrates this scenario. Here <a href="https://stackoverflow.com/" target="_blank">stackoverflow.com</a> plays the role of an API client and consumes the authentication APIs exposed by Google, Facebook and <a href="https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps" target="_blank">Github</a>.
+<img src={stackoverflowLoginPageScreenshot} alt="screenshot of stackoverflow.com login page with buttons for authenticating the user using Google, Facebook and Github REST APIs" className="mobile-screenshots" />
+
+#### Example #3: Flight booking websites
+You must have visited various websites to book flight tickets for a trip. Airline service providers have their own websites that users can visit and book tickets but they can do so only for that particular airline. 
+
+Websites like <a href="https://expedia.com" target="_blank">expedia.com</a> or <a href="https://booking.com" target="_blank">booking.com</a> aggregate flight information from various airlines allowing you to compare fare prices, arrival and departure timings along with a host of other features that help you make a more informed decision. 
+
+Ever wondered how they are able to get information about flights from so many different airline service providers? You guessed it, by using Web APIs.
+
+These airline providers apart from maintaining their own websites, also expose API services to fetch flight information and book flight tickets. Aggregator websites become API clients and consume these API services to show you a comparison of flight information from different airlines providers.
+
+#### Bringing it all together
+We have seen different examples of websites consuming a single API but a single website can consume different kinds of Web APIs from different API providers.
+
+Consider a flight aggregator website again that allows you to authenticate and login via Google's API. It then uses APIs from different airline providers to give information about different flights. It may also show you weather information on your selected departure and arrival dates based on information from the weather API. Additionally, after you proceed with the booking, it consumes APIs from a payment gateway service provider and allows you to pay with the payment medium of your choice. After successful payment, it invokes a third-party emailing or SMS service's API to send you email and SMS notifications. 
+
+In your experience, you were using the same website throughout the flight booking process and yet, you utilized services from so many different digital service providers. This is the magic of Web APIs. They make different services seem like a part of the same application enabling a seamless user experience.
+
+## What is REST?
+REST stands for _**Re**presentational **S**tate **T**ransfer_. Sounds like fancy computer jargon I know but we'll clear the air around those terms in a moment. 
+
+It is an *architectural style* used for creating Web APIs. Basically it is a set of constraints or guidelines that API developers should adhere to while implementing their API. The term was introduced and defined in 2000 by <a href="https://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm" target="_blank">Roy Fielding in his doctoral dissertation</a>.
+
+Now what exactly does Representational State Transfer mean? 
+
+### State
+*State* in most cases simply refers to data but *at a certain point in time*. So the current state of your data means the values contained in it right now. At a later point in time, these values can change as a result of a modification performed on that data. When that happens, the state of data will also change and we will have a *new state*.
+
+### Representation
+Whenever I try to visualize data, I usually think about it in the form of rows and columns of values in a table. But that is just one way of *representing* data. The data can also be represented in other formats such as HTML, JSON, XML, comma-separated list of values, etc. All these constitute ways of representing the *same data*. 
+
+So *representation* basically means a *format* for representing or rendering or sending data
+
+So for example, your browser may use the HTML representation of data to render information that can be interpreted by a human but the same data will be represented as JSON or XML while being exchanged between two software applications.
+
+Consider this JSON *representation* of information about a person.
+
+```json
+{
+  name: "John Doe",
+  address: "Denver, Colorado"
+}
+```
+
+This same information can be represented in XML as:
+
+```xml
+<person>
+  <name>John Doe</name>
+  <address>Denver, Colorado</address>
+</person>
+```
+
+Also, at a later point in time, say after John changes his address, the *updated state* of the data would be: 
+
+```json
+{
+  name: "John Doe",
+  address: "Olympia, Washington"
+}
+```
+
+So in the REST architecture, a *representation* of the *state of data* is *transferred* between the API client and the API server. The server sends a representation of the *current* state of the data whenever the client wants to read the data. Whenever the client wants to update this data, it sends a representation of the *new* or the *intended* state of the data to the server which the server then uses to update the actual database fields. 
+
+### Resource
+Rather than saying state of the data, in REST terminology, we say state of a *resource*. In REST, a resource can be considered as a conceptual target of interest for API clients. A resource is mapped to a certain set of information. When clients reference a resource, the API uses this mapping to process the relevant set of information.
+
+Consider <a href="https://jsonplaceholder.typicode.com/todos" target="_blank">this API endpoint that returns fake or dummy API responses</a>. 
+
+```
+GET https://jsonplaceholder.typicode.com/todos
+```
+API clients of this API are interested in accessing a list of todos. So "list of todos" or simply "todos" becomes a target of interest and is considered a resource. 
+
+Resources may be different from the actual implementation or the way the data is stored in the database. For example, maybe the data in the `todos` resource is stored in a JSON file or maybe it is stored in a single or several different database tables. This is why we say that resources are abstract or conceptual meaning they don't really exist but we make them up for the purpose of retreiving the information that they are mapped to.
+
+Similarly, a resource described as <a href="https://jsonplaceholder.typicode.com/todos/1" target="_blank">"a todo with id 1"</a> can be identified as:
+
+```
+GET https://jsonplaceholder.typicode.com/todos/1
+```
+
+Another resource could be <a href="https://api.github.com/users/saurabh-misra" target="_blank">"my user on Github"</a> and that can be identified as:
+
+```
+GET https://api.github.com/users/saurabh-misra
+```
+
+A resource could be an image or a document as well. For example, consider the below API endpoint. Here the resource is <a href="https://picsum.photos/200/300" target="_blank">"a random image with width 200px and height 300px"</a>.
+
+```
+GET https://picsum.photos/200/300
+```
+
+Here is how Roy Fielding describes resources in his dissertation:
+
+> The key abstraction of information in REST is a resource. Any information that can be named can be a resource: a document or image, a temporal service (e.g. "today's weather in Los Angeles"), a collection of other resources, a non-virtual object (e.g. a person), and so on. 
+> In other words, any concept that might be the target of an author's hypertext reference must fit within the definition of a resource. 
+> \- <a href="https://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm#sec_5_2_1_1" target="_blank">Roy Fielding's dissertation</a>
+
+### REST Constraints
+The REST architecture emphasizer adhering to 6 architectural constraints. These constraints are:
+
+- Client-Server
+- Uniform Interface
+- Stateless
+- Cacheable
+- Layered System
+- Code-On-Demand
+
+Each of these constraints provide distinct benefits to the overall architecture.
+
+We'll discuss these constraints in more detail in the [next article in this series](/rest-architectural-constraints).
+
+*Resources*, *state*, *representations* and *architectural constraints* form the core of the REST style of API design.
+
+So to sum it all up...
+
+>REST is an architectural style that defines a set of constraints for designing APIs. These constraints dictate how *representations* of the *state*(current or intended) of a *resource* can be *transferred* between an API client and an API service provider.
+
+### What is a REST API?
+An API that is implemented in a way that it fulfills the constraints of the REST architecture is known as a REST API.
+
+### So is REST an API?
+No. REST is an architecture style. APIs that adhere to this architectural style are termed as REST APIs or RESTful APIs.
+
+### Are all REST APIs also Web APIs?
+No. REST is not restricted to the web or HTTP. It can implemented for any API over any data transfer protocol.
+
+### What is the difference between REST API and RESTful API?
+There is no difference between the two and they can be used interchangeably. They mean the same thing i.e. an API that conforms to the constraints laid down by the REST architecture.
+
+### Why should I use the REST architecture?
+So why should we use the REST archiecture or any other API architecture for that matter, or adhere to constraints while designing our own APIs?
+
+I'll use an analogy. We all use vehicles for transportation but imagine if we didn't have any traffic rules. Each one of us would drive in a way that made more sense to us which would eventually lead to a higher number of road accidents and other problems. This is why *traffic rules* are important. 
+
+Similarly, without a widely accepted standard set of rules or guidelines to govern communication via APIs, developers would design their own custom implementation of APIs in a way that makes more sense to them. This will lead to a lot of inconsistency among all these different API implementations belonging to different digital service providers. 
+
+REST aims to standardize API implementations by providing a set of constraints and rules that APIs should fulfill. Each of these rules provide distinct benefits to the overall API implementation like greater simplicity, scalability, performance and reliability. 
+
+These rules also ensure standardized API implementations among different service providers. This makes it easier for client developers to consume these different APIs because if they learn how to consume a REST API from a particular provider, they can take the same knowledge and consume a REST API from a different API provider. 
+
+---
+
+I hope this article helped you gain a good basic understanding of the REST architecture and what APIs, Web APIs and REST APIs are, their purpose, and the problems they try to solve. 
+
+Next up, we'll discuss [the 6 REST architectural constraints](/rest-architectural-constraints) and the distinct advantages they contribute to the overall REST architecture. See you in the next section 👉. 
+
+
+
+---
+#### References and further reading
+<p><a href="https://en.wikipedia.org/wiki/Representational_state_transfer" target="_blank">Wikipedia article on Representational state transfer</a></p>
