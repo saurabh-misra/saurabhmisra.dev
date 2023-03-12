@@ -1,14 +1,11 @@
-import theme from "@lekoarts/gatsby-theme-minimal-blog/src/gatsby-plugin-theme-ui/index";
 import { merge } from "theme-ui";
+// import tailwind from "@theme-ui/preset-tailwind";
+import theme from "@lekoarts/gatsby-theme-minimal-blog/src/gatsby-plugin-theme-ui/index";
+// import { lightThemeVars, darkThemeVars } from "@lekoarts/gatsby-theme-minimal-blog/src/prism-themes"
 
 const myTheme = merge( theme, {
-  initialColorModeName: `dark`,
-  colors: {
-    modes: {
-      dark: {
-        primary: tailwind.colors.teal[5]
-      }
-    }
+  config: {
+    initialColorModeName: `dark`,
   }
 });
 

@@ -52,7 +52,7 @@ But what happens if we return a promise from inside the `then()` handler instead
 
 Let's consider an example where we have to make two network requests. The second network request needs some inputs returned by the first network request so the second one needs to happen after the first one is finished.
 
-```js {7}
+```js highlight=7
 // fetch all repos
 fetch("https://api.github.com/users/saurabh-misra/repos")
     .then( response => response.json() )
@@ -77,7 +77,7 @@ The above example is an extension of the previous one. Similar to the previous o
 
 Let's refactor this for our convenience so that we break the chain into two representing both the `fetch()` calls.
 
-```js {3,9-13}
+```js highlight=3,9-13
 var reposUrl = "https://api.github.com/users/saurabh-misra/repos";
 // fetch all repos
 var promiseFetchRepos = fetch(reposUrl)
@@ -130,7 +130,7 @@ But when the fulfilled handler of `then()` is invoked, it returns a promise i.e.
 
 ##### Resolved Promises using `Promise.resolve()`
 We can similarly pass a promise object to `Promise.resolve()` instead of a simple string or number or in general a non-promise value.
-```js {2}
+```js highlight=2
 var promise1 = Promise.resolve( 1 );
 var promise2 = Promise.resolve( promise1 );
 console.log( promise2 );
@@ -141,7 +141,7 @@ In the above example, the 2nd `Promise.resolve()` is passed a promise object, `p
 
 ##### Resolved Promises in the executor function
 We can also specify a promise object as an input while calling `resolve()` in the executor function instead of a non-promise value.
-```js {6}
+```js highlight=6
 var promise1 = Promise.resolve( 1 );
 
 var promise2 = new Promise( resolve => {
@@ -164,7 +164,7 @@ Another terminology that you might read or hear about quite often is *promise un
 
 ### The curious case of `Promise.reject()` 🤔
 So how does promise unwrapping work in `Promise.reject()`? Answer is...*it doesn't*. Yes that's right, `Promise.reject()` cannot unwrap promises which means the promise returned by `Promise.reject()` can never follow another promise.
-```js {2}
+```js highlight=2
 var promise1 = Promise.resolve( 1 );
 var promise2 = Promise.reject( promise1 );
 console.log( promise2 );
@@ -185,7 +185,7 @@ In the above example, `Promise.reject()` does not unwrap  `promise1`. `promise2`
 This seems weird at first but if you think about it, it is actually expected. `Promise.reject()` represents a failure situation where an error should be thrown. If `Promise.reject()` could unwrap `promise1` in the example above, `promise2` would get fulfilled with the value 1 which would silence the error that `Promise.reject()` was trying to throw in the first place.
 
 The same thing happens for the `reject()` call in the executor function. 
-```js {7}
+```js highlight=7
 var promise1 = Promise.resolve( 1 );
 
 var promise2 = new Promise( (resolve, reject) => {
@@ -221,7 +221,7 @@ console.log( promise4 );
 In the above example, `promise4` is the first promise that follows the 2nd one i.e. `promise3` and so on till `promise1` which resolves to 1. 
 
 What would happen if there was a `Promise.reject()` call in their somewhere?
-```js {3}
+```js highlight=3
 var promise1 = Promise.resolve( 1 );
 var promise2 = Promise.resolve( promise1 );
 var promise3 = Promise.reject( promise2 );
@@ -247,7 +247,7 @@ We have seen what happens when `then()` handlers return a promise but we have no
 
 Remember that catch is just a `then()` function with `undefined` as the fulfilled handler. So its behaviour is pretty much the same as `then()` which we have already seen but let's consider an example anyway.
 
-```js {3}
+```js highlight=3
 var promise1 = Promise.resolve( 1 );
 Promise.reject( "oh no!" )
     .catch( reason => promise1 )
@@ -260,7 +260,7 @@ In the above example, the returned promise from `catch()` follows `promise1` and
 ##### What about `finally()`?
 `finally()` behaves differently than `then()` and `catch()` in this case. In [Part III](/promises-in-javascript-promise-chaining-then-catch-finally) of this series, we discussed that the `finally()` handler is meant to do cleanup and not really supposed to return anything meaningful. It does return a promise but that is simply for the purpose of forming a promise chain. So its returned promise *already follows* the original promise on which it was invoked. Returning anything from the `finally()` handler has no effect on this behaviour. Let's see this in action.
 
-```js {3}
+```js highlight=3
 var promise1 = Promise.resolve( 1 );
 Promise.resolve( 2 )
     .finally( reason => promise1 )
@@ -308,7 +308,7 @@ Some of this code might seem familiar. Keep in mind that this code is an impleme
 So this is a custom promise object that implements a `then()` method. Since it follows the rules laid out by the spec, it will work seamlessly with native JS promises.
 
 Now let's use this custom Promise object or thenable. Consider this scenario:
-```js {8}
+```js highlight=8
 var thenable = {
     then: function( onFulfilled, onRejected ) {
         setTimeout( () => onFulfilled( 1 ), 1000);
@@ -328,7 +328,7 @@ JS will treat the custom `then()` method of the thenable as an executor function
 This is how JS is able to cast the thenable into a native promise and is able to unwrap it so that the returned promise from our `then()` handler is able to *follow* this thenable just like it would follow a native promise object. Line 9 will log the fulfilled value i.e "1" which confirms that the returned promise from the first `then()` has successfully been resolved with the thenable. 
 
 Let's confirm what happens if the `onRejected` handler of the custom `then()` function is invoked. You can probably guess by now that it will reject the returned promise with the reason returned from the handler and you'd be right.
-```js {3,8}
+```js highlight=3,8
 var customPromise = {
     then: function( onFulfilled, onRejected ) {
         setTimeout( () => onRejected( "oh no!" ), 1000);

@@ -112,7 +112,7 @@ In the above example, `promise1` gets fulfilled after 1 second with a value of "
 
 Let's consider an example where one of the promises gets rejected.
 
-```js {17}
+```js highlight=17
 var promise1 = new Promise( (resolve, reject) => {
     setTimeout(() => {
         resolve( 1 );
@@ -187,7 +187,7 @@ This function is very similar to `Promise.all()` and it picks up where `Promise.
 
 `Promise.allSettled()` also takes an interable or an array as an input and returns a new promise.
 
-```js {17}
+```js highlight=17
 var promise1 = new Promise( (resolve, reject) => {
     setTimeout(() => {
         resolve( 1 );
@@ -255,7 +255,7 @@ This function does exactly what its name suggests, it treats its input promises 
 
 `Promise.race()` also takes an interable or an array as an input and returns a new promise.
 
-```js {8}
+```js highlight=8
 var promise1 = Promise.resolve( 1 );
 var promise2 = new Promise( (resolve, reject) => {
     setTimeout(() => {

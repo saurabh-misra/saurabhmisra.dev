@@ -10,7 +10,7 @@ banner: ./assets/images/banner.jpg
 ---
 
 import TrophyPanel from '../../../src/@lekoarts/gatsby-theme-minimal-blog/components/TrophyPanel.js';
-
+import {Text} from 'theme-ui';
 import startApiRootResponse from './assets/images/start-api-root-response.jpg';
 import startApiRootResponsePostman from './assets/images/start-api-root-response-postman.jpg';
 import getMethodAllNotes from './assets/images/get-method-all-notes.jpg';
@@ -118,42 +118,13 @@ Since safe methods do not have any effect on the server state, all safe methods 
 
 Let's see how these properties are associated with our selected HTTP methods. We'll look more into the rationale behind some of these associations as we progress with the tutorial so don't worry if you don't completely understand what this means as of now.
 
-<table>
-  <thead>
-    <tr>
-      <th>HTTP Method</th>
-      <th>Safe?</th>
-      <th>Idempotent?</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>GET</td>
-      <td>Yes</td>
-      <td>Yes</td>
-    </tr>
-    <tr>
-      <td>POST</td>
-      <td>No</td>
-      <td>No</td>
-    </tr>
-    <tr>
-      <td>PUT</td>
-      <td>No</td>
-      <td>Yes</td>
-    </tr>
-    <tr>
-      <td>PATCH</td>
-      <td>No</td>
-      <td>No</td>
-    </tr>
-    <tr>
-      <td>DELETE</td>
-      <td>No</td>
-      <td>Yes</td>
-    </tr>
-  </tbody>
-</table>
+HTTP Method | Safe? | Idempotent?
+--- | --- | ---
+GET | Yes | Yes
+POST | No | No
+PUT | No | Yes
+PATCH | No | No
+DELETE | No | Yes
 
 You need to keep these associations in mind while using HTTP methods for our API endpoints because clients or API consumers will expect their HTTP requests to behave as per these properties.
 
@@ -302,13 +273,13 @@ You'll get an output on the console that says:
 👂 Listening on port 3000
 ```
 
-Awesome! This means that our API service is ready to serve requests at <a href="http://localhost:3000/" target="_blank">http://localhost:3000/</a>.
+Awesome! This means that our API service is ready to serve requests at <a href="http://localhost:3000/" target="_blank">`localhost:3000`</a>.
 
-If you visit <a href="http://localhost:3000/" target="_blank">http://localhost:3000/</a> in your browser, you'll be sending a `GET` request to the root API endpoint. You'll notice that the browser is unable to load anything. This is because there is no route handler definition for our root API endpoint.
+If you visit <a href="http://localhost:3000/" target="_blank">`localhost:3000`</a> in your browser, you'll be sending a `GET` request to the root API endpoint. You'll notice that the browser is unable to load anything. This is because there is no route handler definition for our root API endpoint.
 
 Let's remedy that quickly. Paste this code into your *handlers/rootHandler.js* file. 
 
-```js:title=rootHandler.js
+```js title=rootHandler.js
 exports.handleRoot = ( req, res ) => {
   res.json({ "message": "Welcome to the Thunder Notes API." });
 }
@@ -318,9 +289,9 @@ Let's quickly go over what this route handler does. ExpressJS encapsulates infor
 
 Did you also notice that as soon as you saved your changes, the server restarted automatically. This is a pre-built configuration in the tutorial codebase so you don't have to manually restart the server every time you make a change.
 
-If you visit <a href="http://localhost:3000/" target="_blank">http://localhost:3000/</a> in your browser this time, you'll see the JSON response.
+If you visit <a href="http://localhost:3000/" target="_blank">`localhost:3000`</a> in your browser this time, you'll see the JSON response.
 
-<img src={startApiRootResponse} width="100%" style="max-width: 500px;" alt="root endpoint JSON response in the browser" />
+<img src={startApiRootResponse} width="100%" style={{ "maxWidth": 500 + "px" }} alt="root endpoint JSON response in the browser" />
 
 Let's also test this endpoint in the Postman app. Enter the URL to send the request to, which in this case is `http://localhost:3000/` and hit the "Send" button and you should see the same response.
 
@@ -370,13 +341,13 @@ Now we'll handle `GET` requests on the *notes* resource endpoints i.e. `/notes` 
 
 Open the *noteHandlers.js* file and import the *notesController.js* file at the very top using this statement.
 
-```js:title=noteHandlers.js
+```js title=noteHandlers.js
 const notesCtrl = require( "../controllers/notesController" );
 ```
 
 After this, add the below route handler function definition to `getNotes()` inside *noteHandlers.js*.
 
-```js:title=noteHandlers.js
+```js title=noteHandlers.js
 exports.getNotes = ( req, res ) => {
   // get all the notes in the database
   const notes = notesCtrl.getAllNotes();
@@ -395,7 +366,7 @@ Awesome🤘! Our `GET /notes` endpoint is working.
 
 Now for handling `GET` requests on the `/notes/{id}` endpoint, use the below route handler function definition for `getNote()`.
 
-```js:title=noteHandlers.js
+```js title=noteHandlers.js
 exports.getNote = ( req, res ) => {
   // {id} value from the URI is stored in `req.params.id`.
   const note = notesCtrl.getNoteById( req.params.id );
@@ -416,7 +387,7 @@ But what if the input `:id` value doesn't correspond to an existing note. In tha
 
 Copy-paste this new function definition for the `getNote()` handler to implement this validation.
 
-```js:title=noteHandlers.js {5-10}
+```js title=noteHandlers.js highlight=5-10
 exports.getNote = ( req, res ) => {
   // {id} value from the URI is stored in `req.params.id`.
   const note = notesCtrl.getNoteById( req.params.id );
@@ -458,7 +429,7 @@ POST /notes
 
 Let's define the handler function for this route in *noteHandlers.js*.
 
-```js:title=noteHandlers.js
+```js title=noteHandlers.js
 exports.createNote = ( req, res ) => {
   // ExpressJS extracts the note's `text` from the request body and stores 
   // it in `req.body`. If no `text` is provided, return `400 Bad Request`.
@@ -549,13 +520,13 @@ Let's define these routes in our app.
 We'll first handle the invalid route meaning `PUT` on the `/notes` collection. 
 We already have a route defined for this in *routes.js* like this: 
 
-```js:title=routes.js
+```js title=routes.js
 router.put( "/notes", noteHandlers.handleInvalidRoute );
 ```
 
 Head over to the *rootHandler.js* file and add the below function definition to the `handleInvalidRoute()` route handler.
 
-```js:title=rootHandler.js
+```js title=rootHandler.js
 exports.handleInvalidRoute = ( req, res ) => {
   // set `Allow` header to indicate which HTTP methods are allowed for this resource
   res.setHeader( "Allow", "GET, POST" );
@@ -574,7 +545,7 @@ Fantastic😎! We now have a mechanism to inform API clients that the `/notes` c
 ### `PUT /notes/{id}`
 Now we'll look at how to handle `PUT` requests on `/notes/{id}`. Use the below function definition for the `updateNote()` route handler function.
 
-```js:title=noteHandlers.js
+```js title=noteHandlers.js
 exports.updateNote = ( req, res ) => {
   // Request body should contain the complete representation of a note resource
   // If it doesn't, then return a `400 Bad Request` error.
@@ -633,7 +604,7 @@ In our case, we'll implement a middleware which will check whether the `{id}` be
 
 First up, create a directory called ***middlewares*** inside the *server* folder. Create a file in it called ***noteValidation.js***. Use the below code and save it in this new file.
 
-```js:title=noteValidation.js
+```js title=noteValidation.js
 const notesCtrl = require( "../controllers/notesController" );
 
 /*
@@ -671,13 +642,13 @@ Did you notice that we are storing the matching note object in `res.locals.note`
 
 To use this middleware, open *routes.js* and import the new middleware at the top. 
 
-```js:title=routes.js
+```js title=routes.js
 const validateNote = require( "./middlewares/noteValidation" );
 ```
 
 Now add this new middleware before the route handler functions of all singleton `/notes/{id}` resource routes. 
 
-```js:title=routes.js
+```js title=routes.js
 // singleton `note` endpoints
 router.get( "/notes/:id", validateNote, noteHandlers.getNote );
 router.put( "/notes/:id", validateNote, noteHandlers.updateNote );
@@ -687,7 +658,7 @@ router.delete( "/notes/:id", validateNote, noteHandlers.deleteNote );
 
 We can now remove the validation from the `getNote()` route handler so that the new definition is much more compact.
 
-```js:title=noteHandlers.js
+```js title=noteHandlers.js
 exports.getNote = ( req, res ) => {
   // Use the `res.locals` object to get the note provided by the 
   // `noteValidation` middleware. 
@@ -738,13 +709,13 @@ This endpoint will be used to edit the note's text only.
 
 *routes.js* already has a route defined for this:
 
-```js:title=routes.js
+```js title=routes.js
 router.patch( "/notes/:id", validateNote, noteHandlers.editText );
 ```
 
 Let's define the corresponding route handler function: `editText()`
 
-```js:title=noteHandlers.js
+```js title=noteHandlers.js
 exports.editText = ( req, res ) => {
   // throw `400 Bad Request` if `text` is not provided in the request payload.
   if( !( "text" in req.body ) ) {
@@ -831,13 +802,13 @@ DELETE /notes/{id}
 
 *routes.js* already has a route defined for this:
 
-```js:title=routes.js
+```js title=routes.js
 router.delete( "/notes/:id", validateNote, noteHandlers.deleteNote );
 ```
 
 Let's define the corresponding handler function: `deleteNote()`
 
-```js:title=noteHandlers.js
+```js title=noteHandlers.js
 exports.deleteNote = ( req, res ) => {
   // delete the note from the database
   // The first argument in the controller function `deleteNote()` is `userId`.
@@ -1042,7 +1013,7 @@ We'll first target our singleton note resource i.e. `/notes/{id}`.
 
 We'll create a new controller file called ***hateoasControllers.js*** where we'll store the logic behind making our responses, HATEOAS-compliant. Go ahead and create that file inside the *controllers* folder and add the below function definition in it.
 
-```js:title=hateoasControllers.js
+```js title=hateoasControllers.js
 /*
   Adds the `links` property to a note object 
 */
@@ -1066,13 +1037,13 @@ This method will take a note object as an input and add a property called `links
 
 Let's import this new method at the top in *noteHandlers.js*
 
-```js:title=noteHandlers.js
+```js title=noteHandlers.js
 const { hateoasify } = require( "../controllers/hateoasControllers" );
 ```
 
 Now in the `getNote()` handler function, before returning the note object in the response, pass it as an argument to the `hateoasify()` method that we've defined just now.
 
-```js:title=noteHandlers.js {4}
+```js title=noteHandlers.js highlight=4
 exports.getNote = ( req, res ) => {
   // Use the `res.locals` object to get the note provided by the 
   // `noteValidation` middleware. 
@@ -1082,7 +1053,7 @@ exports.getNote = ( req, res ) => {
 
 Do the same thing for the `createNote()` handler function. 
 
-```js:title=noteHandlers.js {4}
+```js title=noteHandlers.js highlight=4
 exports.createNote = ( req, res ) => {
   ...
   ...
@@ -1110,7 +1081,7 @@ Let's define these three functions in *hateoasControllers.js*.
 
 Rename the `hateoasify()` method to `hateoasifyNote()`. Also, we'll no longer need to *export* this function so convert it to a simple function declaration. The rest of the function definition will remain the same.
 
-```js:title=hateoasControllers.js {1}
+```js title=hateoasControllers.js highlight=1
 function hateoasifyNote( responseNote ) {
   ...
   ...
@@ -1119,7 +1090,7 @@ function hateoasifyNote( responseNote ) {
 
 Next, we'll add a `hateoasifyNotes()` method. This method will add a `links` property to the response for the entire collection as well as a `links` property for each *note* within the collection. We'll not export this function either.
 
-```js:title=hateoasControllers.js
+```js title=hateoasControllers.js
 /*
   Adds the `links` property for a collection of notes and for each note within it.
 */
@@ -1145,7 +1116,7 @@ function hateoasifyNotes( responseNotes ) {
 
 Now we'll add the new `hateoasify()` method which will simply invoke either `hateoasifyNote()` or `hateoasifyNotes()` depending on whether the input argument is an object or an array. Note that this is the only method we are going to export.
 
-```js:title=hateoasControllers.js
+```js title=hateoasControllers.js
 /*
  Adds HATEOAS links to a collection of notes or an individual note. 
 */
@@ -1162,7 +1133,7 @@ But now that we have implemented `hateoasifyNotes()`, let's make the response of
 
 Replace the method definition for `getNotes()` handler function with this:
 
-```js:title=noteHandlers.js
+```js title=noteHandlers.js
 exports.getNotes = ( req, res ) => {
   // get all the notes in the database
   const notes = notesCtrl.getAllNotes();
@@ -1519,7 +1490,7 @@ Let's create a new API service that will authenticate the user and generate a JW
 
 Create a new file called ***authHandler.js*** within the *handlers* folder and paste this content into it.
 
-```js:title=authHandler.js
+```js title=authHandler.js
 const jwt = require( "jsonwebtoken" );
 const usersCtrl = require( "../controllers/usersController" );
 
@@ -1532,13 +1503,13 @@ We'll add the definition later. Let's hook this up to a route first.
 
 In *routes.js*, import this *authHandler.js* file at the top.
 
-```js:title=routes.js
+```js title=routes.js
 const { authenticate } = require( "./handlers/authHandler" );
 ```
 
 After this add this new route.
 
-```js:title=routes.js
+```js title=routes.js
 router.post( "/auth", authenticate );
 ```
 
@@ -1558,7 +1529,7 @@ This new API service will accept the user's `email` and `password` as inputs. If
 
 Let's add the definition for the new route handler function in *authHandler.js*. Replace the previous declaration with this one.
 
-```js:title=authHandler.js
+```js title=authHandler.js
 /**
  * This is the route handler for the `/auth` route.
  * Accepts the user's email and password as inputs.
@@ -1634,7 +1605,7 @@ We have already created one middleware before called *noteValidation.js* and hav
 
 Let's create a new file called ***auth.js*** within the *middlewares/* folder and this code to it.
 
-```js:title=auth.js
+```js title=auth.js
 const jwt = require( "jsonwebtoken" );
 
 /*
@@ -1680,7 +1651,7 @@ module.exports = function verifyToken( req, res, next ) {
 
 Let's change our routes to include this new middleware. Replace the entire contents of *routes.js* with this:
 
-```js:title=routes.js
+```js title=routes.js
 const express = require( "express" );
 const router = express.Router();
 // route handlers
@@ -1742,7 +1713,7 @@ This is currently true for the `getNotes()`, `getNote()` and other singleton res
 
 First, let's include the `usersController.js` file in *noteHandlers.js* at the top.
 
-```js:title=noteHandlers.js
+```js title=noteHandlers.js
 const { getUserById } = require( "../controllers/usersController" );
 ```
 
@@ -1750,7 +1721,7 @@ Now go to *notesController.js* and delete the function definition for `getAllNot
 
 Next, let's replace the call to this deleted function in the `getNotes()` route handler, with the controller function `getNotesByIds()`. Replace the function definition for `getNotes()` with this:
 
-```js:title=noteHandlers.js
+```js title=noteHandlers.js
 exports.getNotes = ( req, res ) => {
   // get all info about the user
   const user = getUserById( res.locals.user.sub );
@@ -1769,7 +1740,7 @@ If you're wondering what `res.locals.user` is then it is where the *auth.js* mid
 
 Now, change the function definition for the *noteValidation.js* middleware. Replace the entire contents of the middleware file with this:
 
-```js:title=noteValidation.js {30}
+```js title=noteValidation.js highlight=30
 const usersCtrl = require( "../controllers/usersController" );
 const notesCtrl = require( "../controllers/notesController" );
 
@@ -1841,7 +1812,7 @@ The `createNote()` and `deleteNote()` handlers till now have used a hardcoded va
 
 Replace the existing definition of the handler function `createNote()` in *noteHandlers.js* with the one below. The only thing that has changed is that we have replaced the hardcoded user id input to the `createNote()` controller function with `res.locals.user.sub`.
 
-```js:title=noteHandlers.js {11}
+```js title=noteHandlers.js highlight=11
 exports.createNote = ( req, res ) => {
   // ExpressJS extracts the note's `text` from the request body and stores 
   // it in `req.body`. If no `text` is provided, return `400 Bad Request`.
@@ -1865,7 +1836,7 @@ exports.createNote = ( req, res ) => {
 
 Next, replace the existing definition of the handler function `deleteNote()` in *noteHandlers.js* with this:
 
-```js:title=noteHandlers.js {5}
+```js title=noteHandlers.js highlight=5
 exports.deleteNote = ( req, res ) => {
   // delete the note from the database
   // The auth middleware stores the authenticated user info in `res.locals.user`. 
@@ -2145,7 +2116,7 @@ Chances are that once a user is registered, this information is rarely going to 
 
 To start off, create a separate handler file called ***userHandlers.js*** within the *handlers* folder. This file will contain the route handling logic for the new API endpoint. We'll name the route handler function for the new API endpoint as `getUserProfile()`. Go ahead and paste the below code into the new file and save. 
 
-```js:title=userHandlers.js
+```js title=userHandlers.js
 const crypto = require( 'crypto' );
 const usersCtrl = require( '../controllers/usersController' );
 
@@ -2240,13 +2211,13 @@ In case the values received in the request do not match or in case of a *failed 
 
 Now let's include this new file in *routes.js* towards the top.
 
-```js:title=routes.js
+```js title=routes.js
 const { getUserProfile } = require( "./handlers/userHandlers" );
 ```
 
 And also add the route.
 
-```js:title=routes.js
+```js title=routes.js
 // singleton user endpoint. Good example for Caching.
 router.get( "/users/:id", verifyToken, getUserProfile );
 ```
@@ -2393,7 +2364,7 @@ So what just happened?
 
 If you look at the code in *index.html*, you'll notice that we are making a `GET` request to the root API endpoint and then *evaluating* the JavaScript response which executes it and displays the `alert()` dialog.
 
-```js:title=index.html {9}
+```js title=index.html {9}
 // make an AJAX call to the root API endpoint
 fetch( "http://localhost:3000/" )
   // parse the raw response into plain text
@@ -2728,7 +2699,7 @@ To better understand pagination, we'll implement it for the `GET /notes` API end
 
 First, let's create a new file called ***paginationController.js*** and place it inside the *controllers* folder. Add the below content to it.
 
-```js:title=paginationController.js
+```js title=paginationController.js
 /*
   Calculates and returns the value of the last page 
   given an array of items and the limit value.
@@ -2764,13 +2735,13 @@ You can read the comments to better understand the purpose of each of the method
 
 In *noteHandlers.js*, include this new file at the top.
 
-```js:title=noteHandlers.js
+```js title=noteHandlers.js
 const { paginate } = require( "../controllers/paginationController" );
 ```
 
 Now replace the existing handler function `getNotes()` with this new version.
 
-```js:title=noteHandlers.js {7-10,13-15,22-24}
+```js title=noteHandlers.js highlight=7-10,13-18,25-27,30
 exports.getNotes = ( req, res ) => {
   // get all info about the user
   const user = getUserById( res.locals.user.sub );
@@ -2812,7 +2783,7 @@ And then finally, we pass `params` to the `hateoasify()` controller function.
 
 We'll need to modify the definition for `hateoasify()` in *hateoasController.js* to accept this new input argument.
 
-```js:title=hateoasController.js
+```js title=hateoasController.js
 exports.hateoasify = ( response, params ) => {
   const isCollection = Array.isArray( response );
 
@@ -2822,7 +2793,7 @@ exports.hateoasify = ( response, params ) => {
 
 Since we forward the `params` input argument to `hateoasifyNotes()`, we'll have to change its definition as well but before we do that, let's add a new function to *hateoasController.js*.
 
-```js:title=hateoasController.js
+```js title=hateoasController.js
 /*
   This function takes different params related to pagination, filtering and 
   sorting as inputs and concatenates them into a complete query-string 
@@ -2864,9 +2835,9 @@ function generateQueryString( limit, page, filter, sort, order ){
 
 This is kind of a utility function that will take in our `limit` and `page` parameters and generate a query-string like `?limit=10&page=2`. This function will also cater to filtering and sorting parameters as we'll see later.
 
-Now let's make that change we spoke about to `hateoasifyNotes()`. We'll add the new input argument `params` and then use it to create HATEOAS links in the response namely `first`, `prev`, `next` and `last`.
+Now let's make that change we discussed to `hateoasifyNotes()`. We'll add the new input argument `params` and then use it to create HATEOAS links in the response namely `first`, `prev`, `next` and `last`.
 
-```js:title=hateoasController.js {2,14,26-37,40-51}
+```js title=hateoasController.js highlight=2,14,26-37,40-51
 function hateoasifyNotes( responseNotes, params ) {
   const { limit, page, lastPage } = params;
 
@@ -2963,7 +2934,7 @@ Filtering is an area where we find a lot of customizations in implementation. Di
 
 ### Slack
 
-<p><a href="https://api.slack.com/methods/search.messages" target="_blank">Slack's Search Messages API</a> uses a query-string param called <code>query</code> for generic searching through messages.</p>
+<a href="https://api.slack.com/methods/search.messages" target="_blank">Slack's Search Messages API</a> uses a query-string param called <code>query</code> for generic searching through messages.
 
 ```
 https://slack.com/api/search.messages?query=rest
@@ -3008,7 +2979,7 @@ We'll be using a query-string param called `q` whose value will be a *search ter
 
 Replace the existing `getNotes()` request handler with the one below:
 
-```js:title=noteHandlers.js {8,22}
+```js title=noteHandlers.js highlight=8,25
 exports.getNotes = ( req, res ) => {
   // get all info about the user
   const user = getUserById( res.locals.user.sub );
@@ -3054,7 +3025,7 @@ Next we need to make changes to `hateoasifyNotes()` to include this param `q` in
 
 Replace `hateoasifyNotes()` with the new definition below.
 
-```js:title=hateoasControllers.js {2,14,29,34,43,48}
+```js title=hateoasControllers.js highlight=2,14,29,34,43,48
 function hateoasifyNotes( responseNotes, params ) {
   const { q, limit, page, lastPage } = params;
 
@@ -3141,7 +3112,7 @@ Let's look at a few examples of how the big names out there have implemented sor
 
 ### Slack
 
-<p><a href="https://api.slack.com/methods/search.messages" target="_blank">Slack's Search Messages API</a> uses two query-string params called <code>sort</code> and <code>sort_dir</code>. The former specifies which field to perform the sort on and the latter specifies the direction i.e. whether ascending or descending.</p>
+<a href="https://api.slack.com/methods/search.messages" target="_blank">Slack's Search Messages API</a> uses two query-string params called <code>sort</code> and <code>sort_dir</code>. The former specifies which field to perform the sort on and the latter specifies the direction i.e. whether ascending or descending.
 
 It is not mandatory to allow sorting on all the fields in the result set but just the ones that are required and make sense. For example, Slack's Search API only allows sorting on the `score` and `timestamp` fields.
 
@@ -3152,7 +3123,7 @@ https://slack.com/api/search.messages?sort=timestamp&sort_dir=asc
 ```
 
 ### Github
-<p><a href="https://docs.github.com/en/rest/search#example" target="_blank">Github's Search API</a> uses the same simple approach to sorting as Slack using the <code>sort</code> and <code>order</code> query-string parameters.</p>
+<a href="https://docs.github.com/en/rest/search#example" target="_blank">Github's Search API</a> uses the same simple approach to sorting as Slack using the <code>sort</code> and <code>order</code> query-string parameters.
 
 For example:
 
@@ -3161,7 +3132,7 @@ For example:
 ```
 
 ### Wix
-<p><a href="https://dev.wix.com/api/rest/contacts/contacts/sorting,-filtering,-and-searching#contacts_contacts_sorting,-filtering,-and-searching_sorting-list-endpoints" target="_blank">Wix's API</a> allows sorting <i>List endpoints</i> using the <code>sort.fieldName</code> and <code>sort.order</code> query-string parameters.</p>
+<a href="https://dev.wix.com/api/rest/contacts/contacts/sorting,-filtering,-and-searching#contacts_contacts_sorting,-filtering,-and-searching_sorting-list-endpoints" target="_blank">Wix's API</a> allows sorting <i>List endpoints</i> using the <code>sort.fieldName</code> and <code>sort.order</code> query-string parameters.
 
 For example, to sort by last name in descending order, you'd use a query-string like this:
 
@@ -3204,7 +3175,7 @@ We'll be making use of two query-string parameters called `sort` and `order` for
 
 Let's make changes to the `getNotes()` handler function first. Replace the existing definition with this new one.
 
-```js:title=noteHandlers.js {11-12,19-20,38}
+```js title=noteHandlers.js highlight=11-12,19-20,38
 exports.getNotes = ( req, res ) => {
   // get all info about the user
   const user = getUserById( res.locals.user.sub );
@@ -3257,7 +3228,7 @@ Next, we call the `sortNotes()` controller function to sort the notes after filt
 
 Now, we need to make sure that `hateoasifyNotes()` also includes these new parameters in the response links. Go ahead eplace the existing definition of `hateoasifyNotes()` with this new one.
 
-```js:title=hateoasController.js {2,14,29,34,43,48}
+```js title=hateoasController.js highlight=2,14,29,34,43,48
 function hateoasifyNotes( responseNotes, params ) {
   const { limit, page, lastPage, q, sort, order } = params;
 

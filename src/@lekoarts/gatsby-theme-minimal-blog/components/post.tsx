@@ -1,50 +1,41 @@
 /** @jsx jsx */
+import type { HeadFC, PageProps } from "gatsby"
+import * as React from "react"
 import { jsx, Heading } from "theme-ui"
-import { MDXRenderer } from "gatsby-plugin-mdx"
-import React from "react"
 import Layout from "@lekoarts/gatsby-theme-minimal-blog/src/components/layout"
 import ItemTags from "@lekoarts/gatsby-theme-minimal-blog/src/components/item-tags"
-import SEO from "@lekoarts/gatsby-theme-minimal-blog/src/components/seo"
+import Seo from "@lekoarts/gatsby-theme-minimal-blog/src/components/seo"
+import PostFooter from "@lekoarts/gatsby-theme-minimal-blog/src/components/post-footer"
 import Author from './Author'
 
-type PostProps = {
-  data: {
-    post: {
+export type MBPostProps = {
+  post: {
+    slug: string
+    title: string
+    date: string
+    tags?: {
+      name: string
       slug: string
-      title: string
-      date: string
-      tags?: {
-        name: string
-        slug: string
-      }[]
-      description?: string
-      canonicalUrl?: string
-      body: string
-      excerpt: string
-      timeToRead?: number
-      banner?: {
-        childImageSharp: {
-          resize: {
-            src: string
-          }
+    }[]
+    description?: string
+    canonicalUrl?: string
+    excerpt: string
+    timeToRead?: number
+    banner?: {
+      childImageSharp: {
+        resize: {
+          src: string
         }
       }
     }
   }
 }
 
-const px = [`32px`, `16px`, `8px`, `4px`]
-const shadow = px.map((v) => `rgba(0, 0, 0, 0.15) 0px ${v} ${v} 0px`)
+const px = [`16px`, `8px`, `4px`]
+const shadow = px.map((v) => `rgba(0, 0, 0, 0.1) 0px ${v} ${v} 0px`)
 
-const Post = ({ data: { post } }: PostProps) => (
-  <Layout>
-    <SEO
-      title={post.title}
-      description={post.description ? post.description : post.excerpt}
-      image={post.banner ? post.banner.childImageSharp.resize.src : undefined}
-      pathname={post.slug}
-      canonicalUrl={post.canonicalUrl}
-    />
+const Post: React.FC<React.PropsWithChildren<PageProps<MBPostProps>>> = ({ data: { post }, children }) => (
+  <Layout className="blog-post">
     <Heading as="h1" variant="styles.h1">
       {post.title}
     </Heading>
@@ -62,14 +53,32 @@ const Post = ({ data: { post } }: PostProps) => (
     <section
       sx={{
         my: 5,
-        ".gatsby-resp-image-wrapper": { my: [4, 4, 5], boxShadow: shadow.join(`, `) },
+        ".gatsby-resp-image-wrapper": {
+          my: [4, 4, 5],
+          borderRadius: `4px`,
+          boxShadow: shadow.join(`, `),
+          ".gatsby-resp-image-image": {
+            borderRadius: `4px`,
+          },
+        },
         variant: `layout.content`,
       }}
     >
-      <MDXRenderer>{post.body}</MDXRenderer>
+      {children}
     </section>
     <Author />
+    <PostFooter post={post} />
   </Layout>
 )
 
 export default Post
+
+export const Head: HeadFC<MBPostProps> = ({ data: { post } }) => (
+  <Seo
+    title={post.title}
+    description={post.description ? post.description : post.excerpt}
+    image={post.banner ? post.banner?.childImageSharp?.resize?.src : undefined}
+    pathname={post.slug}
+    canonicalUrl={post.canonicalUrl}
+  />
+)

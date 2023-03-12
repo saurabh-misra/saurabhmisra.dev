@@ -70,7 +70,7 @@ returnPromise()
 ### `await`
 The `await` keyword is placed in front of a promise object and signals JS to suspend execution of any consecutive statement until the promise is settled. It can only be used inside an async function. 
 
-```js {7}
+```js highlight=7
 async function doSomething() {
     
     var promise =  new Promise( resolve => {
@@ -153,7 +153,8 @@ doSomething();
 <br/>
 
 Since the async function returns a promise, we can also attach a `catch()` on the returned promise.
-```js {10}
+
+```js highlight=10
 async function doSomething() {
 
   var promise = new Promise((resolve, reject) => {

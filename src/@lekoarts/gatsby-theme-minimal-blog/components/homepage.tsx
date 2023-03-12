@@ -1,6 +1,6 @@
 /** @jsx jsx */
 import { jsx } from "theme-ui"
-import { Link } from "gatsby"
+import { HeadFC, Link } from "gatsby"
 import Layout from "@lekoarts/gatsby-theme-minimal-blog/src/components/layout"
 import Title from "@lekoarts/gatsby-theme-minimal-blog/src/components/title"
 import Listing from "@lekoarts/gatsby-theme-minimal-blog/src/components/listing"
@@ -9,13 +9,13 @@ import useMinimalBlogConfig from "@lekoarts/gatsby-theme-minimal-blog/src/hooks/
 import useSiteMetadata from "@lekoarts/gatsby-theme-minimal-blog/src/hooks/use-site-metadata"
 import replaceSlashes from "@lekoarts/gatsby-theme-minimal-blog/src/utils/replaceSlashes"
 import { visuallyHidden } from "@lekoarts/gatsby-theme-minimal-blog/src/styles/utils"
-// @ts-ignore
+import Seo from "@lekoarts/gatsby-theme-minimal-blog/src/components/seo"
 import Hero from "@lekoarts/gatsby-theme-minimal-blog/src/texts/hero"
-// @ts-ignore
+import Bottom from "@lekoarts/gatsby-theme-minimal-blog/src/texts/bottom"
 import Projects from "../texts/projects"
 import Publications from "../texts/publications"
 
-type PostsProps = {
+export type MBHomepageProps = {
   posts: {
     slug: string
     title: string
@@ -28,10 +28,9 @@ type PostsProps = {
       slug: string
     }[]
   }[]
-  [key: string]: any
 }
 
-const Homepage = ({ posts }: PostsProps) => {
+const Homepage = ({ posts }: MBHomepageProps) => {
   const { basePath, blogPath } = useMinimalBlogConfig()
   const { siteTitle } = useSiteMetadata()
 
@@ -56,3 +55,5 @@ const Homepage = ({ posts }: PostsProps) => {
 }
 
 export default Homepage
+
+export const Head: HeadFC = () => <Seo />

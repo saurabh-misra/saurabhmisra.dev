@@ -1,3 +1,16 @@
+main.blog-post section a,
+.homepage section.publications-section a,
+.homepage section.projects-section a {
+  text-decoration: none;
+}
+main.blog-post section a {
+  color: var(--theme-ui-colors-primary);
+}
+main.blog-post section a:hover,
+.homepage section.publications-section a:hover,
+.homepage section.projects-section a:hover {
+  text-decoration: underline;
+}
 a .material-icons {
   font-size: inherit;
   line-height: inherit;

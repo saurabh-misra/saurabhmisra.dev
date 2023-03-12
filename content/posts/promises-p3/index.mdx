@@ -37,7 +37,7 @@ The promise object has a method called `then()` that lets you associate handlers
 
 Let's look at an example with the fulfilled scenario handler first.
 
-```js {10}
+```js highlight=10
 var promise = new Promise( (resolve, reject) => {
 
     setTimeout(() => {
@@ -55,7 +55,7 @@ In the above example, `then()` will hook the `handleFulfilled()` handler to the 
 
 Let's look at the same example with the failure scenario handler added as well.
 
-```js {10,11}
+```js highlight=10,11
 var promise = new Promise( (resolve, reject) => {
 
     setTimeout(() => {
@@ -122,7 +122,7 @@ In the above example, the `then()` method returns a new promise i.e `returnedPro
 ##### What if there is an error in the fulfilled handler?
 If in the above example, instead of returning a value, if an error occurs inside the `handleFulfilled()` handler, `returnedPromise` will be rejected with the error reason returned from `handleFulfilled()`. If no reason is specified, it'll be rejected with `undefined`.
 
-```js {11}
+```js highlight=11
 var origPromise = new Promise( (resolve, reject) => {
 
     setTimeout(() => {
@@ -168,7 +168,7 @@ The same behaviour applies to the `handleRejected()` handler. If it returns a va
 ##### Hmm...interesting!🤔
 An interesting scenario is when we don't specify any handlers with the `then()` call. Yes, that's right! **Both the input arguments to `then()` are optional**. If we skip them, the returned promise will just mimic the original promise.
 
-```js {9}
+```js highlight=9
 var origPromise = new Promise( (resolve, reject) => {
 
     setTimeout(() => {
@@ -278,7 +278,7 @@ This method, as its name suggests is used for catching errors. It works just lik
 
 The syntax looks like this:
 
-```js {10}
+```js highlight=10
 var promise = new Promise( (resolve, reject) => {
 
     setTimeout(() => {
@@ -298,7 +298,7 @@ something went wrong🤦‍♂️
 
 Just like `then()`, `catch()` also returns a promise object and so just like `then()`, it can also be chained. Let's modify our chaining example to include a `catch()`.
 
-```js {26-34}
+```js highlight=26-34
 var thingsToBuyPromise = new Promise( (resolve, reject) => {
 
     setTimeout(() => {
@@ -458,7 +458,7 @@ For example, if we submit a form through AJAX and show a spinning icon to indica
 
 The `finally()` method accepts a single function as an input. But unlike the handlers in `then()` and `catch()`, `finally()`'s input function does not accept any arguments. This is because this function will be invoked for both, `fulfilled` and `rejected` states and it won't have a way to determine whether the value it receives is a fulfilled *value* or rejection *error reason*.
 
-```js {12}
+```js highlight=12
 var promise = new Promise( (resolve, reject) => {
 
     setTimeout(() => {
