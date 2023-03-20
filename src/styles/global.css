@@ -64,14 +64,20 @@ div.author .embeddable-buttondown-form input[type="email"] {
 div.author .embeddable-buttondown-form input[type="submit"] {
   width: 30%;
   cursor: pointer;
-  border: 1px solid #b19500;
-  background: gold;
+  border: 1px solid;
+  background: darkorange;
   font-size: 25px;
   position: relative;
   top: 2px;
   -webkit-appearance: none;
 }
-div.author hr {
+@media only screen and (max-width: 700px) {
+  div.author .embeddable-buttondown-form input[type="email"] {
+    text-align: center;
+  }
+}
+div.author hr,
+div.social-sharing hr {
   border: 0;
   background: #eeeeee;
   height: 1px;
@@ -160,5 +166,44 @@ div.author hr {
 @media screen and (min-width: 768px) {
   .trophy-panel .text {
     font-size: 1.25rem;
+  }
+}
+
+/* SOCIAL SHARING */
+.social-sharing p,
+.discuss-on-twitter {
+  font-size: 1.25rem;
+}
+.social-sharing a,
+.discuss-on-twitter a {
+  color: darkorange;
+  text-decoration: none;
+  font-weight: bold;
+}
+.social-sharing a:hover {
+  text-decoration: underline;
+}
+.social-sharing .testimonial-link {
+  float: right;
+}
+@media only screen and (max-width: 700px) {
+  div.social-sharing p,
+  .discuss-on-twitter {
+    text-align: center;
+    font-size: inherit;
+  }
+  div.social-sharing p.social-sharing-links a {
+    display: block;
+    float: none;
+    margin-bottom: 15px;
+  }
+  div.social-sharing p.social-follow-links span {
+    display: block;
+  }
+}
+@media only screen and (max-width: 767px) {
+  div.social-sharing p,
+  .discuss-on-twitter {
+    font-size: 1rem;
   }
 }

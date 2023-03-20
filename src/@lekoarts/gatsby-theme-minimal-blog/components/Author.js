@@ -14,7 +14,7 @@ export default function Author() {
             Namaste🙏! I'm <strong>Saurabh Misra</strong>, a full-stack software developer. 
           </p> 
           <p className="sub-content">
-            I write articles and tutorials about full-stack software development mostly using Javascript, ReactJS and NodeJS. If that is something that interests you, then you are more than welcome to subscribe to my newsletter.
+            I have been building software since 14 years. This blog serves as a means for me to share my knowledge and expertise with the software development community. I write tutorials based on JavaScript, PHP, SQL Server and Wordpress. If you're interested in getting notified when I write something new, you're more than welcome to subscribe to my newsletter. No spam. Unsubscribe at any time.
           </p>
           <form
             action="https://buttondown.email/api/emails/embed-subscribe/saurabhmisra.dev"

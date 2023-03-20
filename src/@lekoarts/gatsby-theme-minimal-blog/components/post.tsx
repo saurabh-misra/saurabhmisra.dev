@@ -7,6 +7,8 @@ import ItemTags from "@lekoarts/gatsby-theme-minimal-blog/src/components/item-ta
 import Seo from "@lekoarts/gatsby-theme-minimal-blog/src/components/seo"
 import PostFooter from "@lekoarts/gatsby-theme-minimal-blog/src/components/post-footer"
 import Author from './Author'
+import SocialSharing from './SocialSharing'
+import Discuss from './Discuss'
 
 export type MBPostProps = {
   post: {
@@ -66,6 +68,8 @@ const Post: React.FC<React.PropsWithChildren<PageProps<MBPostProps>>> = ({ data:
     >
       {children}
     </section>
+    <Discuss />
+    <SocialSharing title={post.title} />
     <Author />
     <PostFooter post={post} />
   </Layout>
