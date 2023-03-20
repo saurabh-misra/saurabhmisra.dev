@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function SocialSharing({ title }) {
   const twitterText = encodeURIComponent( `I just read "${title}" by @saurabh__misra\n\n` );
-  const twitterLink = `https://twitter.com/intent/tweet?url=${window.location.href}&text=${twitterText}`;
+  const twitterLink = typeof window !== "undefined" ? `https://twitter.com/intent/tweet?url=${window.location.href}&text=${twitterText}` : null;
 
   const mailToSubject = encodeURIComponent( `Re: the blog post titled "${title}"` );
   const mailToLink = `mailto:hello@saurabhmisra.dev?subject=${ mailToSubject }`;

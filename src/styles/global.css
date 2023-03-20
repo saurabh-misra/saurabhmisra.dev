@@ -180,7 +180,8 @@ div.social-sharing hr {
   text-decoration: none;
   font-weight: bold;
 }
-.social-sharing a:hover {
+.social-sharing a:hover,
+.discuss-on-twitter a:hover {
   text-decoration: underline;
 }
 .social-sharing .testimonial-link {

@@ -1,11 +1,11 @@
 import React from 'react';
 
 export default function SocialSharing() {
-  const link = `https://twitter.com/search?q=${ encodeURIComponent( window.location.href ) }`;
+  const link = typeof window !== "undefined" ? `https://twitter.com/search?q=${ encodeURIComponent( window.location.href ) }` : null;
 
   return (
     <p className="discuss-on-twitter">
-      <a href={link} target="_blank">Discuss on Twitter</a>
+      <a href={link} target="_blank" rel="noopener noreferrer">Discuss on Twitter</a>
     </p>
   )
 }
