@@ -86,7 +86,16 @@ module.exports = {
     //     trackingId: process.env.GOOGLE_ANALYTICS_ID,
     //   },
     // },
-    `gatsby-plugin-sitemap`,
+    {
+      resolve: 'gatsby-plugin-sitemap',
+      options: {
+        excludes: [
+          '/pages/privacy-policy/how-much-do-i-spend', 
+          '/confirm-subscription',
+          '/subscription-confirmed'
+        ]
+      },
+    },
     {
       resolve: `gatsby-plugin-manifest`,
       options: {
