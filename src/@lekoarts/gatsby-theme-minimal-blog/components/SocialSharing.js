@@ -16,15 +16,15 @@ export default function SocialSharing({ title }) {
         </p>
 
         <p className="social-sharing-links">
-          <a href={twitterLink} target="_blank" rel="noopener noreferrer">Share this post on Twitter</a>
+          <a href={twitterLink} target="_blank">Share this post on Twitter</a>
           <a href={mailToLink} className="testimonial-link">Email me a testimonial</a>
         </p>
 
         <p className="social-follow-links">
           <span className="follow-me">Follow me on:</span>&nbsp; 
-          <a href="https://twitter.com/saurabh__misra" target="_blank" rel="noopener noreferrer">Twitter</a>&nbsp;&middot;&nbsp;
-          <a href="https://www.linkedin.com/in/saurabh--misra/" target="_blank" rel="noopener noreferrer">LinkedIn</a>&nbsp;&middot;&nbsp;
-          <a href="https://github.com/saurabh-misra" target="_blank" rel="noopener noreferrer">Github</a>
+          <a href="https://twitter.com/saurabh__misra" target="_blank">Twitter</a>&nbsp;&middot;&nbsp;
+          <a href="https://www.linkedin.com/in/saurabh--misra/" target="_blank">LinkedIn</a>&nbsp;&middot;&nbsp;
+          <a href="https://github.com/saurabh-misra" target="_blank">Github</a>
         </p>
       </div>
     </div>

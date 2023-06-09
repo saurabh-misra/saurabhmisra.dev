@@ -5,7 +5,7 @@ export default function SocialSharing() {
 
   return (
     <p className="discuss-on-twitter">
-      <a href={link} target="_blank" rel="noopener noreferrer">Discuss on Twitter</a>
+      <a href={link} target="_blank">Discuss on Twitter</a>
     </p>
   )
 }
