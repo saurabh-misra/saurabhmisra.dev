@@ -1,0 +1,494 @@
+---
+title: "3 ways to upload files using NodeJS and Axios"
+date: 2023-05-30
+slug: "/file-uploads-nodejs"
+tags:
+  - NodeJS
+  - ExpressJS
+  - Axios
+description: Learn how to upload files in binary, multipart and base64-encoded formats using NodeJS, ExpressJS and Axios.
+banner: ./assets/images/banner.jpg
+---
+
+## Introduction
+
+Usually when we think about file uploads, the first thought that often comes to mind is to have a `<form/>` tag with the `enctype="multipart/form-data"` attribute set on it on the client-side with a file input to upload files.
+
+But what if there were no forms or file inputs involved? 
+
+What if I want to upload files from the server-side to some other third-party server. For example, uploading files from your server to <a href="https://aws.amazon.com/s3/" target="_blank">Amazon S3</a>. Or maybe you are building an app or an API that is supposed to receive files. In such cases, how would we configure the API request to carry file data in the request payload?
+
+Also, are there any other ways we can send file data in an HTTP request apart from `multipart/form-data`?
+
+Yes there are and that is exactly what we're going to touch upon in this article.
+
+We're going to learn how to send files in an HTTP request in **binary format**, as **multipart form-data** and as a **base64-encoded** string from the server-side and also learn how to receive and save these files in the filesystem.
+
+For our tutorial, we're going to use <a href="https://nodejs.org/en" target="_blank">NodeJS</a>, <a href="https://expressjs.com/" target="_blank">ExpressJS</a> and <a href="https://www.npmjs.com/package/axios" target="_blank">Axios</a>. 
+
+The main aim of this tutorial is to make you aware of the various approaches for uploading files that you have at your disposal. Then you can go ahead and implement the one that suits your requirements the best using a language, library or framework of your choice.
+
+## Tutorial Project Setup
+The starter files for this tutorial are in <a href="https://github.com/saurabh-misra/file-uploads-nodejs-tutorial" target="_blank">this github repo</a>.
+
+Once you clone or download the files, `cd` into the folder and run `npm install` followed by `npm start`. You should have a local server running at `http://localhost:3000`.
+
+There are only two script files in the project folder: `app.js` and `utils.js`.
+
+`app.js` at this point only contains imports, variable declarations, and server initialization logic. We'll go over and use these imported packages and variables as we move forward.
+
+```js title=app.js
+// imports
+const express = require( 'express' ),
+  axios = require( 'axios' ).default,
+  multer = require( "multer" ),
+  fsProm = require( "fs/promises" ),
+  fs = require( "fs" ),
+  FormData = require( "form-data" ),
+  { getFilename } = require( "./utils" );
+
+// global variables, constants and defaults
+const PORT = 3000,
+  FILE_SOURCE_DIR = "./images",
+  FILE_UPLOADS_DIR = "./uploads",
+  MAX_UPLOAD_SIZE = 2 * 1024 * 1024; // 2MB in bytes
+  MAX_UPLOAD_SIZE_IN_MB = `${ MAX_UPLOAD_SIZE / 1024 / 1024 }MB`;
+axios.defaults.baseURL = `http://localhost:${ PORT }`;
+const app = express();
+
+// YOUR CODE GOES HERE
+
+app.listen( PORT, () => console.log( `👂API Server listening on port ${PORT}` ));
+```
+
+`utils.js` houses some basic helper functions. The `getFileExtFromMimeType()` function performs some simple mapping between MIME types and file extensions. The other function `getFilename()` accepts a MIME type as an input and creates a unique file name for saving our uploads. 
+
+You'll also notice two folders named `images` and `uploads`. The `images` folder contains some sample images we can use for testing and the `uploads` folder will serve as the destination for the uploaded files.
+
+## Approach 1: Binary Upload
+
+This is possibly the simplest approach for uploading files. 
+
+All we do here is populate the request payload with the file data in binary format and set the `Content-Type` HTTP header as the <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types" target="_blank">MIME type</a> of the file. That's it!
+
+Let's see this in action.
+
+We'll create two API routes in the project, one for sending the file in binary format and the other for receiving this binary payload and saving it as a file in the filesystem. 
+
+```
+GET /send-binary
+POST /receive-binary
+```
+
+>In real-world scenarios, these two API services will mostly reside on different servers but for convenience in our tutorial project, we are going to implement them on the same server.
+
+>Also, since our focus in this tutorial is not on API design, I have designed `/send-binary` as a `GET` request instead of a `POST` request for convenience so that I can send the request directly from the browser.
+
+Copy-paste this function definition for the `/send-binary` route into `app.js`. 
+
+```js title=app.js
+app.get( "/send-binary", async ( req, res ) => {
+
+  // Specify which image to read from the file system 
+  // and the value for the Content-Type header for the upload.
+  const filepath = `${ FILE_SOURCE_DIR }/valid.jpg`,
+  headers = { "Content-Type": "image/jpeg" };
+  
+  let file = null;
+  try {
+
+    // Read the binary file data into a "Buffer" object.
+    file = await fsProm.readFile( filepath );    
+
+  } catch ( error ) {
+
+    // respond with a 500 Internal Server Error if something goes wrong
+    return res.status( 500 ).json({ 
+      status: "error", 
+      message: "Error while reading file", 
+      error 
+    });
+
+  }
+
+  try {
+    
+    // upload the binary data in the request payload
+    await axios.post( "/receive-binary", file, { headers });    
+
+  } catch (err) {
+    
+    // handle file size and file type validation error response
+    if( err.response && ( err.response.status == 413 || err.response.status == 400 )) {
+      return res.status( 400 ).json({ 
+        status: "error", 
+        message: "Invalid file. Please upload a JPEG or PNG file less than " + MAX_UPLOAD_SIZE_IN_MB + " in size."
+      });
+    } 
+
+    // handle any generic error
+    else {
+      return res.status( 500 ).json({ 
+        status: "error", 
+        message: "Error while uploading file", 
+        error: err 
+      });
+    }
+
+  }
+
+  return res.json({ status: "success", message: "File sent successfully." });
+
+});
+```
+
+The only main steps here are reading the file from the filesystem in a `Buffer` instance and then sending it in the request payload using axios. Everything else like the `try-catch` is just best practice.
+
+><a href="https://www.digitalocean.com/community/tutorials/using-buffers-in-node-js" target="_blank">Buffer</a> is basically NodeJS's way of referencing binary data which is currently stored in memory or RAM.
+
+Now let's define the route handling logic for the `/receive-binary` route as well. Paste the below code into `app.js`.
+
+```js title=app.js
+// Configure middleware to parse raw request payloads.
+const parseRawReqBody = express.raw({ 
+  limit: MAX_UPLOAD_SIZE, 
+  type: [ "image/jpeg", "image/png" ] 
+});
+
+app.post( "/receive-binary", parseRawReqBody, async ( req, res ) => {
+
+  // validate if file type is valid. If not, return 400 Bad Request.
+  if( req.headers[ "content-type" ] !== "image/jpeg" 
+    && req.headers[ "content-type" ] !== "image/png" 
+    ) {
+    return res.status( 400 ).json({ 
+      status: "error", 
+      message: "Invalid file. Please upload a JPEG or PNG file only."
+    });
+  }
+  
+  // Set the path where the file should be saved.
+  const filename = getFilename( req.header( "Content-Type" ) ),
+    filepath = FILE_UPLOADS_DIR + '/' + filename;
+
+  try {
+    
+    // write the binary data from the request body into a file.
+    await fsProm.writeFile( filepath, req.body );
+
+  } catch (error) {
+
+    // respond with a 500 Internal Server Error if something goes wrong
+    return res.status( 500 ).json({ 
+      status: "error", 
+      message: "Error while writing the binary file to disk.", 
+      error 
+    });
+
+  }
+
+  return res.json({ status: "success", message: "File received and saved successfully." });
+
+});
+```
+
+Again the only main steps here are writing the binary data into a file using the `writeFile()` function from the `fs/promises` module.
+
+Let's test this out. If you haven't already, spin up the server using `npm start` and visit http://localhost:3000/send-binary in the browser. You should see a successful API response. Check your uploads directory where the file should have been saved. 
+
+Let's change the name of the file in `/send-binary` to "too_large.jpg". Again hit the same URL as before. This time you'll see an error response which means that our file size validation does work. 
+
+Let's quickly make sure that our file format validation works as well or not. Change the name of the file to "invalid.pdf" and the `Content-Type` to "application/pdf". Hit the same URL. You'll again see the same error response.
+
+You can also test uploading a PNG image by changing the file name in `/send-binary` to "heart.png" and changing the `Content-Type` to "image/png".
+
+And there you have it! A simple way to send and save files across HTTP in binary format.
+
+The downside of this approach is that the request body will only contain file data and nothing else. So sending any metadata in the request body is not possible. But in case you do need to send a few simple values as metadata, then that can be achieved using either query-string parameters or custom HTTP headers.
+
+## Approach #2: Multipart Uploads
+
+So you might already be familiar with the `mulipart/form-data` value of the `enctype` attribute that is specified on a `<form>` tag. Multipart means that the request contains various parts separated by a pre-defined boundary. These parts can be of different types such as simple key-value pairs, plain text, file data, etc. Here is <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type#content-type_in_html_forms" target="_blank">a great example of how a multipart HTTP request is formatted</a>. 
+
+Let's implement this approach now. Just like the binary approach, we'll implement two routes here as well:
+
+```
+GET /send-multipart
+POST /receive-multipart
+```
+
+Let's define the route handler for `/send-multipart` first. `/send-multipart` will use a `FormData` instance to construct a multipart request payload. We'll read the file data and append it to the `FormData` instance along with any other required metadata. We'll then use axios to send this info in a `POST` request to `/receive-multipart`. Paste the below code into `app.js`.
+
+```js title=app.js
+app.get( "/send-multipart", async ( req, res ) => {
+  
+  const form = new FormData();
+
+  // read the file and append into the FormData instance.
+  const filepath = `${ FILE_SOURCE_DIR }/valid.jpg`; 
+  form.append( "file", fs.createReadStream( filepath ) );
+
+  // append any other metadata
+  form.append( "firstname", "Saurabh" );
+	
+  try {
+    
+    // Send the file using axios.
+    // Since we're using the FormData instance, axios will automatically set 
+    // the Content-Type header as 'mulitpart/form-data'.
+    await axios.post( "/receive-multipart", form );
+		
+  } catch ( error ) {
+    
+    // handle file size and file type validation error response
+    if( error.response && error.response.data ) {
+      return res.status( error.response.status ).json( error.response.data );
+    }
+
+    // handle any generic error
+    else {
+      return res.status( 500 ).json({ 
+        status: "error", 
+        message: "Something went wrong while uploading the image.", 
+        detail: error 
+      });
+    }
+    
+  }
+
+  res.json({ status: "success", message: "File sent successfully." }); 
+});
+```
+
+To receive and parse multipart requests, we'll use an NPM package called <a href="https://www.npmjs.com/package/multer" target="_blank">`multer`</a> which exposes a middleware that parses `multipart/form-data` requests. `multer` is already installed in our tutorial project and also imported in our `app.js` file so let's go ahead and configure it. Paste the below code into `app.js`.
+
+```js title=app.js
+// configure multer to save images to disk.
+const fileStorageEngine = multer.diskStorage({
+  
+  // configure the destination directory 
+  destination: ( req, file, callback ) => {
+    callback( null, FILE_UPLOADS_DIR );
+  },
+
+  // configure the destination filename
+  filename: ( req, file, callback ) => {
+    callback( null, getFilename( file.mimetype ) );
+  }
+
+});
+
+// configure multer to handle single file uploads
+const uploadSingleFile = multer({
+  
+  // use the configured file storage option
+  storage: fileStorageEngine,
+
+  // skip any files that do not meet the validation criteria
+  fileFilter: ( req, file, callback ) => {
+    
+    if ( file.mimetype !== "image/png" && file.mimetype !== "image/jpeg" ) {
+      
+      // Store a flag to denote that this file is invalid.
+      // Unlike `res.locals`, `req.locals` is not really 
+      // a standard express object but we use it here
+      // for convenience to pass data to the route handler.
+      req.locals = { invalidFileFormat: true };
+
+      // reject this file
+      callback( null, false );
+    }
+
+    // accept this file
+    callback( null, true );
+
+  },
+
+  // configure a max limit on the uploaded file size
+  limits: { fileSize: MAX_UPLOAD_SIZE }
+
+}).single( "file" );
+```
+
+Let's go ahead and implement the route handling functionality for `/receive-multipart`. `/receive-multipart` will forward the request to multer by calling `uploadSingleFile()` which will parse and upload the file. The route handler will then only validate whether everything went smoothly or not and respond accordingly. Paste the below code into `app.js`.
+
+```js title=app.js
+app.post( "/receive-multipart", ( req, res ) => {
+  
+  // `uploadSingleFile` is a middleware but we use it here 
+  // inside the route handler because we want to handle errors.
+  uploadSingleFile( req, res, err => {
+    
+    // if uploaded file size is too large or if its format is invalid
+    // then respond with a 400 Bad Request HTTP status code.
+    if( err instanceof multer.MulterError 
+      || ( req.locals && req.locals.invalidFileFormat )
+      ) {
+        return res.status( 400 ).json({ 
+          status: "error", 
+          message: `Invalid file format. Please upload a JPEG or PNG image not greater than ${MAX_UPLOAD_SIZE_IN_MB} in size.` 
+      });
+    }
+
+    // handle any other generic error
+    else if ( err ) {
+      return res.status( 500 ).json({ 
+        status: "error", 
+        message: "Something went wrong while uploading the image.", 
+        detail: err 
+      });
+    }
+
+    res.json({ status: "success" });
+    
+  });
+});
+```
+
+Let's run this now and visit the URL http://localhost:3000/send-multipart. You should see a successful response and the file should have been uploaded to the `uploads` directory.
+
+Now let's test our validations. Change the `filepath` variable to use the "too_large.jpg" file and visit the same URL again. You should see an error response.
+
+I'll leave it up to you to test this using the PDF and PNG file.
+
+This approach proves quite useful when you need to send metadata along with file data or multiple files in a single HTTP request.
+
+## Approach #3: Base64 uploads
+
+Base-64 encoding is used to convert binary data into an ASCII string representation. A base64-encoded string can be easily transferred in an HTTP request as it is or as a part of a JSON.  
+
+Let's implement this approach now. Just like the binary approach, we'll implement two routes here as well.
+
+```
+GET /send-base64
+POST /receive-base64
+```
+
+Let's implement the `/send-base64` route first. `/send-base64` will read the file from the filesystem, convert the entire file data into a base64-encoded string, include this string in a JSON and send this JSON in a POST request using axios to `/receive-base64`. Paste the below code into `app.js`.
+
+```js title=app.js
+app.get( "/send-base64", async ( req, res ) => {
+  
+  // Specify which image to read from the file system 
+  // and the value for the Content-Type header for the upload.
+  const filepath = `${ FILE_SOURCE_DIR }/valid.jpg`,
+    mimetype = "image/jpeg";
+  
+  let file = null;
+  try {
+
+    // read the file as a base64-encoded string
+    file = await fsProm.readFile( filepath, "base64" );    
+
+  } catch ( err ) {
+
+    // respond with a 500 Internal Server Error if something goes wrong
+    return res.status( 500 ).json({ 
+      status: "error", 
+      message: "Error while reading file", 
+      error: err 
+    });
+
+  }
+  
+  try {
+
+    // Upload the base64 string as JSON with other metadata.
+    // `Content-Type` will automatically be set to "application/json".
+    const data = { mimetype, file };
+    await axios.post( "/receive-base64", data );
+
+  } catch ( err ) {
+
+    // handle file size
+    if( err.response && ( err.response.status == 413 || err.response.status == 400 )) {
+      return res.status( 400 ).json({ 
+        status: "error", 
+        message: "Invalid file. Please upload a JPEG or PNG file less than " + MAX_UPLOAD_SIZE_IN_MB + " in size."
+      });
+    }
+    
+    // handle any other generic error
+    else {
+      return res.status( 500 ).json({ 
+        status: "error", 
+        message: "Error while uploading file", 
+        error: err 
+      });
+    }
+
+  }
+
+  return res.json({ status: "success", message: "File uploaded and saved successfully." });
+});
+```
+
+If you notice, we're using the same `readFile()` function from the `fs/promises` module that we used in the binary approach but this time we specify "base64" as the second argument as the encoding type.
+
+Now let's implement the `/receive-base64` route. `/receive-base64` will receive the JSON payload, validate it, read the base64-encoded string, convert it into binary and will save the file in the filesystem. Paste the below code into `app.js`.
+
+```js title=app.js
+// configure middleware to parse JSON payloads in the request body.
+const parseJSONReqBody = express.json({ limit: MAX_UPLOAD_SIZE });
+
+app.post( "/receive-base64", parseJSONReqBody, async ( req, res ) => {
+
+  // validate if file type is valid. If not, return 400 Bad Request.
+  if( req.body.mimetype !== "image/jpeg" && req.body.mimetype !== "image/png" ) {
+    return res.status( 400 ).json({ 
+      status: "error", 
+      message: "Invalid file. Please upload a JPEG or PNG file only."
+    });
+  }
+
+  // convert the base64-encoded string into binary
+  const binaryData = Buffer.from( req.body.file, 'base64' );
+
+  // Set the path where the file should be saved.
+  const filename = getFilename( req.body.mimetype ),
+    filepath = FILE_UPLOADS_DIR + '/' + filename;
+
+  try {
+      
+    // write the binary data into a file.
+    await fsProm.writeFile( filepath, binaryData );
+
+  } catch ( err ) {
+    
+    // respond with a 500 Internal Server Error if something goes wrong
+    return res.status( 500 ).json({ 
+      status: "error", 
+      message: "Error while writing the file to disk.", 
+      error: err 
+    });
+
+  }
+
+  return res.json({ status: "success", message: "File saved successfully." });
+
+});
+```
+
+The only main steps here are using `Buffer.from()` to convert the base64-encoded string into binary data and then using `writeFile()` to write the binary data into a file the same way we did with binary uploads.
+
+Let's run this now and visit the URL http://localhost:3000/send-base64. You should see a successful response and the file should have been uploaded to the `uploads` directory.
+
+Now let's test our validations. Change the `filepath` variable to use the "too_large.jpg" file and also change the `mimetype` variable accordingly and visit the same URL again. You should see an error response.
+
+I'll leave it up to you to test this using the PDF and PNG file.
+
+The pros of this approach is that you can design a file upload API service to accept JSON payloads and share a consistent and uniform interface with the rest of the API services. But keep in mind that this is not a hard-and-fast rule and it is perfectly fine for API services to accept file upload inputs as either `multipart/form-data` or `binary`.
+
+The disadvantage of this approach is that <a href="https://developer.mozilla.org/en-US/docs/Glossary/Base64#encoded_size_increase" target="_blank">base64-encoding increases the payload size by ~33%</a>. For large files, the payload can end up weighing a lot.
+
+## Summary
+
+You don't have to rely solely on `multipart/form-data` payloads to upload files. 
+
+We just learnt three ways to send and receive files using NodeJS, ExpressJS and Axios.
+
+- Direct Binary Uploads
+- Multipart Form-Data Uploads
+- Base64-encoded Uploads
+
+It is helpful to keep these approaches in your arsenal and choose the one that best meets your needs when you need to design one for your projects.
