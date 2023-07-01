@@ -1,0 +1,182 @@
+---
+title: "Handling File Uploads in REST APIs"
+date: 2023-07-01
+slug: "/file-uploads-rest-api"
+tags:
+  - REST API
+description: File uploads in API services can be designed as Embedded, Child Resources or Independent Resources. We'll discuss the pros and cons of each approach in this article.
+banner: ./assets/images/banner.jpg
+---
+
+## Introduction
+Designing REST API services for basic CRUD operations is fairly straight-forward. But designing API services for handling file uploads, while not complicated, requires a bit more planning. A suitable design strategy for handling file uploads will go a long way in making sure that the API can grow without requiring frequent changes.
+
+A prominent question you'll face while designing APIs for file uploads will be whether you should design a separate API endpoint for file uploads or should you simply embed them as a property within the parent resource representation.
+
+In this article, we'll look at the three different file upload API design approaches you have at your disposal along with pros and cons of each approach. These approaches are:
+- Approach #1: File embedded as a property within the parent resource reprensetation
+- Approach #2: Child Resource
+- Approach #3: Independent Resource
+
+Let's dive right in.
+
+>This article assumes some basic familiarity with the REST API architecture and its concepts such as resource representations. In case you're not familiar with these terminologies, you may want to first check out [this basic introduction to the REST architecture](/rest-architecture-basics) and then come back to reading this article.
+
+
+## File embedded as a property within the parent resource reprensetation
+In this approach, you don't consider the file as a separate API resource and don't allocate a separate API endpoint for the file resource. Rather, you just "embed" either the file URL or the base64-encoded binary data within the resource representation. 
+
+For example, consider a `/users` resource. We'll fetch the resource representation of a single user using the URI `GET https://api.example.com/users/123`. 
+
+```json
+{
+  "id": 123,
+  "name": "Saurabh Misra",
+  "profile_pic": "https://example.com/images/123.jpg"
+}
+```
+
+Notice how the image URI is not part of the API. 
+
+Creation of a new user could happen via a `POST` request. You can either upload the file along with the resource data in the same request or you could use `PATCH` to upload the file later.
+
+>Here is an [in-depth tutorial](/restful-api-tutorial) about how to make `POST` and `PATCH` requests to create and update resources in a REST API. 
+
+If you send file data along with resource data in a single request, you could design the API service to accept requests with a `Content-Type` of either `multipart/form-data` or `application/json` with the file data base64-encoded.
+
+>To know more about how to upload files as multipart or base64-encoded, you can read this article: [3 ways to upload files using NodeJS and Axios](/file-uploads-nodejs).  
+
+#### Pros
+- **Simple**: This approach is very simple and straight-forward and is suitable for applications with basic file-upload requirements or initial prototypes. 
+
+#### Cons
+- **No Metadata**: It's not possible to store any other information about the file. For example, it's not possible to store or fetch metadata about the file like filename, creation timestamp, file size, mime type, etc.
+- **Single file version only**: There is no possibility of serving a different version of the file. For example, it's not possible to serve different sizes of an image like small, medium and original.
+- **Caching**: If the file is stored as binary and retrieved as base64, then it will be downloaded every time the resource is fetched even if it is not needed leading to wastage of bandwidth. Also, since caching will apply to the entire resource, if any parameter within the resource changes, the cached version of the file will become invalid even though it hasn't changed.
+- **File upload first, resource creation later not possible**: This approach won't allow API clients to implement a UX design where the files should be uploaded before the parent resource has been created. You'll have to either upload the file together or after the creation of the parent resource.
+
+## File Upload as a Child Resource
+This approach will basically model file uploads as a child resource of a parent resource. So in this approach, file uploads will actually have an API endpoint of their own. Something like this:
+
+```
+GET https://api.example.com/users/123/profile_pic
+
+GET https://api.example.com/messages/123/images/234
+```
+
+File uploads will be created as a resource using `POST` operations and then updates will happen using `PUT` requests.
+
+The file can be uploaded either as `multipart/form-data` or base64-encoded in an `application/json` request but if no metadata is required, then another option is to upload the file as a [simple and direct binary upload](/file-uploads-nodejs).
+
+#### Pros
+- **Metadata**: Since the file upload will have it's own API endpoint, it'll be possible to return metadata about the uploaded file in the API response along with the image URL. This can be achieved using query-string params like:
+
+```
+GET https://api.example.com/messages/123/images/234?return=metadata
+
+{
+  "id": 234,
+  "filename": "image.jpg",
+  "mimetype": "image/jpeg",
+  "size_bytes": 100000,
+  "links": {
+    rel: "self",
+    href: "/messages/123/images/234"
+  }
+}
+```
+
+- **Multiple file versions**: It'll also be possible to store multiple versions of the file and allow API clients to access these versions via the API. Again, this can be achieved by setting options as query-string params.
+
+```
+GET /messages/123/images/234?size=small
+GET /messages/123/images/234?size=medium
+GET /messages/123/images/234?size=original
+```
+
+- **Separate Caching from the parent resource**: Since the file has a different endpoint now, it'll be cached separately from the parent resource. So if anything changes in the parent resource, the caching of the file will not be affected.
+
+#### Cons
+- **File upload first, resource creation later not possible**: Similar to the embedded approach, this approach also won't allow API clients to implement a UX design where the files should be uploaded before the parent resource has been created. You'll have to either upload the file together or after the creation of the parent resource.
+
+## Independent Resource
+This is the most versatile approach of the three approaches being discussed in this article and also more suitable for modern web development. 
+
+In this approach, we design our file uploads as their own resource with their own endpoints that do not have any parent resource.
+
+For example:
+
+```
+https://api.example.com/images/234
+```
+
+Other resources that utilitize file uploads can use these API endpoints to reference the files as needed.
+
+For example, we can design the resource representation of a `/users/123` resource with a single profile picture as: 
+
+```
+GET https://api.example.com/users/123
+```
+
+```json
+{
+  "id": 123,
+  "name": "Saurabh Misra",
+  "profile_pic": "https://api.example.com/images/234"
+}
+```
+
+And we can design the resource representation of a `/messages/123`  resource with multiple associated images as:
+
+```
+GET https://api.example.com/messages/123
+```
+
+```json
+{
+  "id": 123,
+  "text": "lorem ipsum dolor sit amet",
+  "links": [
+    {
+      "rel": "images",
+      "href": "https://api.example.com/images/?type=message&id=123"
+    }
+  ]
+}
+```
+
+Similar to the child resource approach, in this case also, the file upload can be created using a `POST` request and updated using a `PUT` request.
+
+Also similar to the child resource approach, the file can be uploaded either as `multipart/form-data` or base64-encoded in an `application/json` request but if no metadata is required, then another option will be to upload the file as a [simple and direct binary upload](/file-uploads-nodejs).
+
+Let's discuss the pros and cons of this approach.
+
+#### Pros
+- **Re-usable**: This design can be "re-used" for any kind of file upload associated with any other resource. Say for example, today you need the file upload API service to work for user profile images. Maybe tomorrow you'll add a messaging functionality in your application and now you'll need the ability to upload images as part of messages. In this case, you will simply be able to use this existing API service to handle file uploads.
+- **File upload first, resource creation later is possible**: This approach allows the UX design to upload files first and create the associated resource later. This improves the perceived application performance because allowing the user to upload the files first means that the files will keep uploading in the backgroud while the user inputs other information. By the time the user is ready to submit the form, the files would have been already uploaded. You must have experienced this while drafting an email in Gmail with attachments.
+- **Works well with cloud-storage**: This design also facilitates using other first-party servers or even third-party cloud storage services like <a href="https://aws.amazon.com/s3/?nc2=h_ql_prod_fs_s3" target="_blank">Amazon S3</a>, <a href="https://cloud.google.com/storage" target="_blank">Google Cloud</a> or <a href="https://cloudinary.com/" target="_blank">Cloudinary</a>. This allows the REST API server to be less burdened with serving large files and can instead focus on CRUD operations.
+- **More Power**: Since all files are stored in one place irrespective of which resources they are associated with for example, user profile pics, images in messages, etc., it becomes easier to search and filter through the entire set of files. Normally, if we wanted to fetch all files belonging to a particular user, we'd have to look into the user's public posts, private messages, comments, profile pics, etc. But in this design, all we have to do is this:
+
+```
+https://api.example.com/images?type=user&id=123
+```
+
+#### Cons
+- **Orphaned Files**: Consider a scenario where a user is posting a new message. He uploads some files and starts writing out the content but then changes his mind and decides to not post the message and discards the draft. Now the files have already been uploaded and are not associated with any resource. Such files are called "Orphaned Files" and can end up clogging up your server disk space. One way to workaround this problem is to have CRON jobs that regularly clean-up such files.
+
+## Summary
+In this article, we studied three design strategies for API services that handle file uploads:
+- Approach #1: File embedded as a property within the parent resource reprensetation
+- Approach #2: Child Resource
+- Approach #3: Independent Resource
+
+We discussed the pros and cons of each approach. For your projects, you should choose the approach that suits your project requirements and personal preferences the best. 
+
+But in general, for modern web app development, approach #3 i.e. designing file uploads as an independent resource proves to be the most powerful and versatile approach of the three.
+
+#### References
+
+- <a href="https://stackoverflow.com/questions/33279153/rest-api-file-ie-images-processing-best-practices" target="_blank">REST API - file (ie images) processing - best practices</a>
+- <a href="https://stackoverflow.com/questions/4083702/posting-a-file-and-associated-data-to-a-restful-webservice-preferably-as-json" target="_blank">Posting a File and Associated Data to a RESTful WebService preferably as JSON</a>
+- <a href="https://stackoverflow.com/questions/57161000/should-file-uploads-in-rest-be-their-own-resources" target="_blank">Should file uploads in REST be their own resources?</a>
+- <a href="https://softwareengineering.stackexchange.com/questions/432292/rest-api-model-file-uploads-as-part-of-a-resource-or-as-subresources" target="_blank">REST API: model file uploads as part of a resource or as subresources?</a>
