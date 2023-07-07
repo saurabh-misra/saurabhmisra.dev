@@ -1,0 +1,72 @@
+---
+title: "Render a static HTML page using NodeJS and ExpressJS"
+date: 2023-07-07
+slug: "/static-html-nodejs-expressjs"
+tags:
+  - NodeJS
+  - ExpressJS
+description: Using `express.static()` middleware and `res.sendFile()` method, we can render a static HTML page with other static assets in a NodeJS and ExpressJS API.
+banner: ./assets/images/banner.jpg
+---
+
+import staticAssetsLoadingIssue from './assets/images/static-assets-not-loaded.jpg';
+
+## Introduction
+I recently came across a situation where I had to serve a static HTML page from an API powered by ExpressJS on a NodeJS server. 
+
+This was a simple but interesting problem and I thought about documenting this in one place for my future self or for anybody else in the same situation as me looking for a solution and a straight-forward explanation. 
+
+## Tutorial Project Setup
+Download or clone the tutorial files from <a href="https://github.com/saurabh-misra/static-html-nodejs-tutorial" target="_blank">this github repo</a>.
+
+The project comprises of a basic NodeJS and ExpressJS setup. There is a `server.js` file which has the code to initialize the server. There is a `/public` folder which contains our static HTML, CSS, JS and media files.
+
+Run `npm i` to install dependencies and then `npm start` to start the server.
+
+The project will also install <a href="https://www.npmjs.com/package/nodemon" target="_blank">nodemon</a> which will automatically restart the server for you whenever you make any changes to the files in the project.
+
+## Render the HTML page
+If you visit <a href="http://localhost:3000/" target="_blank">http://localhost:3000/</a> right now in the browser, you won't see anything because the API root endpoint is not returning any response.
+
+What we want is that this URL should render our static html: `/public/index.html`.
+
+Open `server.js` in your editor and replace the definition of the root API service handler with this.
+
+```js
+app.get( "/", ( req, res ) => {
+  res.sendFile( path.join( __dirname + "/public/index.html" ));
+});
+```
+
+The `sendFile()` method, as the name suggests will send the HTML file as the response. The `Content-Type` will automatically be set to `text/html`.
+
+If you visit <a href="http://localhost:3000/" target="_blank">http://localhost:3000/</a>, you should be able to see the HTML page.
+
+But our CSS, JS and media files are not rendered properly. If you look at the Console in Dev Tools, you'll see errors like this:
+
+<img src={staticAssetsLoadingIssue} width="100%" />
+
+The cause of these issues is that ExpressJS is unaware of the existence of these static assets in the `/public` directory. To make it aware, we need to use the middleware returned by `express.static()`.
+
+Copy paste this entire code into your `server.js` file.
+
+```js highlight=6,9
+const express = require( "express" ),
+  app = express(),
+  path = require( "path" ),
+  PORT = 3000;
+
+app.use( express.static( 'public' ));
+
+app.get( "/", ( req, res ) => {
+  res.sendFile( path.join( __dirname + "/public/index.html" ));
+});
+
+// Start the API server!
+app.listen( PORT, () => console.log( `👂 API server listening on port ${ PORT }` ) );
+```
+
+`express.static()` takes in the location of the folder that contains the static files as an input argument. 
+
+If you reload the page, you should now be able to see the properly rendered page with all static assets in place🎉.
+
