@@ -44,7 +44,7 @@ If you visit <a href="http://localhost:3000/" target="_blank">http://localhost:3
 
 But our CSS, JS and media files are not rendered properly. If you look at the Console in Dev Tools, you'll see errors like this:
 
-<img src={staticAssetsLoadingIssue} width="100%" />
+<img src={staticAssetsLoadingIssue} width="100%" alt="screenshot showing errors while loading static assets in browser console" />
 
 The cause of these issues is that ExpressJS is unaware of the existence of these static assets in the `/public` directory. To make it aware, we need to use the middleware returned by `express.static()`.
 
