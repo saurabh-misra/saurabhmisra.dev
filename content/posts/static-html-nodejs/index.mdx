@@ -34,6 +34,7 @@ Open `server.js` in your editor and replace the definition of the root API servi
 
 ```js
 app.get( "/", ( req, res ) => {
+  // send the HTML file in the API response
   res.sendFile( path.join( __dirname + "/public/index.html" ));
 });
 ```
@@ -56,9 +57,11 @@ const express = require( "express" ),
   path = require( "path" ),
   PORT = 3000;
 
+// register the location of the static assets
 app.use( express.static( 'public' ));
 
 app.get( "/", ( req, res ) => {
+  // send the HTML file in the API response
   res.sendFile( path.join( __dirname + "/public/index.html" ));
 });
 
