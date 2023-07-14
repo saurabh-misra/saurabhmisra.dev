@@ -1,11 +1,11 @@
 ---
-title: "Render a static HTML page using NodeJS and ExpressJS"
+title: "Serve a static HTML page using NodeJS and ExpressJS"
 date: 2023-07-07
 slug: "/static-html-nodejs-expressjs"
 tags:
   - NodeJS
   - ExpressJS
-description: Using `express.static()` middleware and `res.sendFile()` method, we can render a static HTML page with other static assets in a NodeJS and ExpressJS API.
+description: Using `express.static()` middleware and `res.sendFile()` method, we can serve a static HTML page with other static assets in a NodeJS and ExpressJS API.
 banner: ./assets/images/banner.jpg
 ---
 
@@ -25,10 +25,10 @@ Run `npm i` to install dependencies and then `npm start` to start the server.
 
 The project will also install <a href="https://www.npmjs.com/package/nodemon" target="_blank">nodemon</a> which will automatically restart the server for you whenever you make any changes to the files in the project.
 
-## Render the HTML page
+## Serve the HTML page
 If you visit <a href="http://localhost:3000/" target="_blank">http://localhost:3000/</a> right now in the browser, you won't see anything because the API root endpoint is not returning any response.
 
-What we want is that this URL should render our static html: `/public/index.html`.
+What we want is that this URL should serve our static html: `/public/index.html`.
 
 Open `server.js` in your editor and replace the definition of the root API service handler with this.
 
@@ -43,7 +43,7 @@ The `sendFile()` method, as the name suggests will send the HTML file as the res
 
 If you visit <a href="http://localhost:3000/" target="_blank">http://localhost:3000/</a>, you should be able to see the HTML page.
 
-But our CSS, JS and media files are not rendered properly. If you look at the Console in Dev Tools, you'll see errors like this:
+But our CSS, JS and media files are not served properly. If you look at the Console in Dev Tools, you'll see errors like this:
 
 <img src={staticAssetsLoadingIssue} width="100%" alt="screenshot showing errors while loading static assets in browser console" />
 
@@ -71,5 +71,5 @@ app.listen( PORT, () => console.log( `👂 API server listening on port ${ PORT 
 
 `express.static()` takes in the location of the folder that contains the static files as an input argument. 
 
-If you reload the page, you should now be able to see the properly rendered page with all static assets in place🎉.
+If you reload the page, you should now be able to see the properly served page with all static assets in place🎉.
 
