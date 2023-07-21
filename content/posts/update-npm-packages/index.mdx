@@ -1,0 +1,82 @@
+---
+title: "Upgrade outdated NPM dependencies in your project"
+date: 2023-07-21
+slug: "/upgrade-outdated-npm-dependencies"
+tags:
+  - NPM
+description: "`npm outdated` lists all dependencies that need to be updated and `npm update` updates them to their wanted versions. You can also use `npm install` to upgrade to the latest version."
+---
+
+import npmOutdatedConsoleOutput from './assets/images/npm-outdated-console-output.jpg';
+
+Every once a month I update my Gatsby-based blog to make sure all its dependencies are up-to-date and everytime while doing this, I tend to get confused about which npm command will accomplish this.
+
+So I decided to pen it down in a blog post so that I can refer to this in the future and hopefully this can come in handy for others trying to do the same thing as me.
+
+For starters, to find out what dependencies are outdated and need updates, you'd run this command in your terminal:
+
+```
+npm outdated
+```
+
+<br />
+<img src={npmOutdatedConsoleOutput} width="100%" alt="screenshot of the terminal window showing the output for npm outdated" />
+
+Once you find out which dependencies need updates, you have a couple of options.
+
+## Update dependencies using `npm update`
+
+Your first option is to run this command which will update all the outdated dependencies to their "wanted version"( see the headers in the screenshot above ). 
+
+```
+npm update
+```
+
+The "Wanted Version" will not include major-version changes. This is why `npm update` is considered "safe" because it won't update your dependencies to a version that includes breaking changes and could cause errors in your project.
+
+You can also update individual dependencies like so:
+
+```
+npm update "gatsby"
+```
+
+Or multiple dependencies like so:
+
+```
+npm update "gatsby" "gatsby-plugin-feed"
+```
+
+## Update depencies using `npm install`
+
+If you'd rather update dependencies to their absolute bleeding-edge latest versions, then you'd need to use this command:
+
+```
+npm install <package-name>@latest
+```
+
+So for example:
+
+```
+npm install gatsby@latest
+```
+
+>As a pracautionary measure, before running this command, make sure to check the "Change Log" for the latest release and make sure it doesn't include any breaking changes that could affect your project.
+
+You can also do this for multiple dependencies like so:
+
+```
+npm install gatsby@latest gatsby-plugin-feed@latest
+```
+
+Unlike `npm update`, there is no way to use `npm install` to update *all dependencies* to their latest versions without specifying package names.
+
+## Bonus Tip while upgrading Gatsby
+If you're trying to upgrade Gatsby and its plugins to v5 and the above commands seem to be failing, try checking if your NPM version is 7 or higher.
+
+If it is, you'll need to include the `--legacy-peer-deps` flag at the end for each of the above upgrade commands.
+
+So for example:
+
+```
+npm install gatsby@latest --legacy-peer-deps
+```

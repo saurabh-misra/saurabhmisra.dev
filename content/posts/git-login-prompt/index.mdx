@@ -1,0 +1,57 @@
+---
+title: "Force Git to show login prompt"
+date: 2023-07-21
+slug: "/force-git-show-login-prompt"
+tags:
+  - Git
+description: "You can force git to show the login prompt by either removing those credentials from the Windows Credentials Manager or using `git config` to remove your existing credentials"
+---
+
+import windowsCredMgr from './assets/images/windows-credential-manager.jpeg';
+
+My Github Personal Access Token expired recently. I went to my Git Bash terminal window expecting it to show me the login prompt where I can enter the new token. It showed me this prompt when I had first installed it. But this time when I did a `git pull` or `git fetch` it just kept giving me this error without showing me the login prompt.
+
+```
+remote: Invalid username or password.
+fatal: Authentication failed for 'https://github.com/foo/bar.git'
+```
+
+I decided to document this because this happens every once a month or 3 months and I forget what I did last time. So hopefully this post will help you if you're in the same situation as me.
+
+## Credentials Manager
+Your first option would be to look into your OS's credentials manager if it has one. I use Windows and it has a Credentials Manager. 
+
+<img src={windowsCredMgr} width="100%" alt="screenshot showing the Windows Credential Manager" />
+
+This is where Git stores credentials under the "Windows Credentials" tab in an entry named `git:https://github.com`. 
+
+If you find this entry, check the username and if it matches the Git account you want to change, either edit it and enter the new token as the password or just remove it. 
+
+Now go back to your terminal and do a `git fetch`. If you had removed the entry from the credentials manager then Git should show you the login prompt where you can enter the new token. If you had updated it, then the command should proceed with doing what it does.
+
+## Use `git config`
+The first option did work for me before but recently, I didn't find a Git-specific entry within the Windows Credentials Manager.
+
+So I searched about it and found <a href="https://seankilleen.com/2021/01/how-to-force-git-to-prompt-you-for-a-password/" target="_blank">another solution</a> that worked for me.
+
+**Step 1**: Use this command and note down the resulting output value somewhere for use later.
+
+```
+git config --system credential.helper
+```
+
+**Step 2**: Now run the below command which will unset the existing credentials.
+
+```
+git config --system --unset credential.helper
+```
+
+**Step 3**: If you now run `git fetch`, Git should show you the login prompt. Enter the new token and you should be good.
+
+**Step 4**: We'll now restore the value we had copied earlier in Step 1.
+
+```
+git config --system credential.helper <copied value>
+```
+
+Hopefully one of these solutions should help return things back to normal!
