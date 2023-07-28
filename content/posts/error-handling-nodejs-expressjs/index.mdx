@@ -1,0 +1,144 @@
+---
+title: "Handle 404 and 500 errors in NodeJS and ExpressJS"
+date: 2023-07-28
+slug: "/handle-404-500-errors-nodejs-expressjs"
+tags:
+  - NodeJS
+  - ExpressJS
+description: We define error handlers for 404 and 500 errors as middlewares using app.use(), after defining all the routes in an ExpressJS app.
+---
+
+In this blog post, we'll look at how to handle 404 and 500 errors in an ExpressJS application along with a few best practices.
+
+Let's dive right in.
+
+## Handling 404 responses
+This is achieved by defining a middleware using `app.use()`:
+
+```js
+app.use( ( req, res, next ) => {
+  res.status( 404 ).send( "Not found!" );
+});
+```
+
+A 404 response needs to be sent when none of the existing routes match the one in the request.
+
+This is why we define this middleware at the end, after defining all of the other routes.
+
+```js highlight=13-15
+app.get( "/route1", ( req, res ) => { 
+  res.send( "This is route 1" ); 
+});
+
+app.get( "/route2", ( req, res ) => { 
+  res.send( "This is route 2" ); 
+});
+
+app.get( "/route3", ( req, res ) => { 
+  res.send( "This is route 3" ); 
+});
+
+app.use( ( req, res, next ) => {
+  res.status( 404 ).send( "Not found!" );
+});
+```
+
+## Serving a static 404 HTML page
+
+This can be achieved by using the `sendFile()` function.
+
+```js
+app.use( ( req, res, next ) => {
+  res.status( 404 ).sendFile( __dirname + '/public/404.html' );
+});
+```
+
+## Conditionally formatting the response using `req.xhr`
+
+You may have the need to serve a static 404 page in the context of a page load but return a JSON response for AJAX requests.
+
+In this case, you can make use of the `req.xhr` boolean property.
+
+ExpressJS will set this property to `true` if the request contains the `X-Requested-With` custom header set to the value *"XMLHttpRequest"*. This is automatically set by client libraries like jQuery.
+
+So you can conditionally format the response with different mime types and responses.
+
+```js
+app.use( ( req, res, next ) => {
+  const isAJAX = req.xhr;
+
+  if( isAJAX ) {
+    res.status( 404 ).json({ "message": "Not found!" });
+  } else {
+    res.status( 404 ).sendFile( __dirname + '/public/404.html' );
+  }
+});
+```
+
+## Conditionally formatting the response using `res.format()`
+
+The previous example is quite generic. In order to have more control over the way you can format the response for different MIME types, you can make use of `res.format()`.
+
+`res.format()` will check the MIME types specified in the `Accept` header in the request and will format the response accordingly.
+
+```js
+app.use( ( req, res, next ) => {
+  res.format({
+    // Accept: text/plain
+    text: function () {
+      res.status( 404 ).send( "Not found!" );
+    },
+  
+    // Accept: text/html
+    html: function () {
+      res.status( 404 ).sendFile( __dirname + '/public/404.html' );
+    },
+
+    // Accept: application/json
+    json: function () {
+      res.status( 404 ).json({ "message": "Not found!" });
+    }
+  });
+});
+```
+
+## Setup a 500 error handler
+
+By default, ExpressJS handles 500 errors and renders a page with the stack trace and any other information.
+
+You can define your own custom error handlers by defining a middleware using `app.use()`.
+
+For example, you can send a JSON error response like this:
+
+```js
+app.use( ( err, req, res, next ) => {
+  let errResponse = {
+    "message": err.message,
+    "stack_trace": err.stack
+  };
+  
+  res.status( 500 ).json( errResponse );
+});
+```
+
+This middleware is also defined at the end i.e. after defining all the other routes.
+
+### Not letting stack traces leak to the user in production environments
+
+In order to make sure that we do not return stack traces in the response on production environments, we can conditionally prepare the response like this:
+
+```js
+app.use( ( err, req, res, next ) => {
+  let errResponse = {
+    "message": err.message
+  };
+
+  if( app.get( "env" ) === "development" ) {
+    errResponse.stack_trace = err.stack;
+  }
+  
+  res.status( 500 ).json( errResponse );
+});
+```
+
+Hope this helps!

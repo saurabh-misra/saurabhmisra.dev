@@ -1,0 +1,69 @@
+---
+title: "How to download files in a NodeJS and ExpressJS REST API | res.sendFile() vs res.download()"
+date: 2023-07-28
+slug: "/download-files-nodejs-expressjs"
+tags:
+  - NodeJS
+  - ExpressJS
+description: Using `res.sendFile()` and `res.download()` methods, we can send files in the response of a NodeJS and ExpressJS powered REST API.
+---
+
+import downloadFileBrowser from './assets/images/download-file-browser.jpg';
+import downloadResponseHeaders from './assets/images/download-response-headers.jpg';
+import sendfileResponseHeaders from './assets/images/sendfile-response-headers.jpg';
+import sendfileBrowser from './assets/images/sendfile-browser.jpg';
+
+In this blog post, we'll look at two different ways we can download files from a NodeJS and ExpressJS powered REST API. They are:
+
+- Using `res.sendFile()`
+- Using `res.download()`
+
+Both methods do the same thing i.e. send a file as the API response but there is a bit of difference in how they do it and how clients interpret the responses from both these methods.
+
+If you'd like to be more hands-on while reading this blog post, you can clone or download <a href="https://github.com/saurabh-misra/download-files-node-express-tutorial" target="_blank">this github tutorial</a> which has the complete code referenced below.
+
+## Using `res.sendFile()`
+
+For example:
+
+```js
+app.get( "/sendfile", ( req, res ) => {
+  res.sendFile( path.join( __dirname + '/images/car.jpg' ) );
+});
+```
+
+This method will indicate to the client that the file should be opened or displayed rather than downloaded. 
+
+If you call this API service from a browser, the browser will directly display the image on the screen.
+
+<img src={sendfileBrowser} width="100%" />
+
+If you replace the image being sent in the response with a PDF file, the browser will open that PDF file in a new tab.
+
+If you check the headers in the response, you'll see that the `Content-Type` header has been automatically set to the mime type of the file sent. In this case, it has been set to `image/jpeg`.
+
+<img src={sendfileResponseHeaders} width="100%" />
+
+## Using `res.download()`
+
+For example:
+
+```js
+app.get( "/download", ( req, res ) => {
+  res.download( path.join( __dirname + '/images/car.jpg' ) );
+});
+```
+
+This method will indicate to the client that the file should be downloaded and will prompt the user for download.
+
+If you call this API service from a browser, the browser will download this image instead of displaying it on the screen.
+
+<img src={downloadFileBrowser} width="100%" />
+
+If you replace the image being sent in the response with a PDF file, the browser will download the file instead of opening that PDF file in a new tab.
+
+If you check the headers in the response, you'll see that the `Content-Type` header has been automatically set to the mime type of the file sent. But additionally, this method also sets the `Content-Disposition` header to indicate that this file is an attachment along with the file name.
+
+<img src={downloadResponseHeaders} width="100%" />
+
+Hope this helps!
