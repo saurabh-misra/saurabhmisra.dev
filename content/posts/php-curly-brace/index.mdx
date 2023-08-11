@@ -1,0 +1,49 @@
+---
+title: "PHP syntax error: unexpected '' (T_ENCAPSED_AND_WHITESPACE), expecting '-' or identifier (T_STRING) or variable (T_VARIABLE) or number (T_NUM_STRING)"
+date: 2023-08-11
+slug: "/php-curly-brace-syntax"
+tags:
+  - PHP
+description: Use the curly brace syntax while referencing arrays with quoted keys within quotes.
+---
+
+This error usually happens when you try to reference an array with quoted keys within a string without using the curly brace syntax.
+
+So you may be trying to do something like this:
+
+```php
+echo "$arr[ 'foo' ]";
+
+// or
+
+echo "$arr[ 'foo' ][ 0 ]";
+```
+
+This will only work if you use the curly brace syntax like this:
+
+```php
+echo "{$arr[ 'foo' ]}"; 
+
+// or
+
+echo "{$arr[ 'foo' ][ 0 ]}";
+```
+
+or otherwise use concatenation like this:
+
+```php 
+echo "..." . $arr[ 'foo' ] . "...";
+
+// or
+
+echo "..." . $arr[ 'foo' ][ 0 ]. "...";
+```
+
+## Why use the curly brace syntax
+The curly brace syntax is also known as the "Complex Syntax" because it allows PHP to parse *complex expressions* inside strings.
+
+So while a simple scalar variable can simply be used without the curly braces within strings, arrays with quoted keys qualify as a complex expression in PHP and if you want to use it within a string then you must use the curly brace syntax.
+
+For more information, check the <a href="https://www.php.net/manual/en/language.types.string.php#language.types.string.parsing.complex" target="_blank">official documentation on the Complex(curly) syntax</a>.
+
+Hope this helps!🙏

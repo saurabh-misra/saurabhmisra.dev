@@ -1,0 +1,78 @@
+---
+title: "Using CommonJS Modules in NodeJS with module.exports and require() | Cheatsheet"
+date: 2023-08-11
+slug: "/commonjs-modules-nodejs"
+tags:
+  - JavaScript
+  - NodeJS
+  - CommonJS
+description: A cheatsheet for using module.exports and require() for exporting and importing CommonJS modules in NodeJS.
+---
+
+This blog post serves as a quick reference aka cheatsheet( primarily intended for my future self ), to understand the syntactic peculiarities of the CommonJS style of module exports in NodeJS with a quick glance.
+
+> While NodeJS now supports ES6 modules, there are still a lot of projects out there that use CommonJS modules which is why NodeJS hasn't dropped support for them and doesn't seem like it will, in the near future.
+
+## Default Export
+
+You can directly assign a value to `module.exports`.
+
+```js title=my-module.js
+const display = () => console.log( "Hello World" );
+
+module.exports = display;
+```
+
+And then while using `require()`, you can either use the same name or a different one.
+
+```js
+const display = require( "./my-module" );
+display();
+
+// or
+
+const show = require( "./my-module" );
+show();
+```
+
+## Named Exports
+
+Named Exports can be done in one of the following ways:
+
+```js title=my-module.js
+const display = () => console.log( "Hello World" );
+
+exports.display = display;
+
+// or
+
+module.exports.display = display;
+
+// or
+
+module.exports = {
+  display
+};
+```
+
+While requiring or importing these named exports, we can choose one of the following options.
+
+```js
+// import everything into one object
+const myModule = require( "./my-module" );
+myModule.display();
+
+// or
+
+// import only selected properties from module.exports
+const { display } = require( "./my-module" );
+display();
+
+// or
+
+// another way to reference only a single property while require()-ing  
+const display = require( "./my-module" ).display;
+display();
+```
+
+Hope this helps!🙏
