@@ -1,0 +1,199 @@
+---
+title: "ES6 Modules Cheatsheet | Quick Reference Guide"
+date: 2023-08-18
+slug: "/es6-modules-cheatsheet"
+tags:
+  - JavaScript
+  - NodeJS
+  - ES6
+  - Cheatsheet
+description: A cheatsheet that helps you understand the syntactic peculiarities of the ES6 style of module exports with a quick glance.
+banner: ./assets/images/banner.jpg
+---
+
+This blog post serves as a quick reference aka cheatsheet( primarily intended for my future self ), to understand the syntactic peculiarities of the ES6 style of module exports with a quick glance.
+
+## DEFAULT EXPORT & IMPORT
+
+Export an anonymous function as default and then import it with a name.
+
+```js
+export default function(){ ... };
+
+import anyName from '...';
+```
+
+Export an anonymous arrow function as default and then import it with a name.
+```js
+export default () => { ... };
+
+import anyName from '...';
+```
+
+Export a function as default after it has been declared and then import it with a name.
+
+```js
+function foo(){ 
+  ... 
+}
+export default foo;
+
+import anyName from '...';
+```
+
+Export a variable as default after it has been declared and then import it with a name.
+
+```js
+const foo = () => { ... };
+export default foo;
+
+import anyName from '...';
+```
+
+Another way to export a variable as default and then import it with a name.
+```js
+export { foo as default };
+
+import anyName from '...';
+```
+
+Default + Named export followed by a Default + Named import.
+
+```js
+export { foo as default, bar };
+
+import { default as anyName, bar } from '...';
+```
+
+## NAMED EXPORT & IMPORT
+
+Export inline with each declaration.
+
+```js
+export const foo = () => { ... };
+
+export function bar(){ ... };
+```
+
+Export at the end after all declarations
+
+```js
+const foo = () => { ... };
+function bar(){ ... };
+
+export { foo, bar };
+```
+
+Import a single export.
+
+```js
+import { foo } from '...';
+```
+
+Import multiple exports.
+
+```js
+import { foo, bar } from '...';
+```
+
+## IMPORT ALL
+
+Import everything into an object. All exports will be referenced as the object properties including the default export.
+
+```js
+import * as obj from '...';
+
+obj.default();
+obj.bar();
+```
+
+You can also name the default during import and also import all named exports into an object.
+```js
+import foo, * as obj from '...';
+
+foo();
+obj.default();
+obj.bar();
+```
+
+## RENAMING EXPORTS & IMPORTS
+
+Rename during export and then import as is.
+
+```js
+export { foo, bar as baz };
+
+import { foo, baz } from '...';
+```
+
+Export as is and then rename during import.
+```js
+export { foo, bar };
+
+import { foo, bar as baz } from '...';
+```
+
+## MIXED EXPORT & IMPORT
+
+Export some functions inline and others post declaration in the same module.
+
+```js
+// export inline
+export default () => { ... };
+export const bar = () => { ... };
+
+// export after declaration
+function baz(){ ... }
+export { baz };
+```
+
+Then during import, name the default, do a named as well as a renamed export.
+
+```js
+import { default as foo, bar, baz as pie } from '...';
+foo(); bar(); pie();
+```
+
+## RE-EXPORT USING `export from ...`
+
+We'll be using two modules: `first.js` and `second.js`. The latter will re-export or *forward* the exports from the former. 
+
+```js title=first.js
+export { foo as default, bar, baz };
+```
+
+In `second.js`, we'll do a simple re-export of only the default.
+
+```js title=second.js
+export { default } from 'first.js';
+```
+
+And then import the default from `second.js` like we have seen before.
+
+```js
+import foo from 'second.js';
+```
+
+Next, we'll re-export the default along with another named export.
+
+```js title=second.js
+export { default, bar } from 'first.js';
+```
+
+And then we'll do a named import of both.
+
+```js
+import { default as foo, bar } from 'second.js';
+```
+
+Next, in `second.js`, we'll add a renamed export to the mix.
+
+```js title=second.js
+export { default, bar, baz as pie } from 'first.js';
+```
+
+And then we'll do a named import of all the three forwarded exports.
+
+```js
+import foo, { bar, pie } from 'second.js';
+```
