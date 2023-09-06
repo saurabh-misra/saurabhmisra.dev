@@ -22,8 +22,9 @@ Let's dive right in.
 
 >This article assumes some basic familiarity with the REST API architecture and its concepts such as resource representations. In case you're not familiar with these terminologies, you may want to first check out [this basic introduction to the REST architecture](/rest-architecture-basics) and then come back to reading this article.
 
+>This article focusses more on the design aspects of REST API file uploads. If you're looking for a more hands-on tutorial, then you should check out [this post which lists down 3 ways you can upload files in a NodeJS and ExpressJS powered REST API using Axios](/file-uploads-nodejs).
 
-## File embedded as a property within the parent resource reprensetation
+## File embedded as a property within the parent resource representation
 In this approach, you don't consider the file as a separate API resource and don't allocate a separate API endpoint for the file resource. Rather, you just "embed" either the file URL or the base64-encoded binary data within the resource representation. 
 
 For example, consider a `/users` resource. We'll fetch the resource representation of a single user using the URI `GET https://api.example.com/users/123`. 

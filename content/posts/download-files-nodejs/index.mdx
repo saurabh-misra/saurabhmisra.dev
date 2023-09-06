@@ -6,6 +6,7 @@ tags:
   - NodeJS
   - ExpressJS
 description: Using `res.sendFile()` and `res.download()` methods, we can send files in the response of a NodeJS and ExpressJS powered REST API.
+banner: ./assets/images/banner.jpg
 ---
 
 import downloadFileBrowser from './assets/images/download-file-browser.jpg';
@@ -37,6 +38,8 @@ This method will indicate to the client that the file should be opened or displa
 If you call this API service from a browser, the browser will directly display the image on the screen.
 
 <img src={sendfileBrowser} width="100%" />
+<p className="photo-caption">Photo by <a href="https://unsplash.com/@b_atchison98?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" target="_blank">Brandon Atchison</a> on <a href="https://unsplash.com/photos/j_cc8OlxTnM?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" target="_blank">Unsplash</a></p>
+  
 
 If you replace the image being sent in the response with a PDF file, the browser will open that PDF file in a new tab.
 
@@ -66,4 +69,4 @@ If you check the headers in the response, you'll see that the `Content-Type` hea
 
 <img src={downloadResponseHeaders} width="100%" />
 
-Hope this helps!
+Hope this helps!🙏
