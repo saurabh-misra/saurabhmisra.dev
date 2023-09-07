@@ -37,7 +37,7 @@ This method will indicate to the client that the file should be opened or displa
 
 If you call this API service from a browser, the browser will directly display the image on the screen.
 
-<img src={sendfileBrowser} width="100%" />
+<img src={sendfileBrowser} width="100%" alt="Browser screenshot showing downloaded image displayed on screen" />
 <p className="photo-caption">Photo by <a href="https://unsplash.com/@b_atchison98?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" target="_blank">Brandon Atchison</a> on <a href="https://unsplash.com/photos/j_cc8OlxTnM?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText" target="_blank">Unsplash</a></p>
   
 
@@ -45,7 +45,7 @@ If you replace the image being sent in the response with a PDF file, the browser
 
 If you check the headers in the response, you'll see that the `Content-Type` header has been automatically set to the mime type of the file sent. In this case, it has been set to `image/jpeg`.
 
-<img src={sendfileResponseHeaders} width="100%" />
+<img src={sendfileResponseHeaders} width="100%" alt="Browser Dev Tools screenshot showing Content-Type set to image/jpeg in Response headers" />
 
 ## Using `res.download()`
 
@@ -61,12 +61,12 @@ This method will indicate to the client that the file should be downloaded and w
 
 If you call this API service from a browser, the browser will download this image instead of displaying it on the screen.
 
-<img src={downloadFileBrowser} width="100%" />
+<img src={downloadFileBrowser} width="100%" alt="browser screenshot showing downloaded file appearing as a pop-up" />
 
 If you replace the image being sent in the response with a PDF file, the browser will download the file instead of opening that PDF file in a new tab.
 
 If you check the headers in the response, you'll see that the `Content-Type` header has been automatically set to the mime type of the file sent. But additionally, this method also sets the `Content-Disposition` header to indicate that this file is an attachment along with the file name.
 
-<img src={downloadResponseHeaders} width="100%" />
+<img src={downloadResponseHeaders} width="100%" alt="Browser Dev Tools screenshot showing Content-Type and Content-Disposition in Response headers." />
 
 Hope this helps!🙏
