@@ -1,0 +1,200 @@
+---
+title: What is Node.js? What is it used for? 
+date: 2023-09-08
+slug: "/what-is-nodejs"
+tags:
+  - "NodeJS"
+description: Node.js is an open-source, cross-platform JavaScript runtime environment designed to build scalable network applications.
+banner: ./assets/images/banner.jpg
+---
+
+The <a href="https://nodejs.org/en" target="_blank">official website</a> defines Node.js as -
+> An open-source and cross-platform JavaScript runtime environment". 
+
+Open-source means its <a href="https://github.com/nodejs/node" target="_blank">source code is freely available on github</a> and anybody can contribute to its development. Cross-platform means it can be used on any kind of platform like Windows, Linux or MacOS.
+
+A JavaScript runtime environment compiles and executes JavaScript code. Before Node.js, this runtime environment was only available within the browser. Node.js provides this environment *outside the browser* and facilitates the execution of JavaScript code on the server-side.
+
+To give you some context, there are different runtime environments for different programming languages and frameworks like Java Runtime Environment( JRE ) for JAVA and Common Language Runtime( CLR ) for .NET. 
+
+Node.js is built on top of the <a href="https://v8.dev/" target="_blank">Chrome's V8 JavaScript engine</a>. Within the browser, V8 is responsible for providing the runtime environment that executes your client-side JavaScript code. Again to give you some context, different browsers have different JavaScript engines. For example, Firefox uses the <a href="https://spidermonkey.dev/" target="_blank">SpiderMonkey JS engine</a> while Safari uses <a href="https://developer.apple.com/documentation/javascriptcore" target="_blank">JavaScriptCore</a>. 
+
+Node.js was created by <a href="https://en.wikipedia.org/wiki/Ryan_Dahl" target="_blank">Ryan Dahl</a> in 2009 with the purpose of creating real-time web applications that could handle large number(10,000+) of user connections.
+
+## What is Node.js used for?
+
+Again according to the <a href="https://nodejs.org/en/about" target="_blank">official website</a> -
+
+>As an asynchronous event-driven JavaScript runtime, Node.js is designed to build scalable network applications.
+
+Node.js is mainly used for server-side web development that involves creating API services or the "backend" of a web application that primarily performs CRUD operations. 
+
+Here are some examples of applications that can be built using Node.js.
+
+### API services 
+For example, the <a href="https://engineering.linkedin.com/nodejs/blazing-fast-nodejs-10-performance-tips-linkedin-mobile" target="_blank">LinkedIn Mobile API</a> uses Nodejs and the Express framework.
+
+### Micro-Services 
+For example, <a href="https://openjsf.org/wp-content/uploads/sites/84/2020/02/Case_Study-Node.js-NASA.pdf" target="_blank">NASA chose to implement a microservices architecture using NodeJS</a> and noticed a 300% improvement in database access speed.
+
+### Desktop applications 
+For example, <a href="https://stackoverflow.com/a/29966094/1932141" target="_blank">Visual Studio Code</a> and <a href="https://slack.engineering/introducing-electron-to-the-windows-runtime/" target="_blank">the Slack Desktop app</a> are powered by <a href="https://www.electronjs.org/" target="_blank">ElectronJS</a>.
+
+### Single-Page applications 
+For example, <a href="https://netflixtechblog.com/making-netflix-com-faster-f95d15f2e972" target="_blank">Netflix</a> improved its user experience and performance thanks to Node.js.
+
+### Real-time messaging and collaboration tools. 
+For example, <a href="https://slack.engineering/introducing-electron-to-the-windows-runtime/" target="_blank">Slack</a> and <a href="https://blog.trello.com/the-trello-tech-stack" target="_blank">Trello</a>.
+
+### E-commerce applications 
+For example, <a href="https://medium.com/@mubeentauni/why-ebay-adopted-node-js-f257bd9b0b05" target="_blank">eBay</a>.
+
+### Fintech apps 
+For example, <a href="https://medium.com/paypal-tech/node-js-at-paypal-4e2d1d08ce4f" target="_blank">Paypal</a>.
+
+### CMS websites( Content Management System enabled websites) 
+There are several popular NodeJS-based CMS frameworks available like <a href="https://keystonejs.com/" target="_blank">KeyStoneJS</a>, <a href="https://strapi.io/" target="_blank">Strapi</a>, <a href="https://svelte.dev/" target="_blank">SvelteJS</a>, <a href="https://ghost.org/docs/" target="_blank">Ghost</a>, etc.
+
+### Command Line Interface tools 
+Here is <a href="https://firebearstudio.com/blog/node-js-command-line-apps-utilities.html" target="_blank">a list of CLI apps and utilities built with Node.js</a>.
+
+## What are the differences between executing JavaScript in Node.js vs the browser?
+
+The primary difference is that in Node.js, you don't have access to the DOM because there is no DOM like there is in the browser. So you don't have access to `document` or `window` or any other Web APIs because they simply do not exist. 
+
+Node.js runs JavaScript on the server-side so you have access to other aspects of the server like file system, databases, etc. which you cannot access while executing JavaScript on the browser.
+
+## How does Node.js handle concurrent requests if JavaScript is single threaded?
+
+Node.js uses a single thread or process for running applications and handling requests. 
+
+But what happens if a time-consuming I/O operation blocks this main thread? Does that mean that Node.js just sits there waiting for the thread to become available again?
+
+The answer is "No". 
+
+Node.js follows a ***non-blocking paradigm*** and exposes asynchronous APIs that do not block the main thread. 
+
+>Node.js also exposes synchronous API functions that could potentially block the main thread but it strongly discourages the use of these APIs.
+
+So when Node.js needs to perform an I/O operation like handling a network request or fetching data from the filesystem or a database, it initiates the operation and instead of waiting for a response, it starts responding to other requests until the response from the first operation becomes available. When the response is available, it resumes the processing of this operation.
+
+This enables Node.js to handle hundreds and thousands of concurrent requests. 
+
+Also developers do not have to manage multiple threads and and don't have to deal with concurrency issues. This means fewer bugs and also higher scalability.
+
+## Asynchronous I/O using Libuv
+
+<a href="https://libuv.org/" target="_blank">Libuv</a> is a multi-platform library written in C that primarily focusses on performing asynchronous I/O which includes reading and writing files and making network requests.
+
+This library is what Node.js uses to perform asynchronous I/O.
+
+Node.js uses ***bindings*** to invoke the C-based Libuv code using JavaScript. It then exposes higher-level APIs that allow you to perform asynchronous I/O using simpler JS functions instead of directly interacting with Libuv.
+
+## Event-Driven Architecture and the Event Loop
+
+Node.js is based on an event-driven architecture. This means that it listens for events and responds to them by executing some code to handle that event.
+
+This is similar to how a browser runs some JS code to handle click events or respond to a successful XHR request.
+
+There are two main activities here: 
+1. Listening for events
+2. Executing some code when these events happen.
+
+Both of these are achieved using an Event Loop.
+
+The basic idea behind the Event Loop is that the runtime is continuously waiting for events to occur. When an event occurs, the runtime is informed and it runs some code in response.  
+
+For example, when Node.js encounters a file read operation, it initiates the operation using it's file I/O API which in turn communicates with Libuv. Since Libuv is involved, this I/O operation is handled asynchronously. Thus Node.js basically delegates or gives away control for that particular I/O operation to Libuv along with instructions on how to inform Node.js when the I/O operation is complete. These instructions are typically given in the form of a callback or a promise. 
+
+When the file reading is complete and the file data is available, an event is triggered and Node.js is informed using the instructions that were provided when the operation was initiated.
+
+Since the runtime is always listening for events, it realizes that this event has occurred and that it should execute a callback in response. It adds the callback to a Queue and attends to it in First-In-First-Out manner. 
+
+>You may be familiar with this concept from writing client-side JavaScript code but if not, then <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Event_loop" target="_blank">here is an in-depth explanation of what the Event Loop is and how it works</a>.
+
+## What are modules in Node.js?
+
+We've already seen that out of the box, Node.js provides APIs to interact with the filesystem, make network requests, etc.
+This functionality along with other features are encapsulated within containers referred to as "modules".
+
+So for example, if we need file reading and writing capabilities, all we need to do is import the file system module or `node:fs`.
+
+```
+import fs from 'node:fs';
+```
+
+If we need to handle network requests, we can import the HTTP module or `http`.
+
+```
+import http from 'http';
+```
+
+## What is NPM( Node Package Manager )?
+
+You are not just limited to the modules that are in-built within Node.js. 
+
+Other developers build their own third-party modules to extend the functionality already available within Node.js. For example, the very popular <a href="https://expressjs.com/" target="_blank">ExpressJS framework</a>. 
+
+This is where NPM or the Node Package Manager comes into the picture. 
+
+NPM manages all the third-party modules that you include into a Node.js application. NPM is already baked in along with the Node.js installation.
+
+So for example, you can install the `express` framework by using this terminal command.
+
+```
+npm install express
+```
+
+You can import this into a Node.js application just like you'd import an in-built Node.js module. 
+
+```
+import express from 'express';
+```
+
+All these third-party NPM packages are listed in the <a href="https://www.npmjs.com/" target="_blank">NPM registry</a>.
+
+NPM is largely responsible for the huge success of Node.js as developers find it really easy to build Node.js apps thanks to the 350,000+ packages available in the NPM registry.
+
+## Node.js FAQs
+
+### Is Node.js a programming language?
+
+No Node.js is a JavaScript runtime environment. The programming language in the context of Node.js is JavaScript.
+
+### Is Node.js a framework like ASP.NET?
+
+Again No. Node.js by itself is simply a JavaScript runtime. 
+
+With a Node.js web app, you can choose to use a framework like <a href="https://expressjs.com/" target="_blank">ExpressJS</a> for powering your web application.  
+
+### Is Node.js a web server like Apache or IIS?
+
+Again No. Node.js itself is primarily treated as a JavaScript runtime environment. 
+
+But it has the capabilities to spin up web servers so a "Node.js web application" can be said to be a web-server like Apache, Nginx or IIS.
+
+### Can I run a Node.js app using IIS or Apache server similar to how I would execute PHP code?
+
+Yes it is possible to host your Node.js app on an IIS or Apache or Nginx server.
+
+Here are some resources to help you with that:
+
+- <a href="https://blog.logrocket.com/configuring-apache-node-js/" target="_blank">Configuring Apache for Node.js</a>
+- <a href="https://www.advancedinstaller.com/user-guide/qa-nodejs-app-windows-deployment.html" target="_blank">How to deploy a Node.js application on IIS Windows Server</a>
+
+### Can I use a Node.js server for my Node.js web app in production?
+
+Yes you can. There are plenty of websites out there that just use the Node.js web server to serve their Node.js web app.
+
+When Node.js was a relatively new technology, a common practice was to put an Apache or Nginx server in front of your Node.js app( with Nginx being the preferred choice ).
+
+This has a couple of advantages -
+1. Servers like Apache and Nginx are dedicated web server technologies that have been honed and battle-tested to be fast and secure when it comes to handling HTTP requests. 
+2. They also provide options for load balancing and caching proxy. Doing this in Node.js will require you to write code and implement your own load balancers and caching proxies.  
+
+So you could consider both options based on your requirements for a web server.
+
+### What is express in Node.js?
+<a href="https://expressjs.com/" target="_blank">ExpressJS</a> is a popular Node.js based framework. It forms a layer on top of Node.js and provides a host of features like routing, middlewares, templating, etc that help developers quickly get started with building APIs and web and mobile applications.
+
+Hope this helps!
