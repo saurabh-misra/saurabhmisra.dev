@@ -1,0 +1,272 @@
+---
+title: "Un-commit or undo the most recent commit in Git using 'git reset'"
+date: 2023-09-15
+slug: "/undo-commit-git-reset"
+tags:
+  - Git
+  - Cheatsheet
+description: "Accidentally committed changes that you shouldn't have? Don't worry, 'git reset' will help you revert your changes either back to the staging area or the working copy in Git."
+---
+
+import gitResetCheatsheet from './assets/images/git-reset-cheatsheet.jpg'
+import sampleGitRepoLogInitialState from './assets/images/sample-git-repo-log-initial-state.jpg'
+import softResetGitLog from './assets/images/soft-reset-git-log.jpg'
+import softResetGitStatus from './assets/images/soft-reset-git-status.jpg'
+import softResetMulitpleCommitsGitStatus from './assets/images/soft-reset-mulitple-commits-git-status.jpg'
+import softResetMultipleCommitsGitLog from './assets/images/soft-reset-multiple-commits-git-log.jpg'
+import mixedResetGitStatus from './assets/images/mixed-reset-git-status.jpg'
+import mixedResetMulitpleCommitsGitStatus from './assets/images/mixed-reset-multiple-commits-git-status.jpg'
+import hardResetGitStatus from './assets/images/hard-reset-git-status.jpg'
+
+If you have accidentally committed some changes that you shouldn't have or maybe committed changes to the wrong branch and are now wondering how to un-commit these changes from the git repo then `git reset` is a command that can come in handy.
+
+With `git reset`, you have three options which are specificed using flags:
+
+- `git reset --soft ...`: Moves HEAD to a previous commit. Puts the changes back in Git's staging area as "staged" changes. 
+- `git reset [--mixed] ...`: This is the default. This option not only moves HEAD to a previous commit but also removes the changes from the Staging area and puts those changes further back in the Working Copy area as "un-staged" changes.
+- `git reset --hard ...`: This is the most destructive of all three options and must be used carefully. This will move HEAD to a previous commit and also remove the changes from the Staging area as well as the Working Copy area so that they are no longer available anywhere. 
+
+## TL;DR | Cheatsheet
+
+<br />
+
+<img src={gitResetCheatsheet} style={{maxWidth: "100%"}} />
+
+## `git reset --soft`
+
+To soft reset the most recent commit, execute this command:
+
+```
+git reset --soft HEAD~
+```
+
+This command will:
+- Move HEAD to the previous commit
+- Place changes in the Staging area
+
+The above command is equivalent to:
+
+```
+git reset --soft HEAD~1
+```
+
+So in order to move HEAD back two commits, you'll execute this command:
+
+```
+git reset --soft HEAD~2
+```
+
+You can also specify the Commit ID to which HEAD should be moved back to, like this:
+
+```
+git reset --soft <commit-id>
+```
+
+Lets look at an example for understanding how these commands work.
+
+Consider a sample git repo where I have added 3 files: *first.txt*, *second.txt* and *third.txt* in three separate commits.
+
+In the below screenshot of the `git log` command output, you'll notice three commits one after the other for each one of those files.
+
+<img src={sampleGitRepoLogInitialState} style={{maxWidth: "100%"}} />
+
+Now let's suppose, that my third commit where I added the file *third.txt* to the repo needs to reverted using a soft reset.
+
+I'll execute `git reset --soft HEAD~` and then do a `git log`.
+
+<img src={softResetGitLog} style={{maxWidth: "100%"}} />
+
+You can see that the third commit is missing and we only have the first and second commit from before and HEAD is pointing to the second one(from before). 
+
+If you do a `git status`, you'll see that *third.txt* has been staged for commit in the Staging area.
+
+<img src={softResetGitStatus} style={{maxWidth: "100%"}} />
+
+If you checked this branch out in a different folder, the codebase will only have the changes from the first two commits meaning it'll only have two files, *first.txt* and *second.txt*. 
+
+### Soft reset multiple commits
+
+Instead of just one, you can undo the last two commits with a soft reset using this command:
+
+```
+git reset --soft HEAD~2
+```
+
+This will move HEAD back two commits. Similarly, you can specify any number of commits you want to go back.
+
+Lets execute this command on our sample git repo in its initial state with all three commits intact.
+
+If you do a `git log` afterwards, you'll notice that HEAD has moved to the first commit.
+
+<img src={softResetMultipleCommitsGitLog} style={{maxWidth: "100%"}} />
+
+If you do a `git status`, you'll notice that *first.txt* will be a committed file but *second.txt* and *third.txt* will end up as staged files in the Staging area.
+
+<img src={softResetMulitpleCommitsGitStatus} style={{maxWidth: "100%"}} />
+
+### Soft reset using a Commit ID
+
+You can also replace HEAD with a commit id of the destination commit where you want HEAD to finally move to.
+
+Again consider our sample git repo with all three commits intact.
+
+In order to revert to the first commit, We can specify the commit id of the first commit in this way:
+
+```
+git reset --soft 2ca8389387c985ae466f2352cb3c9e1426c49a9f
+```
+
+This will have the same effect as our previous example of `git reset --soft HEAD~2`. HEAD will point to the first commit and *second.txt* and *third.txt* will be staged in the Staging area.
+
+## `git reset [--mixed]`
+
+To perform a mixed reset on the most recent commit, execute this command:
+
+```
+git reset --mixed HEAD~
+```
+
+You don't need to specify the `--mixed` flag because that is the default so you can simply do this:
+
+```
+git reset HEAD~
+```
+
+This command will:
+- Move HEAD to the previous commit.
+- Remove the changes from the Staging area.
+- Place the changes in the Working Copy area as "unstaged" changes.
+
+The above command is equivalent to:
+
+```
+git reset HEAD~1
+```
+
+So in order to move HEAD back two commits, you'll execute this command:
+
+```
+git reset HEAD~2
+```
+
+You can also specify the Commit ID to which HEAD should be moved back to, like this:
+
+```
+git reset <commit-id>
+```
+
+Again consider our sample git repo with all three commits intact.
+
+We'll now perform a mixed reset by executing `git reset HEAD~` and push HEAD back one commit to the previous one.
+
+If you do a `git log` afterwards, you'll see that the third commit is missing and we only have the first and second commit from before and HEAD is pointing to the second one(from before). 
+
+If you do a `git status`, you'll notice that there are no changes staged in the Staging area. But you'll see that *third.txt* has been added as an "un-staged" file in the Working Copy area.
+
+<img src={mixedResetGitStatus} style={{maxWidth: "100%"}} />
+
+If you checked this branch out right now in a different folder, the codebase will only have the changes from the first two commits meaning it'll only have two files, *first.txt* and *second.txt*.
+
+### Mixed Reset with Multiple Commits
+
+Instead of just one, you can undo the last two commits with a mixed reset using this command:
+
+```
+git reset HEAD~2
+```
+
+This will move HEAD back two commits. Like this you can specify any number of commits you want to reset.
+
+Again consider our sample git repo with all three commits intact and execute this command.
+
+If you do a `git log` followed by a `git status` afterwards, you'll notice that HEAD points to the first commit so that *first.txt* is a committed file but *second.txt* and *third.txt* are "un-staged" files in the Working Copy area.
+
+<img src={mixedResetMulitpleCommitsGitStatus} style={{maxWidth: "100%"}} />
+
+### Mixed reset using a Commit ID
+You can also replace HEAD with a commit id of the destination commit where you want HEAD to finally move to.
+
+So for example, we can specify the commit id of the first commit in this way:
+
+```
+git reset 2ca8389387c985ae466f2352cb3c9e1426c49a9f
+```
+
+This will have the same effect as our previous example of `git reset HEAD~2`. HEAD will point to the first commit and *second.txt* and *third.txt* will be "un-staged" files in the Working Copy area.
+
+## `git reset --hard`
+
+This is the most destructive of all three reset options since it removes the changes from the Committed snapshot, Staging area as well as the Working Copy.
+
+To perform a hard reset on the most recent commit, execute this command:
+
+```
+git reset --hard HEAD~
+```
+
+This command will:
+- Move HEAD to the previous commit.
+- Remove the changes from the Staging area.
+- Remove the changes from the Working Copy.
+
+The above command is equivalent to:
+
+```
+git reset --hard HEAD~1
+```
+
+So in order to move HEAD back two commits, you'll execute this command:
+
+```
+git reset --hard HEAD~2
+```
+
+You can also specify the Commit ID to which HEAD should be moved back to, like this:
+
+```
+git reset --hard <commit-id>
+```
+
+Again consider our sample git repo with all three commits intact.
+
+We'll perform a hard reset by executing `git reset --hard HEAD~` and push HEAD back one commit to the previous one.
+
+If you do a `git log` afterwards, you'll see that the third commit is missing and we only have the first and second commit from before and HEAD is pointing to the second one(from before). 
+
+If you do a `git status`, you'll notice that there are no changes staged in the Staging area or un-staged in the Working Copy area. Basically, *third.txt* is nowhere to be found. All changes from the third commit are completely lost.
+
+<img src={hardResetGitStatus} style={{maxWidth: "100%"}} />
+
+If you checked this branch out right now in a different folder, the codebase will only have the changes from the first two commits meaning it'll only have two files, *first.txt* and *second.txt*.
+
+### Hard Reset with Multiple Commits
+
+Instead of just one, you can undo the last two commits with a hard reset using this command:
+
+```
+git reset --hard HEAD~2
+```
+
+This will move HEAD back two commits. Like this you can specify any number of commits you want to hard reset.
+
+Again consider our sample git repo with all three commits intact and execute this command.
+
+If you do a `git log` followed by a `git status` afterwards, you'll notice that HEAD points to the first commit so that *first.txt* is a committed file but *second.txt* and *third.txt* are nowhere to be found.
+
+### Hard Reset using a Commit ID
+
+You can also replace HEAD with a commit id of the destination commit where you want HEAD to finally move to.
+
+So for example, we can specify the commit id of the first commit in this way.
+
+```
+git reset --hard 2ca8389387c985ae466f2352cb3c9e1426c49a9f
+```
+
+This will have the same effect as our previous example of `git reset --hard HEAD~2`. HEAD will point to the first commit and *second.txt* and *third.txt* will be completely removed from everywhere.
+
+Hope this helps!
+
+## References
+
+- <a href="https://git-scm.com/book/en/v2/Git-Tools-Reset-Demystified" target="_blank">Git Tools - Reset Demystified</a>
