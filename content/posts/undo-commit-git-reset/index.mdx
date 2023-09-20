@@ -30,7 +30,7 @@ With `git reset`, you have three options which are specificed using flags:
 
 <br />
 
-<img src={gitResetCheatsheet} style={{maxWidth: "100%"}} />
+<img src={gitResetCheatsheet} style={{maxWidth: "100%"}} alt="Diagram-based cheatsheet illustrating how git reset works in soft, mixed and hard mode" />
 
 ## `git reset --soft`
 
@@ -68,19 +68,19 @@ Consider a sample git repo where I have added 3 files: *first.txt*, *second.txt*
 
 In the below screenshot of the `git log` command output, you'll notice three commits one after the other for each one of those files.
 
-<img src={sampleGitRepoLogInitialState} style={{maxWidth: "100%"}} />
+<img src={sampleGitRepoLogInitialState} style={{maxWidth: "100%"}} alt="screenshot of the terminal window showing the output of the git log command and showing the example git repo in its initial state" />
 
 Now let's suppose, that my third commit where I added the file *third.txt* to the repo needs to reverted using a soft reset.
 
 I'll execute `git reset --soft HEAD~` and then do a `git log`.
 
-<img src={softResetGitLog} style={{maxWidth: "100%"}} />
+<img src={softResetGitLog} style={{maxWidth: "100%"}} alt="screenshot of the terminal window showing the output of the git log command after performing a soft reset" />
 
 You can see that the third commit is missing and we only have the first and second commit from before and HEAD is pointing to the second one(from before). 
 
 If you do a `git status`, you'll see that *third.txt* has been staged for commit in the Staging area.
 
-<img src={softResetGitStatus} style={{maxWidth: "100%"}} />
+<img src={softResetGitStatus} style={{maxWidth: "100%"}} alt="screenshot of the terminal window showing the output of the git status command after performing a soft reset" />
 
 If you checked this branch out in a different folder, the codebase will only have the changes from the first two commits meaning it'll only have two files, *first.txt* and *second.txt*. 
 
@@ -98,11 +98,11 @@ Lets execute this command on our sample git repo in its initial state with all t
 
 If you do a `git log` afterwards, you'll notice that HEAD has moved to the first commit.
 
-<img src={softResetMultipleCommitsGitLog} style={{maxWidth: "100%"}} />
+<img src={softResetMultipleCommitsGitLog} style={{maxWidth: "100%"}} alt="screenshot of the terminal window showing the output of the git log command after performing a soft reset on multiple commits" />
 
 If you do a `git status`, you'll notice that *first.txt* will be a committed file but *second.txt* and *third.txt* will end up as staged files in the Staging area.
 
-<img src={softResetMulitpleCommitsGitStatus} style={{maxWidth: "100%"}} />
+<img src={softResetMulitpleCommitsGitStatus} style={{maxWidth: "100%"}} alt="screenshot of the terminal window showing the output of the git status command after performing a soft reset on multiple commits" />
 
 ### Soft reset using a Commit ID
 
@@ -163,7 +163,7 @@ If you do a `git log` afterwards, you'll see that the third commit is missing an
 
 If you do a `git status`, you'll notice that there are no changes staged in the Staging area. But you'll see that *third.txt* has been added as an "un-staged" file in the Working Copy area.
 
-<img src={mixedResetGitStatus} style={{maxWidth: "100%"}} />
+<img src={mixedResetGitStatus} style={{maxWidth: "100%"}} alt="screenshot of the terminal window showing the output of the git status command after performing a mixed reset" />
 
 If you checked this branch out right now in a different folder, the codebase will only have the changes from the first two commits meaning it'll only have two files, *first.txt* and *second.txt*.
 
@@ -181,7 +181,7 @@ Again consider our sample git repo with all three commits intact and execute thi
 
 If you do a `git log` followed by a `git status` afterwards, you'll notice that HEAD points to the first commit so that *first.txt* is a committed file but *second.txt* and *third.txt* are "un-staged" files in the Working Copy area.
 
-<img src={mixedResetMulitpleCommitsGitStatus} style={{maxWidth: "100%"}} />
+<img src={mixedResetMulitpleCommitsGitStatus} style={{maxWidth: "100%"}} alt="screenshot of the terminal window showing the output of the git status command after performing a mixed reset on multiple commits" />
 
 ### Mixed reset using a Commit ID
 You can also replace HEAD with a commit id of the destination commit where you want HEAD to finally move to.
@@ -235,7 +235,7 @@ If you do a `git log` afterwards, you'll see that the third commit is missing an
 
 If you do a `git status`, you'll notice that there are no changes staged in the Staging area or un-staged in the Working Copy area. Basically, *third.txt* is nowhere to be found. All changes from the third commit are completely lost.
 
-<img src={hardResetGitStatus} style={{maxWidth: "100%"}} />
+<img src={hardResetGitStatus} style={{maxWidth: "100%"}} alt="screenshot of the terminal window showing the output of the git status command after performing a hard reset" />
 
 If you checked this branch out right now in a different folder, the codebase will only have the changes from the first two commits meaning it'll only have two files, *first.txt* and *second.txt*.
 
