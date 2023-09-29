@@ -1,0 +1,123 @@
+---
+title: "Move a commit made to the wrong branch to the right one in Git"
+date: 2023-09-29
+slug: "/move-commit-git"
+tags:
+  - Git
+description: "Accidentally committed changes to the wrong branch? Don't worry, we'll discuss two ways to move your commit to the right branch."
+---
+
+import gitCommitWrongBranch from './assets/images/originals/git-commit-wrong-branch.jpg';
+import gitLogMasterBranch from './assets/images/originals/git-log-master-branch.jpg';
+import gitLogRightBranchAfterCherryPick from './assets/images/originals/git-log-right-branch-after-cherry-pick.jpg';
+import gitLogRightBranch from './assets/images/originals/git-log-right-branch.jpg';
+import gitLogWrongBranch from './assets/images/originals/git-log-wrong-branch.jpg';
+import gitStashGitStatus from './assets/images/originals/git-stash-git-status.jpg';
+import gitStashPopRightBranch from './assets/images/originals/git-stash-pop-right-branch.jpg';
+import mixedResetGitLog from './assets/images/originals/mixed-reset-git-log.jpg';
+import mixedResetGitStatus from './assets/images/originals/mixed-reset-git-status.jpg';
+
+In this post, we're going to go over two methods to move a commit made to the wrong branch to the right one in Git.
+
+While learning about both these methods, we'll consider the example of a sample git repo.
+
+This repo will have three branches:
+
+- master
+- wrong-branch
+- right-branch
+
+The master branch will have an initial commit to kick things off with a single committed file named *"m1.txt"*. 
+
+<img src={gitLogMasterBranch} alt="screenshot of the terminal window showing the output of the git log command and the initial state of the master branch that has a single commit." style={{ maxWidth: "100%" }} />
+
+The wrong branch will have two commits of its own(three in total including the initial commit from the master branch). Each of these commits will correspond to files *"wb1.txt"* and *"wb2.txt"* respectively.
+
+<img src={gitLogWrongBranch} alt="screenshot of the terminal window showing the output of the git log command and the initial state of the wrong-branch that has two commits." style={{ maxWidth: "100%" }} />
+
+The right branch will also have two commits of its own for files *"rb1.txt"* and *"rb2.txt"*.
+
+<img src={gitLogRightBranch} alt="screenshot of the terminal window showing the output of the git log command and the initial state of the right-branch that has two commits." style={{ maxWidth: "100%" }} />
+
+We'll then accidentally commit a new file, *"rb3.txt"* to the `wrong-branch` which was actually meant for the `right-branch`.
+
+If we do a `git log`, we can see that `wrong-branch` now has a new commit at the top pointed to by HEAD which is actually the accidental commit that should have been made to the `right-branch`.
+
+<img src={gitCommitWrongBranch} alt="screenshot of the terminal window showing the output of the git log command on the wrong-branch after accidentally committing a file that was meant for the right-branch." style={{ maxWidth: "100%" }} />
+
+This completes our sample git repo setup and now we'll try to "move" this commit over to the `right-branch`.
+
+## Method 1: Move commit using `git cherrypick`
+
+**<ins>Step 1</ins>**: Checkout the `wrong-branch`, do a `git log` and note down the commit id of the commit you want to move. In our sample git repo, this commit id is "f6888999f582f6451a5a9edc7fa942f5b04c8452" ( please see the previous screenshot ).
+
+**<ins>Step 2</ins>**: Checkout the `right-branch`, and execute this command using the commit id from the previous step.
+
+```
+git cherry-pick f6888999f582f6451a5a9edc7fa942f5b04c8452
+```
+
+Do a `git log`. The `right-branch` now has a new third commit. As you can see in the screenshot below, *"rb3.txt"* is now a part of the `right-branch`. Even the commit message is the same. The only thing that has changed is the commit id since this is a new commit.
+
+<img src={gitLogRightBranchAfterCherryPick} alt="screenshot of the terminal window showing the output of the git log command after performing a cherry-pick from the wrong-branch to the right-branch" style={{ maxWidth: "100%" }} />
+
+**<ins>Step 3</ins>**: Last step is to remove the accidental commit and its changes from the `wrong-branch` because they don't belong there. Checkout the `wrong-branch` and execute this command:
+
+```
+git reset --hard HEAD~
+``` 
+
+This command will remove the changes of the most recent commit from the Committed snapshot, Staging area and Working Copy area of the `wrong-branch`.
+
+If you do a `git log` after executing the above command, you'll notice the accidental commit is gone, HEAD is pointing to the proper commit and *"rb3.txt"* is nowhere to be found in the Working Copy area, Staging area or Committed Snapshot of the `wrong-branch`.
+
+>If you want to cherry-pick multiple commits, you can separate the commit IDs with spaces like this: `git cherry-pick <commit-ID #1> <commit-ID #2> <commit-ID #3>`. For more info, please refer to <a href="https://stackoverflow.com/questions/1670970/how-to-cherry-pick-multiple-commits" target="_blank">this stack-overflow thread</a>. 
+
+## Method 2: Move commit using `git reset` and `git stash`
+
+**<ins>Step 1</ins>**: Checkout the `wrong-branch`. Execute this command:
+
+```
+git reset HEAD~
+```
+
+This command will perform a [mixed reset](/undo-commit-git-reset/) on the "most recent commit" in the `wrong-branch`. Changes will be removed from the Committed Snapshot and the Staging area but they will be retained in the Working Copy area as "un-staged' changes. In our sample git repo example, *"rb3.txt"* will appear as an un-staged and un-tracked file in the Working Copy area.
+
+If you do a `git log` on the `wrong-branch` after executing the above command, you'll notice that the accidental commit is no more a part of the branch( please see the below screenshot ).
+
+<img src={mixedResetGitLog} alt="screenshot of the terminal window showing the output of the git log command after performing a mixed reset on the wrong-branch." style={{ maxWidth: "100%" }} />
+
+Furthermore, a `git status` will reveal that *"rb3.txt"* has indeed been added to the Working Copy area as an un-tracked file. 
+
+<img src={mixedResetGitStatus} alt="screenshot of the terminal window showing the output of the git status command after performing a mixed reset on the wrong-branch." style={{ maxWidth: "100%" }} />
+
+**<ins>Step 2</ins>**: We'll now execute this command and push *"rb3.txt"* to Git's "Stash" area.
+
+```
+git stash push rb3.txt -u
+```
+
+This command basically tells git to "push" an "un-tracked file"( denoted by the `-u` flag ) named *"rb3.txt"* into the stash. 
+
+If you do a `git status` after executing the above command, you'll no longer see *"rb3.txt"* in the Working Copy area.
+
+<img src={gitStashGitStatus} alt="screenshot of the terminal window showing the output of the git status command after pushing the file rb3.txt into the stash in the wrong-branch" style={{ maxWidth: "100%" }} />
+
+**<ins>Step 3</ins>**: Checkout the `right-branch` and execute this command:
+
+```
+git stash pop
+```
+
+If you do a `git status`, you'll see that *"rb3.txt"* has been added to the Working Copy area of the `right-branch`.
+
+<img src={gitStashPopRightBranch} alt="screenshot of the terminal window showing the output of the git status command after pop-ing the file rb3.txt from the stash and into the Working Copy area of the right-branch" style={{ maxWidth: "100%" }} />
+
+Woo Hoo🎉! Now you can do a `git add` followed by a `git commit` to commit *"rb3.txt"* to the right branch.
+
+>For performing a mixed reset in **<ins>Step 1</ins>** with multiple commits, you can specify the number of commits you want to revert like this: `git reset HEAD~2` or `git reset HEAD~3`. Here is [a blog post that explains how to use `git reset` in mixed mode](/undo-commit-git-reset/).
+
+### Which method should you use?
+If the changes you want to move are all committed, then you can use Method 1 because `git cherry-pick` will only move over the changes from the commit and will not move any uncommitted changes from the Working Copy area or the Staging area.
+
+If some of the changes you want to move over to the other branch are a part of the commit while other changes are not yet committed and in the Staging or the Working Copy area, you should use Method 2. By using different variations of the `git stash` command you can include the changes that you want to carry over to the other branch whether un-tracked, un-staged, staged or committed.

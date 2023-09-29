@@ -6,19 +6,18 @@ tags:
   - "jQuery"
   - "DataTable"
   - "Quick Tip"
+description: Learn how to add a dropdown filter in place of the header in a table configured with the jQuery DataTable plugin.
 ---
 
-This is just a quick tip for anyone looking to customize the headers on a table configured with the <a href="https://datatables.net/" target="_blank">jQuery DataTable plugin</a> and also as a quicker way for my future self to find this information.
+**This tutorial will teach you how to add a dropdown or a `<select>` input element in place of the header in a table configured with the jQuery DataTable plugin. Moreover, this dropdown will also act as a filter that will filter the rows based on the selected option.** 
 
-The other day I received request to add a dropdown filter in the header of a table that I had configured with the DataTable plugin.
+The initial setup is pretty basic with the table and a minimal DataTable initialization script. 
 
-The setup before the customization is pretty basic with the table and the usual DataTable initialization script. Here is <a href="https://jsfiddle.net/saurabhmisra87/nL7j4p08/2/" target="_blank">a jsfiddle</a> with a full working example. 
+<iframe width="100%" height="300" src="//jsfiddle.net/saurabhmisra87/nL7j4p08/2/embedded/js,html,result/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
 
-```js
-$("table.my-table").DataTable({});
-```
+What we're going to try and achieve is show a dropdown instead of the "Gender" header. It'll have three options: "All", "Male" and "Female". Clicking any option will filter the table rows accordingly.
 
-Now to replace one of the headers with a `<select>` that will act as filter, we need to add the below script to the initialization statement. I have added comments to explain what each line is doing. Here is <a href="https://jsfiddle.net/saurabhmisra87/pgL1yv95/16/" target="_blank">a jsfiddle</a> with a full working example.
+Now to replace the header with a `<select>` tag that will act as filter, we need to add the below script to the DataTable initialization statement.
 
 ```js
 $(document).ready(function() {
@@ -45,7 +44,7 @@ $(document).ready(function() {
               .search(val ? '^' + val + '$' : '', true, false)
               .draw();
           });
-        // fill the <select /> filter with unique values from the column's data
+        // populate options in the <select /> filter with unique values from the column's data
         column.data().unique().sort().each(function(d, j) {
           select.append("<option value='" + d + "'>" + d + "</option>")
         });
@@ -59,3 +58,9 @@ $(document).ready(function() {
   });
 });
 ```
+
+Here is how it looks now:
+
+<iframe width="100%" height="300" src="//jsfiddle.net/saurabhmisra87/pgL1yv95/16/embedded/js,html,result/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
+
+Woo hoo!🎉 The dropdown filter works like a charm. Hope this helps!🙏
