@@ -11,18 +11,13 @@ description: The "fixedColumns" property when set to "true" will fix the column 
 
 **This tutorial will teach you how to implement a fixed or sticky column in a <a href="https://datatables.net/" target="_blank">jQuery DataTable</a> while scrolling horizontally.**
 
-First we'll setup a <a href="//jsfiddle.net/saurabhmisra87/0ew2ynkx/9" target="_blank">basic DataTable in jsFiddle</a>( with some <a href="https://datatables.net/examples/basic_init/scroll_xy.html" target="_blank">dummy data sourced from the official DataTable website</a>).  
+## Initial Setup
 
-In this setup, we have constrained the width with the help of CSS to produce the need for horizontal scrolling.
+First we'll setup a basic DataTable in jsFiddle with some <a href="https://datatables.net/examples/basic_init/scroll_xy.html" target="_blank">dummy data sourced from the official DataTable website</a>.
 
-```css
-div.dataTables_wrapper {
-  width: 500px;
-  margin: 0 auto;
-}
-```
+<a href="//jsfiddle.net/saurabhmisra87/0ew2ynkx/9" className="sm-btn-primary" target="_blank">Check out the code in jsFiddle</a>
 
-Also, we have constrained the height in the DataTable configuration options. In these options, we have specified that we want to scroll both ways, horizontally as well as vertically and that the vertical height should be `500px` with the help of `scrollX` and `scrollY` properties.
+In the DataTable configuration options, we have specified that we want to scroll both ways, horizontally as well as vertically and that the vertical height should be `500px` with the help of `scrollX` and `scrollY` properties.
 
 ```js
 $(document).ready(function() {
@@ -34,7 +29,7 @@ $(document).ready(function() {
 });
 ```
 
-## How to fix the first column while scrolling?
+## Solution for fixing the first column while scrolling
 There are three things you must do in order to achieve this.
 
 **<ins>Step 1</ins>**: Include the <a href="https://datatables.net/extensions/fixedcolumns/" target="_blank">FixedColumns Extension's CSS and JS</a>. 
@@ -64,6 +59,6 @@ $(document).ready(function() {
 
 This will enable the first column to be fixed while scrolling horizontally.
 
-Check out <a href="//jsfiddle.net/saurabhmisra87/kry6c1o3/23" target="_blank">this solution in action in this jsFiddle</a>.
+<a href="//jsfiddle.net/saurabhmisra87/kry6c1o3/23" className="sm-btn-primary" target="_blank">Check out the code in jsFiddle</a>
 
 Hope this helps!🙏

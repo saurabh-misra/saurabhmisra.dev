@@ -214,3 +214,12 @@ div.social-sharing hr {
   font-style: italic;
   opacity: 0.7;
 }
+
+.sm-btn-primary {
+  background-color: var(--theme-ui-colors-primary);
+  color: white !important;
+  font-weight: bold;
+  text-transform: uppercase;
+  padding: 10px;
+  border-radius: 5px;
+}

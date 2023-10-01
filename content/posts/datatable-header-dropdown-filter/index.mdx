@@ -9,12 +9,19 @@ tags:
 description: Learn how to add a dropdown filter in place of the header in a table configured with the jQuery DataTable plugin.
 ---
 
+import jqueryDatatableDropdownHeader from './assets/images/jquery-datatable-dropdown-header.jpg';
+import jqueryDatatableTextHeader from './assets/images/jquery-datatable-text-header.jpg';
+
 **This tutorial will teach you how to add a dropdown or a `<select>` input element in place of the header in a table configured with the jQuery DataTable plugin. Moreover, this dropdown will also act as a filter that will filter the rows based on the selected option.** 
 
+## Initial Setup
 The initial setup is pretty basic with the table and a minimal DataTable initialization script. 
 
-Check out <a href="//jsfiddle.net/saurabhmisra87/nL7j4p08/2" target="_blank">this initial setup in this jsFiddle</a>.
+<a href="//jsfiddle.net/saurabhmisra87/nL7j4p08/2" className="sm-btn-primary" target="_blank">Check out the code in jsFiddle</a>
+<p></p>
+<img src={jqueryDatatableTextHeader} class="output-screenshots" alt="browser screenshot showing a jQuery DataTable with usual text headers" />
 
+## Solution
 What we're going to try and achieve is show a dropdown instead of the "Gender" header. It'll have three options: "All", "Male" and "Female". Clicking any option will filter the table rows accordingly.
 
 Now to replace the header with a `<select>` tag that will act as filter, we need to add the below script to the DataTable initialization statement.
@@ -61,6 +68,8 @@ $(document).ready(function() {
 
 Here is how it looks now:
 
-Check out <a href="//jsfiddle.net/saurabhmisra87/pgL1yv95/16" target="_blank">this solution in action in this jsFiddle</a>.
+<a href="//jsfiddle.net/saurabhmisra87/pgL1yv95/16" className="sm-btn-primary" target="_blank">Check out the code in jsFiddle</a>
+<p></p>
+<img src={jqueryDatatableDropdownHeader} class="output-screenshots" alt="browser screenshot showing a jQuery DataTable with a dropdown in the header" />
 
 Woo hoo!🎉 The dropdown filter works like a charm. Hope this helps!🙏
