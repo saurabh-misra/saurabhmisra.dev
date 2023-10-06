@@ -1,0 +1,117 @@
+---
+title: Sort a date column in jQuery DataTable
+date: 2023-10-06
+slug: "/jquery-datatable-sort-date-column"
+tags:
+  - "jQuery"
+  - "DataTable"
+  - "Quick Tip"
+description: Learn two methods for properly sorting a date column in a jQuery DataTable using Moment.js.
+---
+
+import datatableDateColumnSortingProblem from "./assets/images/datatable-date-column-sorting-problem.jpg";
+import datatableDateColumnSortingSolution1 from "./assets/images/datatable-date-column-sorting-solution-1.jpg";
+
+**This tutorial will teach you two ways for properly sorting a date column in a <a href="https://datatables.net/" target="_blank">jQuery DataTable</a> using <a href="https://momentjs.com/" target="_blank">Moment.js</a>.**
+
+Out of the box, the jQuery DataTables plugin is able to detect some standard date formats like "2023-10-22" and sort date columns properly. 
+
+But for more complicated date formats especially where the month is expressed as characters instead of numbers like for example "26 Oct 2023", DataTable will not be able to sort date columns on its own.
+
+Consider this basic DataTable setup that demonstrates this problem.
+
+<a href="https://jsfiddle.net/saurabhmisra87/oh7n68sb/32/" className="sm-btn-primary" target="_blank">Check out initial setup in jsFiddle</a>
+
+<p></p>
+
+<img src={datatableDateColumnSortingProblem} className="output-screenshots" />
+
+To solve this problem, you have two options that depend on how these date values are populated in your table.
+
+**<ins>Solution #1</ins>**: If date values are already formatted and rendered in the desired format.   
+**<ins>Solution #2</ins>**: Use DataTable to convert and render the dates in the desired format.
+
+## Solution #1: Date values are already formatted and rendered in the desired format
+
+Consider this scenario:   
+On the server-side, you fetch some data from the database and the date values in this data are in the format "2023-10-22". The format conversion of the date values happens *on the server-side* so that when the page loads and the table is rendered, the date values are already in the desired format such as "22 Oct, 2023".
+
+This solution is applicable for such scenarios.
+
+**<ins>Step 1</ins>**: Include the <a href="https://cdnjs.com/libraries/moment.js" target="_blank">Moment.js library</a> in your HTML page.
+
+```html
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+```
+
+**<ins>Step 2</ins>**: Inform DataTable about the desired date format
+
+```js highlight=2
+$(document).ready(function() {
+  DataTable.datetime('D MMM, YYYY');
+  
+  $("table.my-table").DataTable({
+  	order: [[2, 'desc']]
+  });
+});
+```
+
+And that should do it!🎉
+
+<a href="https://jsfiddle.net/saurabhmisra87/oh7n68sb/43/" target="_blank" className="sm-btn-primary">Check out Solution #1 on jsFiddle</a>
+
+<p></p>
+<img src={datatableDateColumnSortingSolution1} className="output-screenshots" />
+
+>Check out <a href="https://momentjs.com/docs/#/parsing/string-format/" target="_blank">all the possible date formats in Moment.js</a>. 
+
+## Solution #1: Use DataTable to convert and render the dates in the desired format
+
+This method is useful when the dates in the DataTable are not already formatted in the desired format from the server-side. 
+
+If the original date format is something that DataTable can understand, then you can use DataTable to handle the format conversion which will implicitly take care of any sorting issues.
+
+Consider this scenario:   
+You fetch data from the database and get back date values in the format "2023-10-22" from the database. No format conversion is performed on the server-side and the dates are added to the table in the same format as they were fetched. You can now follow the steps below to let DataTable convert and render these dates in the desired format i.e. "22 Oct, 2023".
+
+**<ins>Step 1</ins>**: Include the Moment.js library same as the first solution.
+
+**<ins>Step 2</ins>**: Make sure the date values in your HTML code are in a format that DataTable can understand implicitly. 
+
+```html highlight=5
+...
+<tr>
+  <td>Saurabh Misra</td>
+  <td>saurabh@example.com</td>
+  <td>2023-10-22</td>
+</tr>
+...        
+```
+
+>In case the original format is also complicated and not something that DataTable will implicitly understand, then you can specify the value of the `render` property in the next step as `DataTable.render.datetime(from, to, locale)`.  
+>So in our example, you can set it to something like:   
+`DataTable.render.datetime( "YYYY-MM-DD", "D MMM, YYYY", "en_IN" )`.   
+This basically allows you to specify the format of the source data as well.   
+More information about this is available in the <a href="https://datatables.net/manual/data/renderers#Date-and-time-helpers" target="_blank">official DataTable date-time helpers documentation</a>.
+
+**<ins>Step 3</ins>**: Use the display format for date values within the DataTable configuration options using the `render` property of the `columnDefs` array option.
+
+```js highlight=5
+$( document ).ready( function(){
+  $( "table.my-table" ).DataTable({
+    columnDefs: [{ 
+        target: 2, 
+        render: DataTable.render.datetime( "D MMM, YYYY" ) 
+    }],
+    order: [[2, 'desc']]
+  });
+});
+```
+
+Woo Hoo!🎉 You should now have proper sorting on the date column.
+
+<a href="https://jsfiddle.net/saurabhmisra87/oh7n68sb/89/" target="_blank" className="sm-btn-primary">Check out Solution#2 on jsFiddle</a>
+
+<p><br /></p>
+
+Hope this helps!🙏
