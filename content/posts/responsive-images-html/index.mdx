@@ -1,0 +1,194 @@
+---
+title: "Responsive Images in HTML using 'srcset', 'sizes' and '<picture>'"
+date: 2023-11-03
+slug: "/responsive-images-html"
+tags:
+  - HTML
+  - Responsive
+description: "Learn how to optimize images for display on devices with different viewport widths and screen resolutions."
+---
+
+import imageTextClearlyVisibleLargeDevice   from "./assets/images/image-text-clearly-visible-large-device.jpg";
+import imageTextClearlyVisibleMobileDevice  from "./assets/images/image-text-clearly-visible-mobile-device.jpg";
+import imageTextNotVisibleMobileDevice      from "./assets/images/image-text-not-visible-mobile-device.jpg";
+import largeImageOnLargeDevice              from "./assets/images/large-image-on-large-device.jpg";
+import largeImageOnSmallDevice              from "./assets/images/large-image-on-small-device.jpg";
+import sameDeviceWidthLargerResDpr2         from "./assets/images/same-device-width-larger-res-dpr2.jpg";
+import sameDeviceWidthLargerResDpr3         from "./assets/images/same-device-width-larger-res-dpr3.jpg";
+import sameDeviceWidthSameResDpr1           from "./assets/images/same-device-width-same-res-dpr1.jpg";
+import sameDeviceWidthSameResDpr2           from "./assets/images/same-device-width-same-res-dpr2.jpg";
+import smallImageOnSmallDevice              from "./assets/images/small-image-on-small-device.jpg";
+import largeImageOnLargeDeviceSolution      from "./assets/images/large-image-on-large-device-solution.jpg";
+import mediumImageOnMediumDevice            from "./assets/images/medium-image-on-medium-device.jpg";
+
+Images have a huge impact on a website's performance which is why optimizing images for the web becomes especially important. This is not just crucial for SEO but also for making sure a user does not leave your website because of slow loading pages.
+
+In this article, we are going to look at some of the tools that HTML has made available for us to make images behave "responsively".
+
+Making images "responsive" basically means that we're implementing a way to load different versions of an image based on the width or resolution of the device being used by the end-user. This not only brings performance benefits but also better User Experience. We'll see how in the sections below.
+
+## How to display a smaller size image on mobile devices and a larger one on larger devices
+Consider the below image in an HTML web page. As the name suggests, the width of this image is `1080px`. This image is suitable for larger devices. 
+
+```html
+<img src="./images/indian-classical-dance-1080w.jpg" width="100%" />
+```
+
+We can simulate a large screen device using Chrome Dev Tools as shown in the screenshot below. This is the best case scenario for this image as it is displayed on a device with a pixel width of 1080px and a Device-Pixel Ratio of 1.
+
+<img src={largeImageOnLargeDevice} className="output-screenshots" />
+
+But if you load this web page on a phone with a typical device width of around 400px, the same 1080px image loads on the phone browser as well even though it will only be displayed in a 400px wide screen.
+
+<img src={largeImageOnSmallDevice} className="output-screenshots" />
+
+It'd be ideal if we could conditionally load a smaller image on smaller devices and a larger images on large devices. Smaller images on phones will save internet bandwidth and will lead to better user perceived performance since the web page will load faster.
+
+This is possible by using the `srcset` and `sizes` attributes of the `<img>` tag.
+
+Lets see this in action on the above image.
+
+```html
+  <img
+    srcset="./images/indian-classical-dance-1920w.jpg 1920w,
+            ./images/indian-classical-dance-1080w.jpg 1080w, 
+            ./images/indian-classical-dance-640w.jpg 640w"
+    sizes="(min-width: 1081px) 1920px,
+            (min-width: 641px) 1080px,
+            640px"
+    src="./images/indian-classical-dance-1080w.jpg"
+    style="width: 100%;"
+  />
+```
+
+If you look at the `srcset` attribute, you'll notice it is a comma-separated list. The comma-separated values are basically mappings between the image name and their "intrinsic" width. Intrinsic width implies their actual width that you'll see when you view this image in an image editor. The "w" prefix is called a "w" descriptor and basically stands for "width".
+
+The `sizes` attribute enables you to specify media-queries where you can "conditionally" load appropriately sized images on respective device widths.
+
+Lets try to better understand how to read the value of the `sizes` attibute. By default, for smaller devices, we'll load the 640px sized version of the image. Once the device width goes beyond 640px, it'll load the 1080px sized version of the image. And then once the device width goes beyond 1080px, it'll load the 1920px sized version of the image.
+
+```
+sizes="(min-width: 1081px) 1920px,
+        (min-width: 641px) 1080px,
+        640px"
+```
+
+We have also specified an image in the `src` attribute which serves as a "fallback" version that loads when none of the media queries in the `sizes` attribute correspond to the current device width.
+
+Lets see this solution in action. The screenshot below shows that the browser is now able to load the 640px version of the image for mobile devices.
+
+<img src={smallImageOnSmallDevice} className="output-screenshots" />
+
+The 1080 width version of the image weighs in at 168KB while the 640 width version weighs in at only 64KB which effectively means a savings of 100KB on a mobile device from just a single image.
+
+If we set the width to 641px and reload the page, the browser will now load the 1080px version of the image.
+
+<img src={mediumImageOnMediumDevice} className="output-screenshots" />
+
+If we set the width to 1081px and reload the page, the browser will now load the 1920px version of the image.
+
+<img src={largeImageOnLargeDeviceSolution} className="output-screenshots" />
+
+Woo Hoo!🎉
+
+>Please note that if the browser has already downloaded and cached a higher sized version of the image and then the device width shrinks down, the browser will not download the lower sized version of the image even if the media-queries in the `sizes` attribute instruct it to do so. This is because it just makes more sense to use the cached version of the image as it is higher res and also, it's just quicker to use the cache and it does not waste any internet bandwidth.
+
+## How to optimize images for devices with different screen resolutions
+
+Again consider the below image.
+
+```html
+<img src="./images/indian-classical-dance-1080w.jpg" width="100%" />
+```
+
+If we view this on a device with a 1080p screen then the image will appear properly. We can simulate this scenario by setting the device width to `1080` and the Device-Pixel Ratio to 1 in Chrome's Dev Tools.
+
+<img src={sameDeviceWidthSameResDpr1} className="output-screenshots" />
+
+But what if we view this same image on a device with the same viewport width but a higher resolution screen? We can simulate this scenario in the browser by setting the Device-Pixel Ratio to 2 in the Chrome Dev Tools like this:
+
+<img src={sameDeviceWidthSameResDpr2} className="output-screenshots" />
+
+As you can see the same image displays even on the higher resolution display. On an actual device with a higher res screen, the image will appear pixelated.
+
+It'd be ideal if we could display a higher resolution version of the image on higher resolution displays.
+
+Turns out that `srcset` can help us with this as well. 
+
+For this particular scenario, we won't need the `sizes` attribute since we are dealing with image resolution rather than image dimensions.
+
+Lets change the `<img>` tag to this:
+
+```html
+<img
+  srcset  = "./images/indian-classical-dance-3840w.jpg 3x,
+            ./images/indian-classical-dance-1920w.jpg 2x,
+            ./images/indian-classical-dance-1080w.jpg 1x"
+  src     = "./images/indian-classical-dance-1080w.jpg"
+  width   = "100%"
+/>
+```
+
+The format for the `srcset` value remains the same as the previous example with the only difference that we have used *"x"* descriptors to refer to resolution instead of *"w"* descriptors which we used to refer to the image width in the previous section.
+
+Lets see how the image looks like on a higher resolution display. We'll increase the DPR setting to 2.0 in Chrome Dev Tools.
+
+<img src={sameDeviceWidthLargerResDpr2} className="output-screenshots" />
+
+It works!🙌 For a higher DPR, the web page utilized a higher res version of the image. Notice that we haven't changed the viewport width.
+
+Lets set the DPR to an even higher value of 3.0.
+
+<img src={sameDeviceWidthLargerResDpr3} className="output-screenshots" />
+
+Again the web page utilized an even higher res version of the image.
+
+## Resolve the Art Direction problem with the `<picture>` and `<source>` tags
+
+The problem here is one of User Experience. 
+
+Check out the `<img>` tag below.
+
+```html
+<img src="./images/photo-with-some-text.jpg" style="width: 100%;" />
+```
+
+Here is a screenshot of the page rendered on a large screen device with this image that has some text in it. This text is clearly visible when viewing this image on a large screen.
+
+<img src={imageTextClearlyVisibleLargeDevice} className="output-screenshots" />
+
+But if we view this page on a mobile device, the image gets shrunk down and the text is not legible anymore.
+
+<img src={imageTextNotVisibleMobileDevice} className="output-screenshots" />
+
+It'd be ideal if we could display a zoomed-in or cropped version of the image on mobile devices. 
+
+This problem is known as the ***Art Direction*** problem. We'll be solving this problem using the `<picture>` and `<source>` tags.
+
+Lets replace the `<img>` tag with this:
+
+```html
+<picture>
+  <!-- Cropped image on smaller devices -->
+  <source media="(max-width: 768px)" srcset="./images/photo-with-some-text-cropped.jpg"/>
+  <!-- Original image on large devices -->
+  <source media="(min-width: 769px)" srcset="./images/photo-with-some-text.jpg"/>
+  <!-- Fallback image -->
+  <img src="./images/photo-with-some-text.jpg" style="width: 100%;" />
+</picture>
+```
+
+The `<picture>` tag wraps the `<img>` tag along with multiple `<source>` tags. These `<source>` tags use *media-queries* specified in the `media` attribute to conditionally display the corresponding image specified in their `srcset` attributes.
+
+The first source tag displays a "cropped" version of the original image on smaller devices. For all other devices, the original image is displayed.
+
+So if we now view the image on a mobile device, this is how it'll appear.
+
+<img src={imageTextClearlyVisibleMobileDevice} className="output-screenshots" />
+
+As you can see, the text within the image is now legible even on mobile devices.🤘
+
+## Attributions
+Images sourced from <a href="https://unsplash.com/" target="_blank">Unsplash</a>.
+- <a href="https://unsplash.com/photos/_HzlOHmboSk" target="_blank">https://unsplash.com/photos/_HzlOHmboSk</a>
+- <a href="https://unsplash.com/photos/woman-in-brown-coat-wearing-brown-hat-standing-near-lake-during-daytime-jbcY_yvsDzk" target="_blank">https://unsplash.com/photos/woman-in-brown-coat-wearing-brown-hat-standing-near-lake-during-daytime-jbcY_yvsDzk</a>

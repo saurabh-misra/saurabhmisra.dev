@@ -1,0 +1,126 @@
+---
+title: Customize DOM positioning of jQuery DataTable feature elements
+date: 2023-11-03
+slug: "/jquery-datatable-customize-dom-positioning"
+tags:
+  - "jQuery"
+  - "DataTable"
+  - "Quick Tip"
+description: Learn how to customize the DOM structure of the feature elements and the jQuery DataTable.
+---
+
+import datatableIptlfDomPositioning from "./assets/images/datatable-iptlf-dom-positioning.jpg"
+import datatableLftipDomPositioning from "./assets/images/datatable-lftip-dom-positioning.jpg"
+
+**This tutorial will teach you how to customize the DOM positioning and structure of the feature elements surrounding a jQuery DataTable.**
+
+DataTable provides a `dom` property to specify how to position the DataTable and its feature elements like search filter, pagination links, etc. The value of this property is constructed by using certain "shortcode-like" characters and a "Emmet-like" syntax for describing the desired DOM structure. 
+
+First, lets focus on the "shortcode-like" characters. 
+
+>If you have any experience with Wordpress, then you may be familiar with the term "shortcode" which refers to small text-strings that serve as *handles* that you can reference on your page and while rendering the page, Wordpress will replace them with widgets or HTML templates that they are mapped to. 
+
+`l` stands for "**L**ength of the page" and when included, shows a dropdown that allows the user to select the entries per page.
+
+`f` stands for "**F**ilter" and when included, shows a textbox that is used to search through the values in the DataTable.
+
+`t` stands for the *pièce de résistance* or the actual "**T**able". 
+
+`i` stands for "**I**nformation" and shows the number of rows in the current page and the total number of entries. For example: "*21-30 of 50 entries*".
+
+`p` stands for "**P**agination" and when included shows the list of page number links.
+
+So while initializing a DataTable, we can specify these options as the value for the `dom` property like this:
+
+```js
+$( "table" ).DataTable({
+  dom: 'lftip'
+});
+```
+
+This will render a layout like this:
+
+<img src={datatableLftipDomPositioning} className="output-screenshots" />
+
+Actually, the value `'lftip'` is the default value so if you don't specify the `dom` property during initialization, this is the layout that will be rendered.
+
+You could also move these characters around and that will also move the elements that they represent.
+
+So for example, we could specify the value as `'iptlf'` which will swap the position of the elements in the previous view.
+
+```js
+$( "table" ).DataTable({
+  dom: 'iptlf'
+});
+```
+
+This will render the below layout:
+
+<img src={datatableIptlfDomPositioning} className="output-screenshots" />
+
+Now that we have discussed the "shortcode-like" syntax, lets discuss the "emmet-like" syntax for customizing the DOM structure for these elements.
+
+A value of `'<lftip>'` will wrap all the elements inside a `<div>` tag.
+
+```js
+$( "table" ).DataTable({
+  dom: '<lftip>'
+});
+```
+<br />
+```
+<div>
+  {lftip}
+</div>
+```
+
+A value of `'<"dt-wrapper"lftip>'` will add a class named "dt-wrapper" to the div.
+
+```js
+$( "table" ).DataTable({
+  dom: '<"dt-wrapper"lftip>'
+});
+```
+<br />
+```
+<div class="dt-wrapper">
+  {lftip}
+</div>
+```
+
+A value of `'<"#dt-wrapper"lftip>'` will add an ID attribute named "dt-wrapper" to the div.
+
+```js
+$( "table" ).DataTable({
+  dom: '<"#dt-wrapper"lftip>'
+});
+```
+<br />
+```
+<div id="dt-wrapper">
+  {lftip}
+</div>
+```
+
+A value of `'<"dt-header"lf>t<"dt-footer"ip>'` will wrap the number of items dropdown and search filter with the class "dt-header". Also, it'll wrap the information and pagination link elements with a class "dt-footer".
+
+```js
+$( "table" ).DataTable({
+  dom: '<"dt-header"lf>t<"dt-footer"ip>'
+});
+```
+<br />
+```
+<div class="dt-header">
+  {lf}
+</div>
+
+{t}
+
+<div class="dt-footer">
+  {lf}
+</div>
+```
+
+Hope this helps!🙏
+
