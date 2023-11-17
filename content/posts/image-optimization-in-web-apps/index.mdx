@@ -1,0 +1,99 @@
+---
+title: "7 tips to optimize images in web applications"
+date: 2023-11-17
+slug: "/image-optimization-in-web-apps"
+tags:
+  - Web Development
+description: "Use WebP format, compress JPG and PNG images, serve images responsively and several other quick and simple strategies to optimize the images on your website."
+---
+
+In this post, we'll go through 7 quick and simple ways you can optimize images on your website.
+
+Lets get straight into it.
+
+# 1. Use WebP image format instead of JPEG and PNG images
+<a href="https://en.wikipedia.org/wiki/WebP" target="_blank">WebP</a> is an image format originally developed by Google as a lossy compression format for images. But overtime it has evolved into a more versatile format that supports lossless compression, transparency(PNGs) and even animation(GIFs). 
+
+Typically, a WebP image will weigh less than the corresponding JPEG counterpart while still maintaining similar visual image quality. This makes it highly suitable for use in web and mobile applications.
+
+## Do browsers support webp images?
+All major browsers(desktop and mobile) support WebP images: https://caniuse.com/webp
+
+## How can I create and use webp images in my web application?
+Google offers a <a href="https://developers.google.com/speed/webp/docs/using" target="_blank">command-line utility called `cwebp`</a> for converting images to the `.webp` format.
+
+Here is an example of how to use the `cwebp` command to convert a `.png` image to a `.webp` image with the quality setting set to 80.
+
+```
+cwebp -q 80 image.png -o image.webp
+```
+
+You can also make use of plugins to create webp images. For example, NodeJS application developers can use the <a href="https://npm.io/package/sharp" target="_blank">Sharp NPM package</a> to convert images to WebP. If you are developing in a different programming language, chances are that there are similar plugins, extensions or add-ons that will do this for you.
+
+There are also services like <a href="https://tinyjpg.com/" target="_blank">TinyJPG</a> that allow you to invoke their API to convert images into WebP.
+
+><a href="https://en.wikipedia.org/wiki/AVIF" target="_blank">AVIF</a> is another fairly new format which offers equal if not better compression than WebP but it is still not supported by all browsers. As of the time of writing this article, it is supported by Chrome, Firefox and Safari but not by Edge.
+
+# 2. Compress JPG and PNG images
+If for some reason, you cannot use WebP, the next best option is to compress your JPG and PNG images.
+
+There are several ways you can compress images. 
+
+For example, if you are using NodeJS and want to compress user uploads programmatically, then you can make use of the Imagemin class of NPM packages. There are <a href="https://web.dev/articles/use-imagemin-to-compress-images#plugins" target="_blank">several plugins</a> available here based on whether you want to make use of lossy or lossless compression and which image format you are targetting. There is also a <a href="https://github.com/imagemin/imagemin-cli" target="_blank">CLI</a> flavor if you are interested in that. You can tune the compression settings as per your requirements but typically, the default lossy compression settings should work fine for most scenarios.
+
+There are also third-party services like <a href="https://tinyjpg.com/" target="_blank">TinyJPG</a> that allow you to invoke an API to compress JPG and PNG images.
+
+# 3. Serve responsive images with relevant dimensions and resolution
+Another great strategy for image optimization is to serve images based on the device or viewport width, device resolution and the size of the image.
+
+HTML provides the `srcset` and `sizes` attributes on the `<img>` tag that use media queries to conditionally load images of different sizes and resolutions. It also provides the `<picture>` and `<source>` tags which you can use to serve images that are cropped for better viewing experience on a mobile device.
+
+Here is [a detailed blog post on how to serve responsive images](/responsive-images-html/) using the attributes and tags mentioned above.
+
+# 4. Use SVGs for icons instead of JPG or PNG images
+Using vector formats like SVG instead of raster formats like JPG or PNG images is another great way to save on some precious bandwidth.
+
+Vector formats can scale flawlessly on higher resolution devices making them a great choice for icons. 
+
+Most popular icon libraries like <a href="https://fontawesome.com/" target="_blank">Font Awesome</a> and <a href="https://fonts.google.com/icons" target="_blank">Google Font Icons</a> provide options to download and use icons as SVGs.
+
+You can go a step further and minify your SVG files to save even more space and bandwidth.
+
+# 5. Implement Browser-level lazy loading
+HTML provides the `loading` attribute on `<img>` tags which when set to the value "lazy" tells the browser to defer the loading of this image until it appears within the viewport. 
+
+```html
+<img src="image.jpg" loading="lazy" alt="..." />
+```
+
+The alternative value for the `loading` attribute is "eager" which basically tells the browser to download this image immediately. This is also the default loading behaviour of the browser which applies when you do not specify this attribute.
+
+In order to optimize our web pages, we can add `loading="lazy"` to all images that are likely to appear <a href="https://www.wordstream.com/below-the-fold" target="_blank">below the fold</a>. When the page loads, the browser will defer downloading these offscreen images and will only load the images that fall within the viewport. When the user scrolls down, as soon as <a href="https://web.dev/articles/browser-level-image-lazy-loading#distance-from-viewport_thresholds" target="_blank">a certain part of these images starts appearing within the viewport</a>, the browser will download them. Hence the name "lazy-loading" images.
+
+Please take care to never use the `loading` attribute on images that have a high probability of appearing within the viewport which will negatively impact both performance and user experience.
+
+Here is <a href="https://web.dev/articles/browser-level-image-lazy-loading" target="_blank">a wonderful video illustration of the lazy loading behavior in action</a>.
+
+# 6. Use Image CDNs
+Image CDNs provide features for quick delivery of images that are processed and optimized on-the-fly as needed.
+
+You can upload an image to these CDNs and then request the same image with varying widths, heights, resolution and even format.
+
+For example, a CDN will typically allow you to specify options for manipulating images like resizing, cropping, converting, etc. via query-string parameters in the URL or something similar like this:
+
+```
+https://image-cdn.com/image.jpg?format=webp&width=800
+```
+
+This URL will instruct the the CDN that you want to download a 800px wide version of `image.jpg` in the WebP format.
+
+The CDN will first check whether it has an image that matches this criteria in a cache. If it does then it will send the image from the cache otherwise it will generate one on the fly.
+
+You can opt for self-managed CDNs, for example: <a href="https://github.com/thumbor/thumbor" target="_blank">Thumbor</a>.
+
+Or you can also opt for paid third-party cloud-based Image CDN services like <a href="https://imagekit.io/" target="_blank">Imagekit.io</a>, <a href="https://cloudinary.com/" target="_blank">Cloudinary</a> and <a href="https://sirv.com/" target="_blank">Sirv</a>.
+
+# 7. Use CSS and Web Fonts for stylish effects and typography
+Sometimes web designers tend to lean towards using images for depicting gradients, shadows, and fancy typography. Wherever possible, try to replace such images using CSS and Web Fonts which will not only be a relatively lightweight solution but will also enable selecting and searching for text which will not be possible if this text is within an image. 
+
+Hope this helps!🙏
