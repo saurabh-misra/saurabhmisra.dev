@@ -1,0 +1,173 @@
+---
+title: How to create a new React App in 2024
+date: 2023-11-24
+slug: "/create-new-react-app-2024"
+tags:
+  - "React"
+description: "Module Bundlers like Vite or Parcel, Frameworks like Next.js and Gatsby and online sandbox environments like CodeSandbox and Stackblitz are the most popular choices for creating React apps moving into 2024." 
+---
+
+import viteSelectAVariant from "./assets/images/vite-select-a-variant.jpg"
+import viteSelectAFramework from "./assets/images/vite-select-a-framework.jpg"
+import viteReactAppHomePage from "./assets/images/vite-react-app-home-page.jpg"
+import parcelServerReactAppLocalhost from "./assets/images/parcel-server-react-app-localhost.jpg"
+
+In this article, we're going to look at the various choices we have for creating React apps moving into 2024.
+
+We'll move in ascending order of complexity so first we'll check out the simplest and quickest options and then move on to more complicated ones.
+
+## Option #1: Online Development Environments
+
+Online sandbox development environments are really convenient as they take away the overhead of project setup allowing you to concentrate on the actual coding part. 
+
+The most popular options here are:
+- <a href="https://react.new" target="_blank">CodeSandbox React Starter Project</a>
+- <a href="https://stackblitz.com/edit/vitejs-vite-sxeeqf?file=index.html&terminal=dev" target="_blank">StackBlitz React Starter Project</a>
+- <a href="https://codepen.io/" target="_blank">CodePen.io</a>
+
+All these three are recommendations mentioned in the <a href="https://react.dev/learn/installation#try-react" target="_blank">official React documentation</a>.
+
+These are good options if you want to quickly try out React features and concepts without worrying about the overhead of a local development environment setup.
+
+## Option #2: Local React setup using Vite or Parcel
+
+If you want to setup a React project locally but do not want to use a full-fledged framework then your best bet is using module bundlers like <a href="https://vitejs.dev/" target="_blank">Vite</a> or <a href="https://parceljs.org/" target="_blank">Parcel</a>.
+
+### How to use Vite to create a new React app
+Vite seems to be the current community standard for spinning up a simple React project. The <a href="https://react.dev/learn/add-react-to-an-existing-project#step-1-set-up-a-modular-javascript-environment" target="_blank">React docs recommend using Vite for setting up a modular JavaScript environment</a> that can install and run React and other fellow NPM packages.
+
+The best feature of Vite is that it has a pre-created template for spinning up either a JavaScript or TypeScript based React project. This makes the whole setup process really straight-forward.
+
+Lets look at how you can create a new React app project with Vite.
+
+Run one of the below commands in your terminal.
+
+```bash
+npm create vite@latest
+
+#or
+
+yarn create vite
+```
+
+This will initialize a wizard that will prompt you some questions. The first one will be to enter a name for the project. Choose a relevant name here. For the purposes of this tutorial, lets just choose "vite-project".
+
+The second one will be to "Select a framework". Go ahead and select **"React"** from the list using arrow keys.
+
+<img src={viteSelectAFramework} className="output-screenshots" alt="screenshot of Terminal window showing framework options while setting up a React project using Vite." />
+
+The next question will ask you to "Select a variant". Select **"JavaScript"** here.
+
+<img src={viteSelectAVariant} className="output-screenshots" alt="screenshot of Terminal window showing framework options while setting up a React project using Vite." />
+
+>You can select TypeScript as the variant if that's your jam! Also "SWC" stands for <a href="https://swc.rs/" target="_blank">Speedy Web Compiler</a> which is a faster alternative to Babel.
+
+And that's it! Your basic React setup is complete. 🎉
+
+In the command prompt, go to the new project directory and then run `npm install` followed by `npm run dev`. This will start a Vite server on `localhost`. If you visit the localhost website, you should have the basic Vite+React app skeleton ready and working.
+
+<img src={viteReactAppHomePage} className="output-screenshots" alt="screenshot of browser showing a React app hosted on a Vite-based localhost server." />
+
+### How to use Parcel to create a new React app
+
+Parcel is also a module bundler that serves as a blazingly-fast and feature-rich front-end toolkit and is also a <a href="https://react.dev/learn/start-a-new-react-project#can-i-use-react-without-a-framework" target="_blank">recommendation in the official React documentation</a>.
+
+Unlike Vite, it doesn't have a pre-built template for creating a new React project so there are some extra steps involved for setting one up.
+
+Lets see how we can create a new React app with Parcel.
+
+First run the below command:
+
+```bash
+npm init -y
+```
+
+Then install React and React DOM.
+
+```bash
+npm i react react-dom
+```
+
+Then we'll install Parcel as a dev dependency.
+
+```bash
+npm i parcel -D
+```
+
+Now we'll setup some boilerplate code. Create an `src` directory within your project folder and within it, create 3 files, `index.html`, `index.js` and `App.js`. Copy the below content into those files.
+
+```html title=src/index.html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>My Parcel App</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="index.js"></script>
+  </body>
+</html>
+```
+
+<br />
+
+```js title=src/index.js
+import { createRoot } from "react-dom/client";
+import { App } from "./App";
+
+const container = document.getElementById("app");
+const root = createRoot(container)
+root.render(<App />);
+```
+
+<br />
+
+```js title=src/App.js
+export function App() {
+  return <h1>Hello world!</h1>;
+}
+```
+
+Now last step, open your `package.json` file and add the `source` and then within `scripts`, add `start` and `build` script commands.
+
+```json title=package.json highlight=4,8,9
+{
+  "name": "my-project",
+  ...
+  "source": "src/index.html",
+  ...
+  "scripts": {
+    ...
+    "start": "parcel",
+    "build": "parcel build"
+  },
+  ....
+}
+```
+
+That's it! Just run `npm start` and the server will start running on localhost. Visit the page and you should see something like this:
+
+<img src={parcelServerReactAppLocalhost} className="output-screenshots" alt="screenshot of browser window showing a React app hosted on a Parcel-based localhost server." />
+
+## Option #3: Frameworks
+
+The most recommended approach mentioned in the <a href="https://react.dev/learn/start-a-new-react-project" target="_blank">official React docs</a> is to use one of three popular third-party frameworks namely <a href="https://nextjs.org/" target="_blank">Next.js</a>, <a href="https://remix.run/" target="_blank">Remix</a> and <a href="https://www.gatsbyjs.com/" target="_blank">Gatsby</a>.
+
+While you can create any type of web application with these frameworks, Next.js and Remix are full-stack frameworks used for creating web applications while Gatsby is used for building fast CMS-based websites.
+
+These frameworks provide a solid opinionated foundation for developing React applications and come packed with all the bells and whistles you'd expect from a framework. 
+
+While they pack a lot of power, it also means that it'll take more time for you to get up to speed with how to use these frameworks as compared to just using React.
+
+## Option #4: Try React locally in the browser
+The React documentation also offers the option to try and play with React locally in the browser using this <a href="https://gist.githubusercontent.com/gaearon/0275b1e1518599bbeafcde4722e79ed1/raw/db72dcbf3384ee1708c4a07d3be79860db04bff0/example.html" target="_blank">HTML file</a> as a reference.
+
+But this is only for getting to know React basics and not really something you can use in production. Setting up a proper environment with module bundlers or using a framework is the way to go, to create production-ready React apps.
+
+This is why even though this option is extremely simple to use, I have mentioned it towards the end of this post since there are better options available that are equally simple.
+
+## What about Create-React-App?
+The React documentation seems to have stopped recommending CRA as the official way to create React apps in lieu of more feature-rich and faster options. While CRA remains functional as of now, its future is unknown. Chances are that the React team is going to re-purpose it as a "launcher". Here is a <a href="https://github.com/reactjs/react.dev/pull/5487#issuecomment-1409720741" target="_blank">discussion between the community and React team with more information</a>.
+
+Hope this helps!🙏
