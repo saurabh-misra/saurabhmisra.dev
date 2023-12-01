@@ -1,0 +1,118 @@
+---
+title: "How to setup a Staging mode in Vite"
+date: 2023-12-01
+slug: "/setup-staging-mode-in-vite"
+tags:
+  - "Vite"
+description: "Use the '--mode' flag while using Vite CLI commands to run the server in 'staging' or any other mode." 
+---
+
+import { Link } from "gatsby"
+
+**This tutorial will teach you how to setup a staging environment in a <a href="https://vitejs.dev/" target="_blank">Vite</a> server.**
+
+>This tutorial assumes basic familiarity with Vite and that you have already setup a Vite server locally. If you haven't, then please read <Link to="/create-new-react-app-2024">"How to setup a React+Vite server"</Link> before proceeding with this tutorial.
+
+Out of the box, Vite supports two modes: `development` and `production`.
+
+The `dev` command runs your app in `development` mode.
+
+The `build` and `preview` commands run your app in `production` mode.
+
+The `import.meta.env.MODE` variable holds the value of the mode the Vite server is currently operating in and can be used to run environment specific code.
+
+For example:
+
+```js
+if( import.meta.env.MODE == "development" ) {
+    // do something
+} else {
+    // do something else
+}
+```
+
+Vite will replace this variable with its respective value during the build process and your conditions will work properly in every mode.
+
+We can set a custom value for the mode by passing in a `--mode` flag while executing our CLI commands.
+
+Lets see how we can use this functionality to set up a `staging` mode.
+
+Add these scripts to `package.json`.
+
+```js title=package.json highlight=3-4
+{
+    scripts: {
+        "staging": "vite --mode staging",
+        "build-staging": "vite build --mode staging"
+    }
+}
+```
+
+If you now run `npm run staging`, it will start a dev server BUT in `staging` mode.
+
+If you run `npm run build-staging`, it'll build your site in `staging` mode.
+
+That's it! We have just created a working staging mode for your web app.
+
+## Tip #1: Create separate distributions for staging and production
+
+In case you want to maintain separate distribution folders for staging and production, then that is possible as well.
+
+Open your `vite.config.js` or `vite.config.ts` file and change your `defineConfig()` to take a function as an argument instead of an object. Vite will automatically pass in the `mode` value to this function. Using `mode` and the `build.outDir` option, you can set different distribution directories for `staging` and `production` 
+
+```js title=vite.config.js highlight=1-3,7
+export default defineConfig( ({ mode }) => {
+    // build into different folders depending on the `mode`.
+    const outDir = (mode === "staging") ? "./dist/staging/" : "./dist/production/";
+
+    return {
+        plugins: [react()],
+        build: { outDir }
+    }
+})
+```
+
+Also, go ahead and add another script to preview your staging build in your `package.json`.
+
+```js title=package.json highlight=5
+{
+    scripts: {
+        "staging": "npm run dev --mode staging",
+        "build-staging": "npm run build --mode staging",
+        "preview-staging": "vite preview --mode staging"
+    }
+}
+```
+
+All done!! Now your server will build and preview different distribution directories for staging and production.
+
+## Tip #2: Create environment settings specific to the staging mode
+
+You can do this by creating an `.env.staging` file in the root of the Vite server setup. In here, you can add your environment settings specific to the staging site.
+
+```text title=.env.staging
+VITE_SOME_KEY=SOME_VALUE
+```
+
+Just remember to prefix your environment variables with the prefix "VITE_" or else they won't be available in your code. This is to prevent accidentally making environment variables accessible to the client code.
+
+In case you want to change this prefix, you can do so using the `envPrefix` option in `vite.config.js` like this.
+
+```js title=vite.config.js highlight=8
+export default defineConfig( ({ mode }) => {
+    // build into different folders depending on the `mode`.
+    const outDir = (mode === "staging") ? "./dist/staging/" : "./dist/production/";
+
+    return {
+        plugins: [react()],
+        build: { outDir },
+        envPrefix: "MYAPP_"
+    }
+})
+```
+
+And then you can name your environment variables as `MYAPP_SOME_KEY=SOME_VALUE`.
+
+Hope this helps!🙏
+
+Reference: <a href="https://vitejs.dev/guide/env-and-mode#env-files" target="_blank">Vite Env Variables and Modes</a>

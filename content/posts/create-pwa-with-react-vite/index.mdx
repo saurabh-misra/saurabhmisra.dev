@@ -1,0 +1,201 @@
+---
+title: "How to setup a React PWA project using Vite"
+date: 2023-12-01
+slug: "/setup-react-pwa-using-vite"
+tags:
+  - "React"
+  - "Vite"
+  - "PWA"
+description: "Learn how to setup a Progressive Web App project with React and Vite." 
+---
+
+import { Link } from "gatsby"
+
+import createViteCommandTerminalOutput from "./assets/images/create-vite-command-terminal-output.png"
+import lighthouseAnalysisResult from "./assets/images/lighthouse-analysis-result.png"
+import lighthouseSettings from "./assets/images/lighthouse-settings.png"
+import pwaAssets from "./assets/images/pwa-assets.png"
+import viteReactAppWithInstall from "./assets/images/vite-react-app-with-install.jpg"
+
+**This tutorial will teach you how to setup a Progressive Web App project with <a href="https://react.dev/" target="_blank">React</a> and <a href="https://vitejs.dev/" target="_blank">Vite</a>.**
+
+A <a href="https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps" target="_blank">Progressive Web App or "PWA"</a> is an application developed using web technologies which can not only be accessed as an online web application but can also be installed as a native app on desktops and phones. It utilizes all the new and enhanced web capabilities to access and use device features on which it is installed and can even work offline. It does all of this while being based off of a single codebase!
+
+Lets dive right in and walk-through the steps required to setup the project. 
+
+## Step 1: Install Vite+React Starter Project
+
+First lets setup a React starter project using Vite. Enter one of the below commands in your terminal.
+
+```bash
+npm create vite@latest
+
+#or
+
+yarn create vite
+```
+
+You'll be asked to enter a *Project Name*, *Framework* and *Variant*. You can enter any name for your project. Select **"React"** as the framework and **"JavaScript"** as the variant.  
+
+<img src={createViteCommandTerminalOutput} alt="screenshot of the terminal window showing the chosen Project Name, Framework and Variant for a Vite and React app." />
+
+>You can use the **"TypeScript"** variant if you want. I haven't personally used it but the steps in this tutorial should work for TypeScript as well. In case you face issues, I have included reference links in each step where you can hopefully get information on how to perform the same operation in TypeScript. 
+
+Once finished, in the command prompt, go to the new project directory and then run `npm install` followed by `npm run dev`. This will start a Vite server on `localhost`. If you visit the localhost website, you should have the basic Vite+React app skeleton ready and working.
+
+>Reference for more information: <Link to="/create-new-react-app-2024">How to setup a React Starter Project using Vite</Link>
+
+## Step 2: Install Vite PWA plugin
+
+Next we'll install the <a href="https://vite-pwa-org.netlify.app/" target="_blank">Vite PWA Plugin</a> as a dev dependency.
+
+```
+npm i vite-plugin-pwa -D
+```
+
+>Reference:<a href="https://vite-pwa-org.netlify.app/guide/#installing-vite-plugin-pwa" target="_blank"> Installing Vite Plugin PWA</a>
+
+## Step 3: Install PWA Assets Generator plugin
+
+Next we'll install a plugin called <a href="https://github.com/vite-pwa/assets-generator" target="_blank">PWA Assets Generator</a> to generate all our PWA assets like the Web Manifest file, Service worker, app icons, splash screen, etc. 
+
+```
+npm i @vite-pwa/assets-generator -D
+```
+
+>Reference: <a href="https://vite-pwa-org.netlify.app/assets-generator/cli#cli" target="_blank">CLI Commands for using the PWA Assets Generator</a>
+
+## Step 4: Configure the Vite PWA plugin
+
+We need to add some configuration options for the Vite PWA plugin into the `vite.config.js` or `vite.config.ts` file. 
+
+This file will most probably already have a `plugins` array property that will have an existing configuration for the React library. So we just need to append the PWA plugin configuration to this array.
+
+```js title=vite.config.js highlight=2,8-34
+// existing imports 
+import { VitePWA } from 'vite-plugin-pwa';
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [
+    react(), 
+    VitePWA({ 
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      manifest: {
+        name: 'Vite PWA Project',
+        short_name: 'Vite PWA Project',
+        theme_color: '#ffffff',
+        icons: [
+          {
+            src: 'pwa-192x192.png', // <== don't add slash, for testing
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: '/pwa-512x512.png', // <== don't remove slash, for testing
+            sizes: '512x512',
+            type: 'image/png',
+          },
+          {
+            src: 'pwa-512x512.png', // <== don't add slash, for testing
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable',
+          },
+        ],
+      }, 
+    })
+  ],
+})
+```
+
+>Reference: 
+> - <a href="https://vite-pwa-org.netlify.app/guide/#configuring-vite-plugin-pwa" target="_blank">Configuring Vite PWA Plugin</a> 
+> - <a href="https://vite-pwa-org.netlify.app/guide/pwa-minimal-requirements#web-app-manifest" target="_blank">PWA Minimal Requirements</a> 
+> - <a href="https://github.com/vite-pwa/vite-plugin-pwa/blob/main/examples/react-router/vite.config.ts" target="_blank">Vite PWA Plugin React-Router Example</a> 
+
+## Step 5: Add an NPM script in `package.json` for generating PWA assets
+
+We'll add a script in `package.json` that maps to the `pwa-assets-generator` command and will kick off the assets generation process. You can append the `generate-pwa-assets` property to the existing `scripts` property. 
+
+```json title=package.json highlight=3
+{
+  "scripts": {
+    "generate-pwa-assets": "pwa-assets-generator --preset minimal public/logo.svg"
+  }
+}
+```
+
+>Reference: <a href="https://vite-pwa-org.netlify.app/assets-generator/cli#usage" target="_blank">CLI commands to generate PWA assets.</a>
+
+## Step 6: Arrange a logo SVG source file
+
+The <a href="https://vite-pwa-org.netlify.app/assets-generator/#source-images" target="_blank">PWA plugin documentation strongly suggests using a single SVG file as the source for PWA assets</a>.
+
+So if you already have a `logo.svg` file then use that. For the purposes of this tutorial, lets just use the `/public/vite.svg` logo file. Duplicate it and name the copy as `logo.svg`.
+
+## Step 7: Create PWA assets
+
+We're all set! Lets generate PWA assets using the below command.
+
+```bash
+npm run generate-pwa-assets
+```
+<br />
+
+When this command completes, you'll notice that the `/public` directory will now contain all these new files. These are the PWA assets generated by the plugin.
+
+<img src={pwaAssets} alt="screenshot of the VS Code Explorer panel showing the generated PWA assets." />
+
+## Step 8: Add `<link>` and `<meta>` tags for PWA assets in index.html
+
+Next, we need to include these assets into our web page. Append the below tags within `<head>` in the `index.html` file located in the root of the codebase.
+
+```html title=index.html highlight=3-6
+<head>
+    <!-- other tags -->
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+    <link rel="mask-icon" href="/mask-icon.svg" color="#FFFFFF" />
+    <meta name="theme-color" content="#ffffff" />
+</head>
+```
+
+## Step 9: Build app
+
+Ok pheww...that's it! We're finally ready to build our app and see if it actually works as a PWA.
+
+Build the app with this command.
+
+```bash
+npm run build
+```
+
+This command will bundle the app and put all the required files into the `/dist` directory.
+
+In order to make the server use this directory to serve a localhost website, we'll use Vite's *preview* feature. Go ahead and run the below command.
+
+```bash
+npm run preview
+```
+
+Wallah! If you visit the *preview* localhost URL, you should see the app on your browser's screen and you should also see an install button in your browser's address bar( see the screenshot below ). 
+
+<img src={viteReactAppWithInstall} className="output-screenshots" alt="screenshot of the browser window showing the localhost Vite+React PWA app with an Install button." />
+
+## Step 10: Run Lighthouse in Chrome Dev Tools
+
+To make sure our app passes all the criteria for a PWA, we'll run a Lighthouse report in Chrome's Dev tools. See the screenshot below to find out the settings we need to choose to run the report.
+
+<img src={lighthouseSettings} className="output-screenshots" alt="screenshot of the browser dev tools showing the selected settings for running a Progressive Web App analysis." />
+
+ If the criteria is not met, the analysis report will produce errors. If all the criteria are met, the analysis report will show a green check mark like in the screenshot below. This means our app has met all requirements for a PWA and can be installed on various devices.
+
+<img src={lighthouseAnalysisResult} className="output-screenshots" alt="screenshot of the browser dev tools showing the successful lighthouse analysis report." />
+
+## BONUS TIP: Deploying PWA on IIS Server
+
+If you deploy this app on an IIS server, you may face an issue where your `.webmanifest` file was not found even though all other files were found. To resolve this issue, make sure your IIS can handle the `.webmanifest` extension by <a href="https://stackoverflow.com/a/49566447/1932141" target="_blank">adding an entry for `.webmanifest` in the global IIS MIME types</a>.
+
+Hope this helps!🙏
