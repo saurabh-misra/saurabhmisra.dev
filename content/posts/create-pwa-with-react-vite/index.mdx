@@ -71,8 +71,9 @@ We need to add some configuration options for the Vite PWA plugin into the `vite
 
 This file will most probably already have a `plugins` array property that will have an existing configuration for the React library. So we just need to append the PWA plugin configuration to this array.
 
-```js title=vite.config.js highlight=2,8-34
-// existing imports 
+```js title=vite.config.js highlight=3,9-41
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vitejs.dev/config/
@@ -87,22 +88,28 @@ export default defineConfig({
         short_name: 'Vite PWA Project',
         theme_color: '#ffffff',
         icons: [
-          {
-            src: 'pwa-192x192.png', // <== don't add slash, for testing
-            sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: '/pwa-512x512.png', // <== don't remove slash, for testing
-            sizes: '512x512',
-            type: 'image/png',
-          },
-          {
-            src: 'pwa-512x512.png', // <== don't add slash, for testing
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable',
-          },
+            {
+                src: 'pwa-64x64.png',
+                sizes: '64x64',
+                type: 'image/png'
+            },
+            {
+                src: 'pwa-192x192.png',
+                sizes: '192x192',
+                type: 'image/png'
+            },
+            {
+                src: 'pwa-512x512.png',
+                sizes: '512x512',
+                type: 'image/png',
+                purpose: 'any'
+            },
+            {
+                src: 'maskable-icon-512x512.png',
+                sizes: '512x512',
+                type: 'image/png',
+                purpose: 'maskable'
+            }
         ],
       }, 
     })
@@ -131,7 +138,7 @@ We'll add a script in `package.json` that maps to the `pwa-assets-generator` com
 
 ## Step 6: Arrange a logo SVG source file
 
-The <a href="https://vite-pwa-org.netlify.app/assets-generator/#source-images" target="_blank">PWA plugin documentation strongly suggests using a single SVG file as the source for PWA assets</a>.
+While it should work for any image type, the <a href="https://vite-pwa-org.netlify.app/assets-generator/#source-images" target="_blank">PWA plugin documentation strongly suggests using a single SVG file as the source for PWA assets</a>.
 
 So if you already have a `logo.svg` file then use that. For the purposes of this tutorial, lets just use the `/public/vite.svg` logo file. Duplicate it and name the copy as `logo.svg`.
 
@@ -156,11 +163,12 @@ Next, we need to include these assets into our web page. Append the below tags w
 <head>
     <!-- other tags -->
     <link rel="icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
-    <link rel="mask-icon" href="/mask-icon.svg" color="#FFFFFF" />
-    <meta name="theme-color" content="#ffffff" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" sizes="180x180" />
+    <link rel="mask-icon" href="/mask-icon.svg" color="#FFFFFF">
+    <meta name="theme-color" content="#ffffff">
 </head>
 ```
+>Reference: <a href="https://vite-pwa-org.netlify.app/assets-generator/cli#usage" target="_blank">CLI commands to generate PWA assets.</a>
 
 ## Step 9: Build app
 
