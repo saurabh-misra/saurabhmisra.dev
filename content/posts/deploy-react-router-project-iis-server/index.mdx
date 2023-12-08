@@ -1,0 +1,137 @@
+---
+title: "How to deploy a React Router project on IIS Server"
+date: 2023-12-08
+slug: "/deploy-react-router-project-iis-server"
+tags:
+  - "React"
+  - "React Router"
+  - "IIS"
+description: "To resolve 404 errors with client-side routing, make sure IIS has the URL Rewrite module installed and that the project has a web.config file that enables routing." 
+---
+
+
+import homePageBrowserScreenshot from "./assets/images/home-page-browser-screenshot.jpg"
+import iisProfilePage404Error from "./assets/images/iis-profile-page-404-error.jpg"
+import iisProfilePageBrowserScreenshot from "./assets/images/iis-profile-page-browser-screenshot.jpg"
+import iisUrlRewriteInstalled from "./assets/images/iis-url-rewrite-installed.jpg"
+import profilePageBrowserScreenshot from "./assets/images/profile-page-browser-screenshot.jpg"
+
+import { Link } from "gatsby"
+
+**In this tutorial, we'll look at how to enable client-side routing and properly deploy a React Router application on an IIS Server.**
+
+Lets first go through the initial project setup.
+
+## Tutorial Project Setup
+We'll setup a React and React-Router project using Vite.
+
+I have already outlined the steps involved to setup such a project in the previous post: "<Link to="/create-new-react-app-2024">How to setup a React+Vite project</Link>".
+
+After setting this up, all you have to do is to install React Router.
+
+```bash
+npm i react-router-dom
+```
+
+We'll create two basic routes using `createBrowserRouter()`. Head over to `/src/main.jsx` and copy-paste this code.
+
+```jsx title=/src/main.jsx highlight=4,6-15,19
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import './index.css'
+import { RouterProvider, createBrowserRouter } from 'react-router-dom'
+
+const router = createBrowserRouter([
+    {
+        path: "/",
+        element: <h1>Home Page</h1>
+    },
+    {
+        path: "profile",
+        element: <h1>Profile Page</h1>
+    }
+]);
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <RouterProvider router={router} />
+  </React.StrictMode>
+)
+```
+
+Also, for convenience, we'll remove all default styling from the file `/src/index.css`. So go ahead delete all the content inside of that file and save it.
+
+Now run `npm run dev`. This should start a dev server at `localhost:5173`. You should be able to see the front page with the heading **"Home Page"**. 
+
+<img src={homePageBrowserScreenshot} className="output-screenshots" alt="browser screenshot showing the Home page with the app running on Vite dev server." />
+
+Now change the URL to `http://localhost:5173/profile`. You should be able to see the heading **"Profile Page"**. This means that our routing using React-Router is working. 
+
+<img src={profilePageBrowserScreenshot} className="output-screenshots" alt="browser screenshot showing the Profile page with the app running on Vite dev server." />
+
+We're done with our setup. Everything seems to be working when we use the in-built Vite server. Lets see what happens when we try to host this app on an IIS Server.
+
+## Step 1: Build project and point IIS website to `dist` directory
+
+In this step, we'll build the project and then setup an IIS website that will point to the `/dist` directory which is the distribution directory where all the built files are kept.
+
+Run this command to build the project.
+
+```bash
+npm run build
+```
+
+After you run this command, you should see a new `/dist` directory has been created in the root of your project.
+
+Next, head over to IIS and create a new localhost website on a unique port number. For this tutorial, I have setup a new website on `localhost:8083`. You can use any port number of your choosing. Point this new IIS website to the `/dist` directory of your project.
+
+If you visit the IIS localhost URL, you should be able to see the Home page just fine. But if you visit the Profile page using the URL `localhost:8083/profile`, you'll get a 404 error. 
+
+<img src={iisProfilePage404Error} className="output-screenshots" alt="browser screenshot showing a 404 Not Found when visiting the Profile page on the IIS localhost URL." />
+
+Lets resolve this issue.
+
+## Step 2: Make sure URL Rewrite is installed in IIS and enabled
+
+First, make sure you have URL Rewrite installed and enabled in IIS. Head over to IIS and select your website from the left sidebar and see if you can locate the URL Rewrite module in the center section. If you already have it, then great otherwise go ahead and <a href="https://www.iis.net/downloads/microsoft/url-rewrite" target="_blank">download URL Rewrite from Microsoft's Official Website</a> and then install it.
+
+<img src={iisUrlRewriteInstalled} className="output-screenshots" alt="Screenshot of the IIS GUI showing URL Rewrite installed." />
+
+## Step 3: Add a web.config in your website root folder
+
+Next, add a web.config file in the `/public` directory and copy-paste the below content in it.
+
+```xml title=/public/web.config
+<?xml version="1.0"?>
+<configuration>
+    <system.webServer>
+        <rewrite>
+            <rules>
+                <rule name="React Routes" stopProcessing="true">
+                    <match url=".*" />
+                    <conditions logicalGrouping="MatchAll">
+                        <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+                        <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+                        <add input="{REQUEST_URI}" pattern="^/(api)" negate="true" />
+                    </conditions>
+                    <action type="Rewrite" url="/" />
+                </rule>
+            </rules>
+        </rewrite>
+    </system.webServer>
+</configuration>
+```
+
+<small><a href="https://stackoverflow.com/questions/77027148/react-app-created-with-vite-refreshing-problem-on-iis-server-if-i-go-to-a-speci" target="_blank">Sourced from this SO thread</a></small>
+
+These settings have enabled routing in our IIS hosted website.
+
+As the last step, build the project once again using `npm run build`.
+
+Now hit the Profile page from the IIS localhost URL. The 404 error should be gone now and you should be able to see the Profile page properly.
+
+<img src={iisProfilePageBrowserScreenshot} className="output-screenshots" alt="browser screenshot showing the Profile page working properly on the IIS localhost URL." />
+
+Awesome!🎉 This completes our setup for hosting a React Router application in IIS.
+
+Hope this helps!🙏

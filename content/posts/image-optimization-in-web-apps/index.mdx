@@ -41,7 +41,7 @@ There are several ways you can compress images.
 
 For example, if you are using NodeJS and want to compress user uploads programmatically, then you can make use of the Imagemin class of NPM packages. There are <a href="https://web.dev/articles/use-imagemin-to-compress-images#plugins" target="_blank">several plugins</a> available here based on whether you want to make use of lossy or lossless compression and which image format you are targetting. There is also a <a href="https://github.com/imagemin/imagemin-cli" target="_blank">CLI</a> flavor if you are interested in that. You can tune the compression settings as per your requirements but typically, the default lossy compression settings should work fine for most scenarios.
 
-There are also third-party services like <a href="https://tinyjpg.com/" target="_blank">TinyJPG</a> that allow you to invoke an API to compress JPG and PNG images.
+You can manually compress images using online services like <a href="https://tinyjpg.com/" target="_blank">TinyJPG</a> or <a href="https://squoosh.app/" target="_blank">Squoosh.app</a>. <a href="https://tinyjpg.com/" target="_blank">TinyJPG</a> also provides an API so that you can programmatically compress your images and automate your compression workflow.
 
 # 3. Serve responsive images with relevant dimensions and resolution
 Another great strategy for image optimization is to serve images based on the device or viewport width, device resolution and the size of the image.
