@@ -1,0 +1,127 @@
+---
+title: "How to store JWT token as an HTTPOnly Cookie"
+date: 2023-12-22
+slug: "/store-jwt-token-http-only-cookie"
+tags:
+  - JWT
+  - Web Development
+  - NodeJS
+  - Axios
+  - FetchAPI
+description: "The `Set-Cookie` header allows the server to create an HTTPOnly cookie in the browser. Lets learn how we can configure the client and the server to use HTTPOnly Cookies to store and pass JWT tokens."
+---
+
+import consoleOutputFetchAxiosAjaxCalls from "./assets/images/console-output-fetch-axios-ajax-calls.jpg"
+import devToolsCookieRequestHeader from "./assets/images/dev-tools-cookie-request-header.jpg"
+import devToolsHttponlyCookieSet from "./assets/images/dev-tools-httponly-cookie-set.jpg"
+import serverConsoleReqCookies from "./assets/images/server-console-req-cookies.jpg"
+
+**In this tutorial, we'll learn how to manage HTTPOnly cookies from the server/backend/API using the <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie" target="_blank">`Set-Cookie` HTTP Response header</a>. We'll also learn how to use HTTPOnly cookies to store JWT tokens and how we can configure the front-end code to automatically send them with every request.**
+
+<a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#httponly" target="_blank">HTTPOnly cookies</a> are created and managed by the server and are not accessible by client-side JavaScript code. Also, if enabled, the browser automatically sends these cookies in the `Cookie` HTTP header with every request to the server. This makes HTTPOnly cookies a good option to store JWT tokens obtained after successful authentication so that these tokens can be sent with every subsequent API request to the server automatically without needing any additional code to send it explicitly. 
+
+>Since cookies work only in the browser, this strategy for storing JWT tokens in an HTTPOnly cookie only works for web applications. For mobile applications, we have to store JWT tokens differently and send it explicitly in the `Authorization` HTTP Request header for every API request. 
+
+## Tutorial Project Setup
+
+We'll be making use of a <a href="https://nodejs.org/en" target="_blank">Node.js</a> and <a href="https://expressjs.com/" target="_blank">ExpressJS</a> based API server and a <a href="https://vitejs.dev/" target="_blank">Vite</a>-powered vanilla JavaScript frontend. 
+
+This tech stack is just for demonstration purposes. The concepts taught in this tutorial can be used with any language, framework or library of your choice.
+
+We'll be making our AJAX calls using the native <a href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API" target="_blank">Fetch API</a> and the very popular 3rd-party library <a href="https://www.npmjs.com/package/axios" target="_blank">Axios</a>.
+
+You can download or clone the tutorial project setup from <a href="https://github.com/saurabh-misra/store-jwt-httponly-cookie-tutorial" target="_blank">this github repo</a>.
+
+Once you have the starter files, open your terminal go to the `/client` and `/server` folders and run `npm i` on both to install the respective NPM dependencies.
+
+Next, again in your terminal go to `/client` and run `npm run dev` and for `/server` run `npm run start`. This should start a client localhost server at `http://localhost:5173/` and a back-end localhost server at `http://localhost:3000/`( provided you don't have anything else running on that port ).
+
+If you open `/server/index.js`, you'll notice we have included the <a href="https://npm.io/package/cors" target="_blank">`cors` NPM package</a> which will be used to configure the server to allow cross-domain requests from our client. 
+
+We have also included the <a href="https://npm.io/package/cookie-parser" target="_blank">`cookie-parser` NPM package</a> and middleware which is used to read cookies from `Cookie` HTTP Request header into `req.cookies`.
+
+Now if you open `/client/main.js`, you'll notice we have included the `axios` package. 
+ 
+Alright! That's it for the setup and we're good to go. Lets dive straight into the tutorial.
+
+## Configure CORS
+
+The configuration for the `cors()` middleware looks like this:
+
+```js title=/server/index.js
+const corsOptions = {
+    origin: "http://localhost:5173",
+    credentials: true
+};
+app.use( cors(corsOptions) );
+```
+
+We're allowing requests to originate from the our client localhost server. Also the `credentials` property sets the `Access-Control-Allow-Credentials` HTTP Response header to `true` which tells browsers that the response should be exposed to the front-end JavaScript code.
+
+## Add the `Set-Cookie` Header to the API Response
+
+We have a single API service on the root endpoint. Pay special attention to the declaration of the `options` object where we specify the configuration for the HTTPOnly cookie which we'll set later using `res.cookie()`.
+
+```js title=/server/index.js
+app.get( "/", ( req, res ) => {
+    // Our `token` cookie will be parsed into `req.cookies.token`
+    console.log( "🍪", req.cookies );
+    
+    // Configure the `token` HTTPOnly cookie
+    let options = {
+        maxAge: 1000 * 60 * 15, // expire after 15 minutes
+        httpOnly: true, // Cookie will not be exposed to client side code
+        sameSite: "none", // If client and server origins are different
+        secure: true // use with HTTPS only
+    }
+
+    const token = "abcd.123456.xyz"; // dummy JWT token
+    res.cookie( "token", token, options );
+    res.send( "Cookie has been set!" );
+});
+```
+
+## Make AJAX call using Fetch API
+
+Now lets turn out attention to the front-end code. Open the `/client/main.js`. Our first AJAX call is implemented using the Fetch API. Again pay special attention to the options that we pass to `fetch()`. We pass the `credentials` property and set it to `"include"`. This is required to send HTTPOnly cookies automatically in every request as a part of the `Cookie` HTTP request header.
+
+```js title=/client/main.js highlight=3
+fetch( "http://localhost:3000/", {
+    method: "get",
+    credentials: "include"
+})
+    .then( response => response.text())
+    .then( data => console.log( "Response using Fetch: ", data ) );
+```
+
+## Make AJAX call using Axios
+
+We have a second AJAX call implemented using Axios. Again the thing to note here is that we are telling the browser to send HTTPOnly Cookies automatically with every request by setting the `withCredentials` property to `true`.
+
+```js title=/client/main.js highlight=2
+axios( "http://localhost:3000/", {
+    withCredentials: true
+})
+    .then( response => response.data )
+    .then( data => console.log( "Response using Axios: ", data ) );
+```
+
+Ok we're all set to test these changes out so lets go ahead and run both the servers using `npm run dev` on the client and `npm run start` on the server.
+
+Open the client URL in the browser, open Dev Tools and look at the Console. You should see logs from the fetch and axios calls. This means both calls worked as expected.
+
+<img src={consoleOutputFetchAxiosAjaxCalls} className="output-screenshots" />
+
+Now head over to the Application/Storage tab in the Dev Tools and you should also see the `token` HTTPOnly cookie. Awesome! Seems like our API script was successfully able to create this cookie using `res.cookie()`.
+
+<img src={devToolsHttponlyCookieSet} className="output-screenshots" />
+
+Go ahead and refresh the page with the Dev Tools still open. Go to the Network tab. Analyse both the API requests that are sent from the browser specifically the Request Headers. Notice that the `Cookie` request header has been sent along with the request and it contains our `token` cookie. 
+
+<img src={devToolsCookieRequestHeader} className="output-screenshots" />
+
+If you check out the server console, you should see the token cookie object printed as well. This confirms that not only are we able to set cookies, but it is also automatically being sent in every request from the browser to the API. Woo hoo!🎉
+
+<img src={serverConsoleReqCookies} className="output-screenshots" />
+
+Hope this helps!🙏
