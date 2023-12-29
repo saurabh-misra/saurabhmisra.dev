@@ -110,18 +110,18 @@ Ok we're all set to test these changes out so lets go ahead and run both the ser
 
 Open the client URL in the browser, open Dev Tools and look at the Console. You should see logs from the fetch and axios calls. This means both calls worked as expected.
 
-<img src={consoleOutputFetchAxiosAjaxCalls} className="output-screenshots" />
+<img src={consoleOutputFetchAxiosAjaxCalls} className="output-screenshots" alt="screenshot of Dev Tools Console tab showing log of Fetch API and Axios AJAX call." />
 
 Now head over to the Application/Storage tab in the Dev Tools and you should also see the `token` HTTPOnly cookie. Awesome! Seems like our API script was successfully able to create this cookie using `res.cookie()`.
 
-<img src={devToolsHttponlyCookieSet} className="output-screenshots" />
+<img src={devToolsHttponlyCookieSet} className="output-screenshots" alt="screenshot of Dev Tools showing the 'token' HTTPOnly cookie." />
 
 Go ahead and refresh the page with the Dev Tools still open. Go to the Network tab. Analyse both the API requests that are sent from the browser specifically the Request Headers. Notice that the `Cookie` request header has been sent along with the request and it contains our `token` cookie. 
 
-<img src={devToolsCookieRequestHeader} className="output-screenshots" />
+<img src={devToolsCookieRequestHeader} className="output-screenshots" alt="screenshot of Dev Tools showing the 'Cookie' request header sent automatically in subsequent AJAX calls." />
 
 If you check out the server console, you should see the token cookie object printed as well. This confirms that not only are we able to set cookies, but it is also automatically being sent in every request from the browser to the API. Woo hoo!🎉
 
-<img src={serverConsoleReqCookies} className="output-screenshots" />
+<img src={serverConsoleReqCookies} className="output-screenshots" alt="screenshot of the server API console showing logs of req.cookies." />
 
 Hope this helps!🙏
