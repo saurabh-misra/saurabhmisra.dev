@@ -1,0 +1,141 @@
+---
+title: "How to show a localized skeleton UI while loading data in React Router"
+date: 2023-12-29
+slug: "/react-router-skeleton-ui"
+tags:
+  - React
+  - React Router
+  - Web Development
+description: "We can use defer, Await and React Suspense to show localized loading indicators or skeleton UIs or placeholder UIs while data is being loaded in a React Router application."
+---
+
+
+import bootstrapCardPlaceholder from "./assets/images/bootstrap-card-placeholder.jpg"
+import browserScreenshotDefaultPage from "./assets/images/browser-screenshot-default-page.jpg"
+import browserScreenshotHomePage from "./assets/images/browser-screenshot-home-page.jpg"
+import browserScreenshotSkeletonPageLoaded from "./assets/images/browser-screenshot-skeleton-page-loaded.jpg"
+import browserScreenshotSkeletonPageLoading from "./assets/images/browser-screenshot-skeleton-page-loading.jpg"
+
+I am sure you have used <a href="https://youtube.com/" target="_blank">Youtube</a> on your phone or in a browser. You must have noticed that for the initial couple of seconds, you see these gray-ish placeholder video thumbnails and then after those couple of seconds, they are replaced by the actual video thumbnail. 
+
+Such a UI is known as a skeleton UI and is extremely effective as a visual cue to indicate that the page is loading.
+
+As another example, see the screenshot below. This is a <a href="https://getbootstrap.com/docs/5.1/components/placeholders/#example" target="_blank">Card placedholder UI component provided by the popular CSS library Bootstrap</a>. We're going to use this Card component in this tutorial for implementing a skeleton UI.
+
+<img src={bootstrapCardPlaceholder} className="output-screenshots" alt="browser screenshot showing a Bootstrap Card and placeholder Card UI element." />
+
+By default, React Router does not render any UI unless the `loader()` finishes loading data. But it <a href="https://reactrouter.com/en/main/guides/deferred" target="_blank">provides options to workaround this default behaviour and render something while the data is loading</a>.
+
+**In this tutorial, we're going to workaround React Router's default `loader()` behaviour using React Router features `defer` and `Await` and React Suspense to show localized loading indicators or skeleton UIs or placeholder UIs while the data is being loaded.**
+
+>This tutorial assumes you have some basic knowledge of working with React Router.
+
+## Tutorial Project Setup
+
+We're going to build a two page web-app using React Router. The **Default page** will use the default loading behaviour of React Router and the **Skeleton page** will use localized skeleton UIs to indicate that the page content is loading. This will enable you to contrast both techniques.
+
+Go ahead and download or clone the tutorial project from <a href="https://github.com/saurabh-misra/react-router-skeleton-ui-tutorial" target="_blank">this github repo</a>.
+
+Once downloaded, open your terminal and `cd` into the root of the github repo folder. Next, run `npm i` to install dependencies namely React, React Router and Bootstrap. Once these dependencies are installed, run `npm run dev` to spin up the server on localhost. Go ahead and visit the localhost url in your browser.
+
+You should see the home page. Nothing to see here except the nav menu. 
+
+<img src={browserScreenshotHomePage} className="output-screenshots" alt="browser screenshot showing the tutorial Home page with nav links to the Default and Skeleton page." />
+
+Go ahead and click on the Default page. You won't see anything for a couple of seconds. After a couple of seconds, you'll see the heading and the Card component with data. 
+
+<img src={browserScreenshotDefaultPage} className="output-screenshots" alt="browser screenshot showing the Default page rendered after a couple of seconds." />
+
+The delay in rendering the Default page is because the `loader()` is *loading* data from the API and in the meantime, it doesn't render anything. Once the API returns a response, the `loader()` returns the data and begins rendering the route component `<DefaultComponent>`.
+
+Now go ahead and click on the Skeleton link in the nav menu. In this case, the UI changes immediately to show a placeholder skeleton Card component and after a couple of seconds you see the actual Card component with data. This is certainly much better UX as compared to the Default page.
+
+<img src={browserScreenshotSkeletonPageLoading} className="output-screenshots" alt="browser screenshot showing the Skeleton page loading data and showing a placedholder skeleton Card element in the meantime." />
+
+<br /><br />
+
+<img src={browserScreenshotSkeletonPageLoaded} className="output-screenshots" alt="browser screenshot showing the Skeleton page completed rendered and the skeleton Card UI element replaced by the actual data-hydrated Card UI element." />
+
+Lets go over the actual code used to implement this skeleton UI.
+
+## The default loading behavior
+
+This is the entire contents of the `/src/DefaultPage.jsx` route component. 
+
+```js title=/src/DefaultPage.jsx
+import { useLoaderData } from "react-router-dom";
+import Card from "./Card";
+import getData from "./api";
+
+export async function loader() {
+    return await getData();
+}
+
+export default function DefaultPage() {
+    const data = useLoaderData();
+
+    return (
+        <>
+            <div className="container mt-5">
+                <div className="row">
+                    <div className="col">
+                        <h1>Default Page</h1>
+                        <Card {...data} width="300px" />
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+}
+```
+
+When you visit the `/default` route, the `loader()` gets called. It invokes an API request but has to wait for the response because we have used an `await`. Till then, it does not render any UI. When the data arrives, the promise gets resolved and the `loader()` returns the resolved `data` and starts rendering the `<Card>` UI. This is why we don't see any changes in the UI and it appears like nothing is happening for a couple of seconds after we click on the Default Page nav link.
+
+## Implementing the skeleton UI
+
+This is the entire contents of the `SkeletonPage.jsx` component.
+
+```js title=/src/SkeletonPage.jsx highlight=8,20-26
+import React from "react";
+import { Await, defer, useLoaderData } from "react-router-dom";
+import Card from "./Card";
+import CardSkeleton from "./CardSkeleton";
+import getData from "./api";
+
+export function loader() {
+    return defer({ data: getData() })
+}
+
+export default function SkeletonPage() {
+    const { data } = useLoaderData();
+
+    return (
+        <>
+            <div className="container mt-5">
+                <div className="row">
+                    <div className="col">
+                        <h1>Skeleton Page</h1>
+                        <React.Suspense fallback={<CardSkeleton width="300px" /> }>
+                            <Await resolve={data} errorElement={<p>Error!</p>}>
+                                {
+                                    (data) => <Card {...data} width="300px" />
+                                }
+                            </Await>
+                        </React.Suspense>
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+}
+```
+
+Did you notice how we have used `defer()` to return a Promise from our `loader()` instead of a resolved value? Since the `loader()` doesn't wait for the API call to complete( or the promise to resolve ), it immediately returns and begins rendering the route component i.e. `<SkeletonPage>`.
+
+Inside the route component, we use the `fallback` attribute of `<React.Suspense>` to render the skeleton UI `<CardSkeleton>` component.
+
+When the Promise resolves, the `data` from the `loader()` response is used to render the actual `<Card>` component. If the Promise rejects, `<Await>` also provides a way to show an error UI element using the `errorElement` attribute.
+
+And that's all that there is to it!🤘
+
+Hope this helps!🙏
