@@ -11,10 +11,8 @@ description: "We can use defer, Await and React Suspense to show localized loadi
 
 
 import bootstrapCardPlaceholder from "./assets/images/bootstrap-card-placeholder.jpg"
-import browserScreenshotDefaultPage from "./assets/images/browser-screenshot-default-page.jpg"
-import browserScreenshotHomePage from "./assets/images/browser-screenshot-home-page.jpg"
-import browserScreenshotSkeletonPageLoaded from "./assets/images/browser-screenshot-skeleton-page-loaded.jpg"
-import browserScreenshotSkeletonPageLoading from "./assets/images/browser-screenshot-skeleton-page-loading.jpg"
+import browserScreencastDefaultPage from "./assets/images/browser-screencast-default-page.gif"
+import browserScreencastSkeletonPage from "./assets/images/browser-screencast-skeleton-page.gif"
 
 I am sure you have used <a href="https://youtube.com/" target="_blank">Youtube</a> on your phone or in a browser. You must have noticed that for the initial couple of seconds, you see these gray-ish placeholder video thumbnails and then after those couple of seconds, they are replaced by the actual video thumbnail. 
 
@@ -36,25 +34,17 @@ We're going to build a two page web-app using React Router. The **Default page**
 
 Go ahead and download or clone the tutorial project from <a href="https://github.com/saurabh-misra/react-router-skeleton-ui-tutorial" target="_blank">this github repo</a>.
 
-Once downloaded, open your terminal and `cd` into the root of the github repo folder. Next, run `npm i` to install dependencies namely React, React Router and Bootstrap. Once these dependencies are installed, run `npm run dev` to spin up the server on localhost. Go ahead and visit the localhost url in your browser.
+Once downloaded, open your terminal and `cd` into the root of the github repo folder. Next, run `npm i` to install dependencies namely React, React Router and Bootstrap. Once these dependencies are installed, run `npm run dev` to spin up the server on localhost.
 
-You should see the home page. Nothing to see here except the nav menu. 
+Go ahead and visit the localhost url in your browser. You should see the home page. Click on the Default page nav link. You won't see anything for a couple of seconds. After a couple of seconds, you'll see the heading and the Card component with data. 
 
-<img src={browserScreenshotHomePage} className="output-screenshots" alt="browser screenshot showing the tutorial Home page with nav links to the Default and Skeleton page." />
+<img src={browserScreencastDefaultPage} className="output-screenshots" alt="browser screenshot showing the Default page rendered after a couple of seconds." />
 
-Go ahead and click on the Default page. You won't see anything for a couple of seconds. After a couple of seconds, you'll see the heading and the Card component with data. 
-
-<img src={browserScreenshotDefaultPage} className="output-screenshots" alt="browser screenshot showing the Default page rendered after a couple of seconds." />
-
-The delay in rendering the Default page is because the `loader()` is *loading* data from the API and in the meantime, it doesn't render anything. Once the API returns a response, the `loader()` returns the data and begins rendering the route component `<DefaultComponent>`.
+The delay in rendering the Default page is because the `loader()` is *loading* data from the API and in the meantime, it doesn't render anything. Once the API returns a response, the `loader()` returns the data and begins rendering the route component `<DefaultPage />`.
 
 Now go ahead and click on the Skeleton link in the nav menu. In this case, the UI changes immediately to show a placeholder skeleton Card component and after a couple of seconds you see the actual Card component with data. This is certainly much better UX as compared to the Default page.
 
-<img src={browserScreenshotSkeletonPageLoading} className="output-screenshots" alt="browser screenshot showing the Skeleton page loading data and showing a placedholder skeleton Card element in the meantime." />
-
-<br /><br />
-
-<img src={browserScreenshotSkeletonPageLoaded} className="output-screenshots" alt="browser screenshot showing the Skeleton page completed rendered and the skeleton Card UI element replaced by the actual data-hydrated Card UI element." />
+<img src={browserScreencastSkeletonPage} className="output-screenshots" alt="browser screenshot showing the Skeleton page loading data and showing a placedholder skeleton Card element in the meantime." />
 
 Lets go over the actual code used to implement this skeleton UI.
 
@@ -62,7 +52,7 @@ Lets go over the actual code used to implement this skeleton UI.
 
 This is the entire contents of the `/src/DefaultPage.jsx` route component. 
 
-```js title=/src/DefaultPage.jsx
+```jsx title=/src/DefaultPage.jsx
 import { useLoaderData } from "react-router-dom";
 import Card from "./Card";
 import getData from "./api";
@@ -80,7 +70,7 @@ export default function DefaultPage() {
                 <div className="row">
                     <div className="col">
                         <h1>Default Page</h1>
-                        <Card {...data} width="300px" />
+                        <Card {...data} />
                     </div>
                 </div>
             </div>
@@ -95,7 +85,7 @@ When you visit the `/default` route, the `loader()` gets called. It invokes an A
 
 This is the entire contents of the `SkeletonPage.jsx` component.
 
-```js title=/src/SkeletonPage.jsx highlight=8,20-26
+```jsx title=/src/SkeletonPage.jsx highlight=8,20-26
 import React from "react";
 import { Await, defer, useLoaderData } from "react-router-dom";
 import Card from "./Card";
@@ -115,10 +105,10 @@ export default function SkeletonPage() {
                 <div className="row">
                     <div className="col">
                         <h1>Skeleton Page</h1>
-                        <React.Suspense fallback={<CardSkeleton width="300px" /> }>
+                        <React.Suspense fallback={ <CardSkeleton /> }>
                             <Await resolve={data} errorElement={<p>Error!</p>}>
                                 {
-                                    (data) => <Card {...data} width="300px" />
+                                    (data) => <Card {...data} />
                                 }
                             </Await>
                         </React.Suspense>
