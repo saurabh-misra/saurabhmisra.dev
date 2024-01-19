@@ -1,0 +1,154 @@
+---
+title: "How to show a splash screen on initial page load and reload in React Router"
+date: 2024-01-19
+slug: "/react-router-splash-screen"
+tags:
+  - React
+  - React Router
+  - Web Development
+description: "We can conditionally render `<RouterProvider />` or a Splash screen depending on whether the page is loading for the first time or reloading."
+---
+
+import splashScreen from "./assets/images/splash-screen.gif";
+import {Link} from 'gatsby';
+
+**In this post, we'll learn how to show a splash screen in a React and React Router app when the page initially loads and when it subsequently reloads.**
+
+A splash screen is just a simple page with a static or animated app logo and/or another loading indicator to indicate that the app is initializing. 
+
+A React Router app will mostly be built as an SPA or a Single Page Application so once the page loads, all route or page transitions *from within the app* will not actually reload the page but will simply render a different route or page component and React Router will take care of changing the URL accordingly.
+
+There are <Link to="/react-router-loading-indicators">several different ways to show loading indicators for such, *internal* route/page transitions</Link> but when the page is loaded for the first time or it reloads, we need to employ a different strategy.
+
+The way React Router works is that when the page loads initially or on reload, the `loader()` function for the current route gets invoked and if it involves doing something time-consuming like an HTTP AJAX call, then it takes some time for the `loader()` to finish processing and render the route component. Till then, React Router will not display anything and the browser window will just appear blank.
+
+This is the problem that this tutorial will help us find a solution to. Instead of displaying nothing in this situation, we'll display a simple splash screen to make sure that the user doesn't get confused about whether the app is loading properly or not. 
+
+This is the result of the code we're going to learn to write in this post.
+
+<img src={splashScreen} className="output-screenshots" alt="browser screencast showing a splash screen displaying when the page is reloaded." />
+
+
+You can download or clone the full code for this tutorial from <a href="https://github.com/saurabh-misra/react-router-splash-screen-tutorial/" target="_blank">this github repo</a>. Once you have the codebase, open your terminal and run `npm i` to install dependencies. After this, run `npm run dev` to start a localhost server.
+
+>This post assumes basic working knowledge of React and React Router.
+
+Lets look at the `/src/main.jsx` file. 
+
+```jsx title=/src/main.jsx highlight=17
+const router = createBrowserRouter([
+    {
+        path: "/",
+        element: <Root />,
+        children: [
+            {
+                path: "/",
+                element: <Home />,
+                loader: homeLoader
+            }
+        ]
+    }
+]);
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+    <React.StrictMode>
+        <App router={router} />
+    </React.StrictMode>,
+)
+```
+
+Normally, we'd have rendered `<RouterProvider />` directly in place of our `<App />` component but since we need to show a splash screen, we have included `<App />`.
+
+Before we look at `/src/App.jsx`, lets have a quick look at `/src/Root.jsx` and `/src/Home.jsx`.
+
+The `<Root />` route component will simply act as a parent route that will dump its child route components into `<Outlet />`.
+
+```jsx title=/src/Root.jsx
+export default function Root() {
+    return (
+        <>
+            <Outlet />
+        </>
+    );
+}
+```
+
+The `<Home />` route component has a `loader()` function that makes an API call to fetch data. Once the data is loaded, the `<Card />` component will be hydrated with `data` and will be rendered on screen.
+
+```jsx title=/src/Home.jsx highlight=2,6,14
+export async function loader() {
+    return await getData();
+}
+
+export default function Home() {
+    const data = useLoaderData();
+
+    return (
+        <>
+            <div className="container mt-5 text-start">
+                <div className="row">
+                    <div className="col">
+                        <h1>Home Page</h1>
+                        <Card {...data} />
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+}
+```
+
+## Splash Screen
+Open `/src/App.jsx`. This is where all the work happens related to showing and hiding the splash screen. Please go through the comments to understand what each line of code is doing.
+
+```jsx
+export default function App({ router }) {
+    const [showSplashScreen, setShowSplashScreen] = useState(true);
+
+    useEffect(() => {
+        /*
+        Since the `useNavigation()` hook is not available outside `<RouterProvider />`,
+        this component won't re-render automatically when the navigation state changes.
+        So we set up an interval that will keep checking whether the navigation state 
+        within `router` has changed.
+        */
+        const splashScreenInterval = setInterval(
+            () => {
+                /*
+                Normally, we'd be able to reference `navigation.state` directly using 
+                `useNavigation()`. But since we are outside `<RouterProvider />`, 
+                we only have the `router` object to provide us with the navigation state.
+                */
+                const navState = router.state.navigation.state;
+
+                /*
+                When the page loads initially or on reload, navState will be "loading". 
+                This is when we'll show the Splash Screen.
+                Once the `loader()` has completed its processing i.e. once the data is 
+                fetched from the API, `navState` will change from "loading" to "idle". 
+                This is when we'll hide the Splash Screen and render the actual page.
+                */
+                if( navState == "idle" ){
+                    // Hide the splash screen.
+                    setShowSplashScreen(false);
+                    clearInterval( splashScreenInterval )
+                }
+            }, 1000);
+
+        // cleanup in case of component unmount
+        () => clearInterval( splashScreenInterval );
+    }, []);
+
+    return (
+        <>
+            {
+                showSplashScreen ? <SplashScreen /> : <RouterProvider router={router} />
+            }
+        </>
+    );
+}
+```
+
+And that's pretty much it! Once data is fetched, the `<SplashScreen />` component will be unmounted and `<RouterProvider />` will be mounted and rendered and the page will be displayed.
+
+Hope this helps!🙏
