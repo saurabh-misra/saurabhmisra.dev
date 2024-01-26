@@ -1,0 +1,172 @@
+---
+title: "Two ways to reset scroll to top on every page transition in React Router"
+date: 2024-01-26
+slug: "/react-router-reset-scroll-page-transition"
+tags:
+  - React
+  - React Router
+  - Web Development
+description: "We can reset scroll either using `<ScrollRestoration />` or using `useLayoutEffect()` and `scrollTo()` within the parent route component."
+---
+
+import scrollNotResetAfterPageTransition from "./assets/images/scroll-not-reset-after-page-transition.gif";
+import scrollResetAfterPageTransition from "./assets/images/scroll-reset-after-page-transition.gif";
+import scrollRestorationPageTransition from "./assets/images/scroll-restoration-page-transition.gif";
+
+By default, in a React Router application, after a page transition, the scroll doesn't get reset meaning if the user had scrolled somewhere on the page before the page transition, then after the page transition, the page remains scrolled at the same position. 
+
+**In this post, we're going to learn how to reset scroll to the top of the page when a React Router app transitions to a new page.**
+
+You can download or clone the tutorial codebase from <a href="https://github.com/saurabh-misra/react-scroll-top-page-transition-tutorial" target="_blank">this github repo</a>. But its optional as the code snippets below will explain the most important aspects of the problem and its solution.
+
+In case you do want to follow along with the tutorial, after downloading or cloning it, run `npm i` in your terminal to install dependencies and then `npm run dev` to start a localhost server.
+
+>This tutorial assumes basic working knowledge of React and React Router. The tutorial also uses CSS classes and components from the Bootstrap library.
+
+The starter files will showcase the default React Router behaviour as seen in the below screencast. As you can see, the scroll does not get reset when the user clicks on the nav menu links in the footer.
+
+<img src={scrollNotResetAfterPageTransition} className="output-screenshots" alt="browser screencast showing how the scroll does not get reset when user transitions from one page to another." />
+
+Lets dive into the implementation for this default behaviour and then we'll fix the problem with the solution.
+
+There are two pages in this tutorial, `<SomePage />` and `<AnotherPage />`. Both display ten `<Card />` components but the former shows cards in blue whereas the latter shows those cards in green.
+
+Lets have a look at the `/src/main.jsx` file. The main purpose of this file is to define our routes.
+
+```jsx title=/src/main.jsx
+const router = createBrowserRouter([
+    {
+        path: "/",
+        element: <Root />,
+        children: [
+            {
+                path: "/",
+                element: <SomePage />
+            },
+            {
+                path: "/anotherpage",
+                element: <AnotherPage />
+            }
+        ]
+    }
+])
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <RouterProvider router={router} />
+  </React.StrictMode>,
+)
+```
+
+Now lets look at `/src/Root.jsx` file. The main purpose of this file is to dump child route components into `<Outlet />` and render a footer nav bar.
+
+```jsx title=/src/Root.jsx
+export default function Root() {    
+    return (
+        <>
+            <Outlet />
+            
+            { /* Footer */ }
+            <nav className="navbar navbar-expand-lg bg-body-tertiary">
+                <div className="container">
+                    <ul className="navbar-nav">
+                        <li className="nav-item">
+                            <Link to="/" className="nav-link">SomePage</Link>
+                        </li>
+                        <li className="nav-item">
+                            <Link to="/anotherpage" className="nav-link">AnotherPage</Link>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </>
+    );
+}
+```
+
+Here is the code for `/src/SomePage.jsx`.
+
+```jsx title=/src/SomePage.jsx
+export default function SomePage() {
+    const items = [1,2,3,4,5,6,7,8,9,10]
+    const cards = items.map( i => <Card cardNum={i} key={i} className="bg-primary-subtle" /> )
+
+    return (
+        <div className="container my-5">
+            <div className="row">
+                <div className="col">
+                    { cards }
+                </div>
+            </div>
+        </div>
+    );
+}
+```
+
+## Reset scroll using `<ScrollRestoration />`
+React Router provides a simple in-built way to restore scroll to its initial position on every page transition using the <a href="https://reactrouter.com/en/main/components/scroll-restoration" target="_blank">`<ScrollRestoration />`</a> component.
+
+Go ahead and add it in your `/src/Root.jsx` file.
+
+```jsx title=/src/Root.jsx highlight=1,12
+import { Link, Outlet, ScrollRestoration } from "react-router-dom";
+
+export default function Root() {
+    return (
+        <>
+            <Outlet />
+            
+            <nav className="navbar navbar-expand-lg bg-body-tertiary">
+                ...
+            </nav>
+
+            <ScrollRestoration />
+        </>
+    );
+}
+```
+
+This is the output after you make the above changes in your code:
+
+<img src={scrollRestorationPageTransition} className="output-screenshots" alt="browser screencast showing how ScrollRestoration resets scrolls to top of the page when user transitions from one page to another." />
+
+## Reset scroll using `useLayoutEffect()` and `scrollTo()`
+While the first approach is much simpler, there may be situations where you do not want the user to see the scroll animation and instead just want the page to scroll to top instantly. This is where this approach comes in handy.
+
+In order to reset scroll, we need to use the hook <a href="https://react.dev/reference/react/useLayoutEffect" target="_blank">`useLayoutEffect()`</a>. We'll also use the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollTo" target="_blank">`scrollTo()`</a> method to scroll to the top of the page and pass the value `"instant"` to the `behaviour` option to make the scroll animation unnoticeable, much in the same way as it'd happen if this was an actual server-rendered page transition.
+
+>Please note that we are using `useLayoutEffect()` and not `useEffect()` because we want to reset the scroll position before the new page gets rendered. 
+
+Go ahead and add the highlighted code into your `/src/Root.jsx` file.
+
+```jsx title=/src/Root.jsx highlight=1-2,5,7-10
+import { useLayoutEffect } from "react";
+import { Link, Outlet, useLocation } from "react-router-dom";
+
+export default function Root() {
+    const location = useLocation();
+
+    // scroll to top of page after a page transition.
+    useLayoutEffect(() => {
+        document.documentElement.scrollTo({ top:0, left:0, behavior: "instant" });
+    }, [location.pathname]);
+    
+    return (
+        <>
+            <Outlet />
+            
+            <nav className="navbar navbar-expand-lg bg-body-tertiary">
+                ...
+            </nav>
+        </>
+    );
+}
+```
+
+The output of these changes will look like this:
+
+<img src={scrollResetAfterPageTransition} className="output-screenshots" alt="browser screencast showing how the scroll does get reset after our changes when user transitions from one page to another." />
+
+As you can see, clicking on the page links resets the scroll and displays the top of the page being transitioned to without any animations.
+
+Hope this helps!🙏
