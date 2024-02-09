@@ -97,7 +97,7 @@ Also note that the navbar in this case is not fixed which is why it gets scrolle
 
 Lets look at the code of the `<ScrollIntoView />` page component.
 
-```jsx title=/src/ScrollIntoView.jsx
+```jsx title=/src/ScrollIntoView.jsx highlight=6-7,16,20-25
 import { useEffect, useRef } from "react";
 import Card from "./Card";
 
@@ -152,7 +152,7 @@ This happens because `scrollIntoView()` does not consider the fact that a certai
 
 This is where `scrollTo()` comes into play. Let see how we can use it to resolve this issue.
 
-## Using `window.scrollTo()` with fixed NavBar
+## Using `useRef()` and `window.scrollTo()` with fixed NavBar
 
 Click on the third nav bar link named "ScrollTo". You'll notice that even though the page has a fixed nav bar, the page still smoothly scrolls and positions card #5 perfectly just below the nav bar. 
 
@@ -160,7 +160,7 @@ Click on the third nav bar link named "ScrollTo". You'll notice that even though
 
 Lets see the code for this in `/src/ScrollTo.jsx`.
 
-```jsx title=/src/ScrollTo.jsx
+```jsx title=/src/ScrollTo.jsx highlight=20-30
 import { useEffect, useRef } from "react";
 import Card from "./Card";
 
