@@ -1,0 +1,224 @@
+---
+title: "How to automatically scroll to an element in React"
+date: 2024-02-09
+slug: "/react-auto-scroll-to-element"
+tags:
+  - React
+  - Web Development
+description: "Auto scrolling in React can be achieved using `useRef()` with the `scrollIntoView()` method or with the `window.scrollTo()` method."
+---
+
+import scrollIntoView from "./assets/images/scroll-into-view.gif";
+import scrollIntoViewWithNavbar from "./assets/images/scroll-into-view-with-navbar.gif";
+import scrollTo from "./assets/images/scroll-to.gif";
+
+**In this post, we're going to look at two different approaches for automatically scrolling to an element in React. We'll also look at how to handle scrolling when the page has a fixed DOM element like a nav bar.**
+
+>This tutorial assumes basic working knowledge of React. The tutorial also uses CSS classes and components from the <a href="https://getbootstrap.com/" target="_blank">Bootstrap</a> library.
+
+There are two different ways to achieve automatic scrolling:
+
+1. Using `useRef()` and <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView" target="_blank">`scrollIntoView()`</a>.
+2. Using `useRef()`, <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo" target="_blank">`window.scrollTo()`</a> and <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect" target="_blank">`getBoundingClientRect()`</a>.
+
+## Tutorial Project Setup
+Download or clone the tutorial codebase from <a href="https://github.com/saurabh-misra/react-auto-scroll-to-element-tutorial" target="_blank">this github repo</a>. Once you have it locally, open your terminal and run `npm i` to install dependencies and then `npm run dev` to start a localhost server. Visit the localhost URL to view the solution in action.
+
+We'll go over some of the boilerplate code from the codebase and get it out of the way before we proceed to examining the specific solutions for scrolling.
+
+We have an `App.jsx` file that does some basic routing and renders our pages. It also displays a navigation bar with links to pages that demonstrate our solutions for automatic scrolling.
+
+```jsx title=/src/App.jsx
+import { useRef } from "react";
+import ScrollIntoView from './ScrollIntoView';
+import ScrollIntoViewNavbar from './ScrollIntoViewNavbar';
+import ScrollTo from './ScrollTo';
+
+export default function App() {
+    const navbarRef = useRef( null );
+
+    // conditionally display pages based on the URL path
+    let page = <ScrollIntoView />;
+    let fixedNavbar = false;
+    if( location.pathname == "/scrollintoviewnavbar" ) {
+        page = <ScrollIntoViewNavbar />;
+        fixedNavbar = true;
+    } else if ( location.pathname == "/scrollto" ) {
+        page = <ScrollTo navbarRef={navbarRef} />;
+        fixedNavbar = true;
+    }
+
+    return (
+        <>
+            <nav ref={navbarRef} className={`${ fixedNavbar && "sticky-top"} navbar navbar-expand-lg bg-body-tertiary`}>
+                <div className="container">
+                    <ul className="navbar-nav">
+                        <li className="nav-item">
+                            <a href="/" className="nav-link">
+                                ScrollIntoView
+                            </a>
+                        </li>
+                        <li className="nav-item">
+                            <a href="/scrollintoviewnavbar" className="nav-link">
+                                ScrollIntoView+FixedNavbar
+                            </a>
+                        </li>
+                        <li className="nav-item">
+                            <a href="/scrollto" className="nav-link">
+                                ScrollTo
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            { page }
+        </>
+    );
+}
+```
+
+You'll notice the nav bar has links to three pages: 
+1. The "ScrollIntoView" nav bar link opens the localhost root ( "/" ) which renders the `<ScrollIntoView />` component. This page will demonstrate our scrolling solution using `scrollIntoView()` and a nav bar which is not fixed.
+2. The "ScrollIntoView+FixedNavbar" nav bar link opens `/scrollintoviewnavbar` page which renders the `<ScrollIntoViewNavbar />` component. This page will demonstrate the same scrolling solution using `scrollIntoView()` as the first page but with a fixed nav bar.
+3. Lastly, the "ScrollTo" nav bar link opens `/scrollto` page which renders the `<ScrollTo />` component. This page will demonstrate our scrolling solution using `window.scrollTo()` and `getBoundingClientRect()` and a fixed navbar.
+
+Each of these three pages render ten `<Card />` components one below the other. Each page has a script that automatically scrolls the page to card #5.
+
+Lets look at each of these pages and how the automatic scrolling is implemented and works within each of them.
+
+## Using `useRef()` and `scrollIntoView()`
+
+If you visit the localhost root or click on the first nav menu link "ScrollIntoView", you'll notice that the page loads and smoothly scrolls to card #5 and positions it perfectly at the top of the browser window.
+
+Also note that the navbar in this case is not fixed which is why it gets scrolled up out of view.
+
+<img src={scrollIntoView} className="output-screenshots" alt="browser screencast showing how scrollIntoView() automatically scrolls the page on page load." />
+
+Lets look at the code of the `<ScrollIntoView />` page component.
+
+```jsx title=/src/ScrollIntoView.jsx
+import { useEffect, useRef } from "react";
+import Card from "./Card";
+
+export default function ScrollIntoView() {
+    // create a `ref` to the Card component to which we want to scroll to.
+    const scrollToRef = useRef( null );
+    const scrollToCardNum = 5;
+
+    // Create an array of Card components
+    const items = [1,2,3,4,5,6,7,8,9,10]
+    const cards = items.map( i => (
+        <Card cardNum={i} key={i} 
+            className="bg-primary-subtle"
+            // If we should scroll to this card component, 
+            // then pass `scrollToRef` else pass `null`  
+            ref={ i === scrollToCardNum ? scrollToRef : null } 
+        />
+    ));
+    
+    useEffect( () => {
+        // If `scrollToRef` points to an element, then scroll it into view.
+        if( scrollToRef.current ) {
+            scrollToRef.current.scrollIntoView();
+        }
+    }, []);
+
+    return (
+        <div className="container my-5">
+            <div className="row">
+                <div className="col">
+                    {cards}
+                </div>
+            </div>
+        </div>
+    );
+}
+```
+
+The basic idea here is that we create a `ref` named `scrollToRef` and we identify the 5th `<Card />` component as the one we want to scroll to. So we pass it this `ref` and then in a `useEffect()`, we use `scrollIntoView()` to scroll to that component. Pretty straight-forward!
+
+>Did you notice we passed `scrollToRef` to `<Card />` using the `ref` prop even though `ref`s cannot be assigned to custom components? We're able to do this because we wrapped the `<Card />` component definition with a <a href="https://react.dev/reference/react/forwardRef" target="_blank">`forwardRef()`</a>. 
+
+### Fixed nav bar issue
+
+Now lets see how this same solution fares when there is a fixed Nav Bar on the page.
+
+Click on the second nav bar link named "ScrollIntoView+FixedNavbar". You'll notice that the page loads and again smoothly scrolls to card #5 but in this case, the card does not seem to be properly positioned. Some portion of the card goes under the nav bar.
+
+<img src={scrollIntoViewWithNavbar} className="output-screenshots" alt="browser screencast showing how scrollIntoView() automatically scrolls the page but the element being scrolled to goes under the fixed navigation bar." />
+
+This happens because `scrollIntoView()` does not consider the fact that a certain portion of the page is not being scrolled and scrolls "too far". We need to be able to customize or have more control over the scroll distance. 
+
+This is where `scrollTo()` comes into play. Let see how we can use it to resolve this issue.
+
+## Using `window.scrollTo()` with fixed NavBar
+
+Click on the third nav bar link named "ScrollTo". You'll notice that even though the page has a fixed nav bar, the page still smoothly scrolls and positions card #5 perfectly just below the nav bar. 
+
+<img src={scrollTo} className="output-screenshots" alt="browser screencast showing how scrollIntoView() automatically scrolls the page but the element being scrolled to goes under the fixed navigation bar." />
+
+Lets see the code for this in `/src/ScrollTo.jsx`.
+
+```jsx title=/src/ScrollTo.jsx
+import { useEffect, useRef } from "react";
+import Card from "./Card";
+
+export default function ScrollTo({ navbarRef }) {
+    // create a `ref` to the Card component to which we want to scroll to.
+    const scrollToRef = useRef( null );
+    const scrollToCardNum = 5;
+
+    // Create an array of Card components
+    const items = [1,2,3,4,5,6,7,8,9,10];
+    const cards = items.map( i => (
+        <Card cardNum={i} key={i} 
+            className="bg-primary-subtle"  
+            // If we should scroll to this card component, 
+            // then pass `scrollToRef` else pass `null`  
+            ref={ i === scrollToCardNum ? scrollToRef : null } 
+        />
+    ));
+
+    useEffect( () => {
+        // If `scrollToRef` points to an element, then scroll it into view.
+        if( scrollToRef.current ) {
+            // Get the height of the fixed nav bar.
+            const navbarHeight = navbarRef.current.getBoundingClientRect().height;
+            // Calculate the distance to be scrolled.
+            const scrollPosY = scrollToRef.current.getBoundingClientRect().top - navbarHeight;
+            // scroll away!
+            window.scrollTo( 0, scrollPosY );            
+        }
+    }, []);
+
+    return (
+        <div className="container my-5">
+            <div className="row">
+                <div className="col">
+                    {cards}
+                </div>
+            </div>
+        </div>
+    );
+}
+```
+
+The only change here is that we are calculating the distance to be scrolled. This calculation takes into account the top position of card #5 and the navbar height. 
+
+The method <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect" target="_blank">`getBoundingClientRect()`</a> calculates various positional parameters for the element in question and `top` is one of them. This gives the distance in pixels between the top of the page and the top edge of the card. 
+
+Remember in the previous section with the fixed nav bar where we mentioned that `scrollIntoView()` scrolls "too far". This is why in this solution, we subtract the navbar height from the total distance to be scrolled so that `scrollTo()` doesn't scroll "too far".
+
+---
+
+## Summary
+
+There are two approaches to automatically scroll to an element on the page in React.
+
+1. Using `useRef()` and <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView" target="_blank">`scrollIntoView()`</a>.
+2. Using `useRef()`, <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo" target="_blank">`window.scrollTo()`</a> and <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect" target="_blank">`getBoundingClientRect()`</a>.
+
+You can use the first method if there is no fixed nav bar on the page. If there is a fixed nav bar then you should use the second approach.
+
+Hope this helps!🙏
