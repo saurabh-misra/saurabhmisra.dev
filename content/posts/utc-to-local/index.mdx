@@ -1,0 +1,91 @@
+---
+title: "Convert datetime from UTC to local timezone using Vanilla JavaScript, Day.js and Luxon"
+date: 2024-03-01
+slug: "/datetime-utc-to-local-timezone"
+tags:
+  - Web Development
+  - Day.js
+  - Luxon
+description: "We'll look at three different approaches to change a date in UTC to any local timezone using Vanilla JavaScript, Day.js and Luxon."
+---
+
+A very common scenario we face when working with modern web applications is to convert <a href="https://en.wikipedia.org/wiki/UTC%2B00:00" target="_blank">UTC datetime values</a> coming from the server in <a href="https://en.wikipedia.org/wiki/ISO_8601" target="_blank">ISO 8601 format</a> into local datetime values and then changing it back to UTC ISO-8601 while sending data back to the server.
+
+In this article, we'll look at three different approaches to convert datetime values from UTC to local and vice versa using Vanilla JavaScript or by using popular libraries such as <a href="https://day.js.org/" target="_blank">Day.js</a> and <a href="https://moment.github.io/luxon/#/" target="_blank">Luxon</a>.
+
+## Convert UTC to local and vice-versa using Vanilla JavaScript
+
+We can use the constructor `new Date()` to convert a UTC datetime value in ISO 8601 format into a local timezone datetime value and `.toISOString()` to convert a local datetime value to a UTC string.
+
+```js
+/* UTC TO LOCAL */
+var strUTC = ( new Date() ).toISOString();
+console.log( strUTC ); // 2024-03-01T17:57:50.646Z
+var datetimeLocal = new Date( strUTC );
+console.log( datetimeLocal.toLocaleString() ); // 1/3/2024, 11:27:50 pm
+
+/* LOCAL TO UTC */
+var datetimeLocal = new Date();
+console.log( datetimeLocal.toLocaleString() ); // 1/3/2024, 11:27:50 pm
+var strUTC = datetimeLocal.toISOString();
+console.log( strUTC ); // 2024-03-01T17:57:50.646Z
+```
+
+There are some potential disadvantages to using this approach as discussed in the comments of this <a href="https://stackoverflow.com/a/6525602/1932141" target="_blank">SO answer</a>. Basically, the `new Date()` constructor behaves differently across different browser implementations.
+
+## Convert UTC to local and vice-versa using Day.js
+
+With Day.js, we can convert a UTC datetime value to local using the <a href="https://day.js.org/docs/en/manipulate/local" target="_blank">`local()`</a> method. For converting a local datetime value to UTC, we can use the <a href="https://day.js.org/docs/en/manipulate/utc" target="_blank">`utc()`</a> method. Both these methods use the `utc` plugin.
+
+Day.js also exposes the <a href="https://day.js.org/docs/en/display/as-iso-string" target="_blank">`toISOString()`</a> method that provides a quick alternative to convert a local datetime value to a ISO-8601 UTC datetime string.
+
+```js
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
+
+/* UTC TO LOCAL */
+var datetimeUTC = dayjs().utc();
+console.log( datetimeUTC.format() ); // 2024-03-01T13:42:51Z
+var datetimeLocal = datetimeUTC.local();
+console.log( datetimeLocal.format() ); // 2024-03-01T19:12:51+05:30
+
+/* LOCAL TO UTC */
+var datetimeLocal = dayjs();
+console.log( datetimeLocal.format() ); // 2024-03-01T19:22:47+05:30
+console.log( datetimeLocal.toISOString() ); // 2024-03-01T13:52:47.082Z
+var datetimeUTC = datetimeLocal.utc();
+console.log( datetimeUTC.format() ); // 2024-03-01T13:52:47Z
+```
+
+## Convert UTC to local and vice-versa using Luxon
+
+With Luxon, we can convert a UTC datetime value to local using the <a href="https://moment.github.io/luxon/#/tour?id=time-zones" target="_blank">`toLocal()`</a> method. For converting a local datetime value to UTC, we can use the <a href="https://moment.github.io/luxon/#/tour?id=time-zones" target="_blank">`toUTC()`</a> method.
+
+Luxon also exposes the <a href="https://moment.github.io/luxon/#/formatting?id=iso-8601" target="_blank">`toISO()`</a> method that formats the datetime value into an ISO 8601 string.
+
+```js
+import { DateTime } from "luxon";
+
+/* UTC TO LOCAL */
+var datetimeUTC = DateTime.utc();
+console.log( datetimeUTC.toISO() ); // 2024-03-01T14:04:38.363Z
+var datetimeLocal = datetimeUTC.toLocal();
+console.log( datetimeLocal.toISO() ); // 2024-03-01T19:34:38.363+05:30
+
+/* LOCAL TO UTC */
+var datetimeLocal = DateTime.local();
+console.log( datetimeLocal.toISO() ); // 2024-03-01T19:34:38.363+05:30
+var datetimeUTC = datetimeLocal.toUTC();
+console.log( datetimeUTC.toISO() ); // 2024-03-01T14:04:38.363Z
+```
+
+## What about Moment.js?
+The official Moment.js site recommends using other libraries like Luxon and Day.js for new projects because of various reasons which is why I have not included snippets that use Moment.js.
+
+## Summary
+
+This tutorial explains how we can convert a UTC datetime value to local and vice-versa using either vanilla JavaScript or populat libraries like Luxon and Day.js. You can choose one that best suits your project requirements.
+
+Hope this helps!🙏

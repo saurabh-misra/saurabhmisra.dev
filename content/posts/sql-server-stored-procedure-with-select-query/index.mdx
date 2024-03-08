@@ -1,0 +1,132 @@
+---
+title: "How to execute a stored procedure for each record returned by a SELECT query"
+date: 2024-03-08
+slug: "/sql-server-stored-procedure-with-select-query"
+tags:
+  - SQL Server
+description: "We can use CURSORS and sp_executesql to run a stored procedure for each record in a result set returned by a SELECT query."
+---
+
+import todoListsAndTodos from "./assets/images/todo_lists_and_todos.jpg"
+
+While it is pretty common to use SQL Server Functions within a SELECT clause, using Stored Procedures directly within a SELECT clause is not possible.
+
+**In this tutorial, we're going to look at two ways to run a stored procedure for each record in a result set returned by a SELECT query.**
+
+The two ways we're going to discuss are:
+1. Using <a href="https://learn.microsoft.com/en-us/sql/relational-databases/cursors?view=sql-server-ver16" target="_blank">Cursors</a>
+2. Using <a href="https://learn.microsoft.com/en-us/sql/relational-databases/system-stored-procedures/sp-executesql-transact-sql?view=sql-server-ver16" target="_blank">`sp_executesql`</a>
+
+## Tutorial Setup
+
+For this tutorial, we're going to setup two tables `tbl_todo_lists` and `tbl_todos`. We'll insert some dummy records in both these tables.
+
+Here is the SQL script for the setup. 
+
+```sql
+CREATE TABLE tbl_todo_lists(
+    id INT IDENTITY( 1, 1 ) PRIMARY KEY,
+    name NVARCHAR(100) NOT NULL,
+    created_at datetime NOT NULL DEFAULT( GETDATE() )
+);
+
+CREATE TABLE tbl_todos(
+    id INT IDENTITY( 1, 1 ) PRIMARY KEY,
+    content NVARCHAR(500) NOT NULL,
+    todo_list_id INT NULL FOREIGN KEY REFERENCES tbl_todo_lists( id ),
+    created_at datetime NOT NULL DEFAULT( GETDATE() )
+);
+
+INSERT INTO tbl_todo_lists( name ) VALUES( 'Personal' );
+INSERT INTO tbl_todo_lists( name ) VALUES( 'Work' );
+
+INSERT INTO tbl_todos( content, todo_list_id ) VALUES( 'Fetch groceries', 1 );
+INSERT INTO tbl_todos( content, todo_list_id ) VALUES( 'Call Arpita', 1 );
+INSERT INTO tbl_todos( content, todo_list_id ) VALUES( 'Pay Electricity bill', 1 );
+INSERT INTO tbl_todos( content, todo_list_id ) VALUES( 'Publish book', 2 );
+INSERT INTO tbl_todos( content, todo_list_id ) VALUES( 'Upload youtube video', 2 );
+INSERT INTO tbl_todos( content, todo_list_id ) VALUES( 'Record podcast', 2 );
+INSERT INTO tbl_todos( content, todo_list_id ) VALUES( 'Draft business plan', 2 );
+```
+
+We'll also create a Stored Procedure named `usp_delete_todo` which we'll later use for demonstrating our solutions. 
+
+```sql
+CREATE PROC usp_delete_todo
+    @p_id INT
+AS
+BEGIN
+    DELETE FROM tbl_todos WHERE id = @p_id;
+END
+```
+
+If you select all records from both tables, you should see something like this:
+
+<img src={todoListsAndTodos} alt="screenshot of the SQL Server GUI client showing all records in the two tables: tbl_todo_lists and tbl_todos." />
+
+Now our intention will be to construct a query to delete all todos in the "Personal" todo list with ID "1". Since we already have the SP `usp_delete_todo`, we'd preferrably like to run that SP for each todo that needs to be deleted. 
+
+>If you're wondering why we are using an SP for deleting todos when all that the SP is doing is executing a single DELETE statement, then please remember that this SP is for demo purposes only. In real-life scenarios, such SPs will have much more business logic like updating or deleting records from other tables and executing other SPs, etc. So all your business logic related to deleting todos will be encapsulated within this SP and you'd prefer to call this SP whenever the need arises for deleting a todo so you don't have to duplicate this logic anywhere else.
+
+## Using Cursors
+
+Using cursors, we'll initialize the cursor and associate it with the query. This query will select all records from the "Personal" todo list and will return the todo IDs for each of them. The Cursor will then loop through each record and execute the SP within each iteration passing it the todo ID.
+
+```sql
+DECLARE @todo_id INT;
+
+DECLARE todoCursor CURSOR FORWARD_ONLY FOR
+SELECT id FROM tbl_todos WHERE todo_list_id = 1;
+
+OPEN todoCursor;
+FETCH NEXT FROM todoCursor INTO @todo_id;
+WHILE @@FETCH_STATUS = 0 BEGIN
+    EXECUTE usp_delete_todo @todo_id;
+    FETCH NEXT FROM todoCursor INTO @todo_id;
+END;
+
+CLOSE todoCursor;
+DEALLOCATE todoCursor;
+```
+
+The only downside to this approach is that cursors have a bad reputation with being slow performing. It is not always the case and plenty of times using Cursors can prove quite practical and more performant than other solutions. But this is just something to keep in mind while implementing this approach.
+
+## Using `sp_executesql`
+
+In this approach, we'll piece together a string comprising of multiple `EXEC` SQL statements. Each SQL statement will correspond to a record in the SELECT clause. After all statements have been included in the string, we'll pass that string as an input to the `sp_executesql` stored procedure which will parse the string and execute the SQL statements contained within it.
+
+```sql
+DECLARE @deleteQuery NVARCHAR(4000) = '';
+SELECT 
+    @deleteQuery = CONCAT( 
+        @deleteQuery, 
+        'EXEC usp_delete_todo @p_id=' + CAST( id AS VARCHAR(10) ) + ';' 
+    )
+FROM
+    tbl_todos
+WHERE
+    todo_list_id = 1;
+
+EXEC sp_executesql @deleteQuery;
+```
+
+In the above example, `@deleteQuery` will finally have a value of:
+
+```
+"EXEC usp_delete_todo @p_id=1;EXEC usp_delete_todo @p_id=2;EXEC usp_delete_todo @p_id=3;"
+```
+
+The `sp_executesql` statement will execute all `EXEC` statements in this string one-by-one.
+
+Though this approach is simpler than the previous one, it is recommended to only use this when the input arguments to the SP are sourced internally and not from user inputs because with user inputs, there is the possibility of this query being misused in a SQL Injection attack. But in our case, since the only input argument to the SP is a todo ID and it is sourced internally, we're safe and good to go.
+
+## Summary
+
+While we cannot directly execute a stored procedure for every record in a result set returned by a SELECT query, we do have other options that can help us achieve similar results. They are:
+
+1. Using <a href="https://learn.microsoft.com/en-us/sql/relational-databases/cursors?view=sql-server-ver16" target="_blank">Cursors</a>
+2. Using <a href="https://learn.microsoft.com/en-us/sql/relational-databases/system-stored-procedures/sp-executesql-transact-sql?view=sql-server-ver16" target="_blank">`sp_executesql`</a>
+
+---
+
+Hope this helps!🙏
