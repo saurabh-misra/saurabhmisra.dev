@@ -1,0 +1,85 @@
+---
+title: "Infinite Scrolling in React | Social Media Feed UI"
+date: 2024-03-15
+slug: "/react-infinite-scroll"
+tags:
+  - React
+  - Web Development
+description: "We'll use a third-party library called 'react-infinite-scroll-component' to achieve infinite scrolling in React."
+---
+
+import infiniteScrolling from "./assets/images/infinite-scrolling.gif";
+
+**In this tutorial, we'll learn how to implement Infinite Scrolling or a Social Media Feed like UI in React using a third-party library called <a href="https://github.com/ankeetmaini/react-infinite-scroll-component" target="_blank">"react-infinite-scroll-component"</a>.**
+
+You can download or clone the completed code for this tutorial from <a href="https://github.com/saurabh-misra/react-infinite-scroll" target="_blank">this github repo</a>. In your terminal, `cd` into the tutorial directory and run `npm i` followed by `npm run dev` which should start a localhost web server. If you visit the localhost URL, you'll see this output.
+
+<img src={infiniteScrolling} className="output-screenshots" alt="browser screencast showing infinite scrolling of Card elements." />
+
+Lets look at the code to understand how to implement this. Open `/src/App.jsx` in your code editor.
+
+```jsx
+import { useState } from "react";
+import InfiniteScroll from "react-infinite-scroll-component";
+
+export default function App() {
+    const [ data, setData ] = useState( [1,2,3,4,5,6,7,8,9,10] );
+    const MAX_DATA = 30;
+    const hasMore = data.length < MAX_DATA;
+
+    function fetchData( limit=10 ){
+        const start = data.length + 1;
+        const end = (data.length + limit) >= MAX_DATA 
+                    ? MAX_DATA 
+                    : (data.length + limit);
+        let newData = [ ...data ];
+        
+        for( var i = start ; i <= end ; i++ ) {
+            newData = [ ...newData, i ];
+        }
+    
+        // fake delay to simulate a time-consuming network request
+        setTimeout( () => setData( newData ), 1500 );
+    }
+
+    return (
+        <InfiniteScroll
+            dataLength={ data.length }
+            next={fetchData}
+            hasMore={hasMore}
+            loader={<p className="text-center m-5">⏳&nbsp;Loading...</p>}
+            endMessage={<p className="text-center m-5">That&apos;s all folks!🐰🥕</p>}
+            style={{ overflow: "visible" }}
+            >
+            {
+                data.map( d => (
+                    <div className="card mb-4" key={d} style={{width: "18rem", margin: "auto"}}>
+                        <div className="card-header">Card#{d}</div>
+                        <div className="card-body">Lorem ipsum dolor sit amet</div>
+                    </div>
+                ))
+            }
+        </InfiniteScroll>
+    )
+}
+```
+
+We use the `<InfiniteScroll />` component from the "react-infinite-scroll-component" library. It has various props that help customize the behaviour according to our needs. 
+
+The `dataLength` prop takes a value for the number of items within the scroll component.
+
+The `next` prop is a function reference which is invoked to fetch the next set of data when the scrolling happens.
+
+The `hasMore` prop takes a boolean value and determines whether there is a next set of data available. If yes then the function reference in the `next` prop will be invoked when the scrolling happens otherwise the element in the prop `endMessage` will be displayed.
+
+The `loader` prop is a loading indicator element that is displayed while the next set of data is being fetched.
+
+The `endMessage` prop represents an element that is displayed when the scrolling reaches its end and there are no more items to display.
+
+In the above example, we start with an initial list of 10 items ( the numbers 1 to 10 ). We define a function `fetchData()` which generates future sets of data when scrolling happens. We also define a limit, `MAX_DATA`, of 30 items so that the list cannot scroll beyond that point. 
+
+Within the `<InfiniteScroll />` component, we `map()` through the array of items and render a list of Card elements.
+
+And that's it! As you can see, the library makes it pretty simple and straight-forward to implement infinite scrolling in React.
+
+Hope this helps!🙏
