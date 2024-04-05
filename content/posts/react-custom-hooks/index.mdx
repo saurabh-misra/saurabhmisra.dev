@@ -1,0 +1,254 @@
+---
+title: "Custom Hooks in React | How and when to use them?"
+date: 2024-04-05
+slug: "/react-custom-hooks-tutorial"
+tags:
+  - React
+  - Web Development
+description: "Custom Hooks are special functions in React that can call built-in hooks just like a React Component and can help with the abstraction of related logic into their own modules."
+---
+
+If you have worked on a decently sized React project recently, you might have come across components that look like this:
+
+```jsx
+export default function SomeComponent({ ... }) {
+    const [state1, setState1] = useState( "" );
+    const [state2, setState2] = useState( "" );
+    const [state3, setState4] = useState( "" );
+
+    useEffect( () => {
+        // do stuff
+    }, []);
+
+    function handleButtonClick(){
+        // do stuff
+    }
+
+    function handleInputChange(){
+        // do stuff
+    }
+
+    // ...
+    // more event handlers and useEffect() calls
+    // ...
+
+    return (
+        <>
+            ...
+        </>
+    )
+}
+```
+
+There are two problems here. First, a lot of complex logic is strewn around in this component i.e. this component seems to be managing too many things. The other problem is that of readability mainly because the `render()` function is buried beneath the pile of event handlers and built-in hooks.
+
+Also, in case any of this logic needs to be used else where i.e. in some other component then we'll have a third problem in our hands which is of "reusability". Since the logic is coupled with the component's state, we have no other option but to duplicate it in the other component.
+
+Don't worry! Custom hooks come to the rescue!
+
+## What are Custom Hooks?
+Fundamentally, Custom Hooks are just normal JavaScript functions but within React, they are "special". Custom hooks can do everything that a component can except they don't return JSX. They can call all built-in hooks like `useState()`, `useEffect()`, etc. just like components. They can even call other custom hooks.
+
+This makes Custom hooks the perfect option for encapsulating complex logic and abstracting it out of components so that components are only concerned with rendering JSX as much as possible.
+
+So Custom Hooks help us achieve separation of concerns, readability and reusability.🔥💯
+
+## How to use Custom Hooks
+Custom Hooks have an important naming convention which is to prefix the keyword `use` before the function name followed by a capital letter. So we can create custom hooks named like for example `useFetch()`, `useLocalStorage()`, so on and so forth.
+
+The pseudocode below illustrates the typical format for a custom hook and as you can tell, it is basically just the same as any JavaScript function. Best practice dictates that you create a separate file for each hook and name it the same as the custom hook name( just like components ). So here we'll create a new file called `useCustomHook.js` and within that we'll define a hook called `useCustomHook()`. The input arguments to the custom hook are a good way to provide initial values to the state variables within the custom hook. Inside the custom hook, we'll have stateful logic, `useEffect()` calls, other built-in and custom hooks, etc. Finally we can return something from the custom hook which is entirely optional but is a good way to expose only those state variables or event handlers that a component may need.
+
+```js title=useCustomHook.js
+export default function useCustomHook( /* initial state values */ ){
+    /*
+    LOGIC goes here... 
+    This includes built-in hooks, custom hooks, useEffect() calls and more
+    */
+
+    // `something` could be a simple variable, array of values or an object containing
+    // state variables, event handlers, etc.
+    // Returning a value from a custom hook is completely optional.
+    return something; 
+}
+```
+
+And then we can use this custom hook in a component like this:
+
+```js title=MyComponent.jsx
+import useCustomHook from './useCustomHook';
+
+export default function MyComponent(){
+    const something = useCustomHook();
+}
+```
+
+Keep in mind that a custom hook must be PURE i.e. it should always produce the same output for the same set of state and prop values(just like components).
+
+## When to use Custom Hooks?
+
+Custom Hooks are best-suited for encapsulating and abstracting complex and duplicate logic out of components and making that logic reusable across other components.
+
+The most common use-case for custom hooks is encapsulating stateful logic and `useEffect()` calls. In fact, it is <a href="https://react.dev/learn/reusing-logic-with-custom-hooks#when-to-use-custom-hooks" target="_blank">recommended</a> that if possible, all of your `useEffect()` calls should be encapsulated within a custom hook.
+
+Lets look at a simple example of how this can be achieved.
+
+Consider the below `<App />` component. This component upon mounting, makes a network request to fetch todos. Once those todos are fetched, it displays them on the screen. 
+
+```jsx title=App.jsx
+export default function App() {
+    const [ todos, setTodos ] = useState( [] );
+    const [ isLoading, setIsLoading ] = useState( false );
+    const [ error, setError ] = useState( null );
+
+    // fetch todos on first mount
+    useEffect( () => {
+        async function fetchTodos() {
+            setIsLoading( true );
+
+            try {
+                const response = await fetch( "https://jsonplaceholder.typicode.com/users/1/todos" )
+                const todos = await response.json();
+                setTodos( todos );
+            } catch ( err ) {
+                setError( err );
+                console.log( "An error occurred: ", err );
+            } finally {
+                setIsLoading( false );
+            }
+        }
+
+        fetchTodos();
+    }, [] );
+
+    return (
+        <>
+            {/* TODOS */}
+            {
+                !isLoading && !error && (
+                    <ul>
+                        { todos.map( t => <li key={t.id}>{t.title}</li> ) }
+                    </ul>
+                )
+            }
+
+            {/* LOADING MESSAGE */}
+            {
+                isLoading && <p>Loading...</p>
+            }
+
+            {/* ERROR MESSAGE */}
+            {
+                error && <p>Uh Oh! Something went wrong...</p>
+            }
+        </>
+    )
+}
+```
+
+Now lets encapsulate the stateful logic related to `todos` and the `useEffect()` call and abstract it out into a custom hook. Create a new file called `useFetchTodos.js` and create our new hook within it like this:
+
+```js title=useFetchTodos.js
+import { useEffect, useState } from "react";
+
+export default function useFetchTodos(){
+    const [ todos, setTodos ] = useState( [] );
+    const [ isLoading, setIsLoading ] = useState( false );
+    const [ error, setError ] = useState( null );
+
+    useEffect( () => {
+        async function fetchTodos() {
+            setIsLoading( true );
+
+            try {
+                const response = await fetch( "https://jsonplaceholder.typicode.com/users/1/todos" )
+                const todos = await response.json();
+                setTodos( todos );
+            } catch ( err ) {
+                setError( err );
+                console.log( "An error occurred: ", err );
+            } finally {
+                setIsLoading( false );
+            }
+        }
+
+        fetchTodos();
+    }, [] );
+
+    return { todos, isLoading, error };
+}
+```
+
+Notice that we have abstracted out all of the logic from the `<App />` component into this custom hook.
+
+
+And now we'll import this hook in our `<App />` component.
+
+```jsx
+import useFetchTodos from './useFetchTodos';
+
+export default function App() {
+    const { todos, isLoading, error } = useFetchTodos();
+
+    return (
+        <>
+            {/* TODOS */}
+            {
+                !isLoading && !error && (
+                    <ul>
+                        { todos.map( t => <li key={t.id}>{t.title}</li> ) }
+                    </ul>
+                )
+            }
+
+            {/* LOADING MESSAGE */}
+            {
+                isLoading && <p>Loading...</p>
+            }
+
+            {/* ERROR MESSAGE */}
+            {
+                error && <p>Uh Oh! Something went wrong...</p>
+            }
+        </>
+    )
+}
+```
+
+Whoa!🤯 Doesn't that seem amazing. We've just made our `<App />` component super-compact and highly readable. Not to mention, we have made a reusable hook using which we can use to fetch todos in other components as well. 
+
+Now keep in mind that even though we have taken the code out of the component and into a custom hook, the "effective" behaviour will still be as though the custom hook was part of the component's body. What this means is that anytime the component re-renders, the code inside the custom hook will also re-run, just like it would have been re-run, if it'd have been within the component body. Also anytime the state values within the custom hook change, it will cause the component to re-render just like it would have, if it'd have been within the component body. So basically, `todos`, `isLoading` and `error` are all reactive values. This is why it is important to keep your custom hooks "pure" just like components.
+
+Also keep in mind that with custom hooks, you don't share "stateful values" between components, only the logic. What this means is that if you use this custom hook `useFetchTodos()` in another component, that will create another "instance" of this hook in that other component. The values of the variables `todos`, `isLoading` and `error` would be different in `<App />` and the other component.
+
+We can also pass arguments to custom hooks like for example, we can pass an initial value for todos in our `useFetchTodos()` custom hook.
+
+```js
+export default function useFetchTodos( initialTodosVal ){
+    const [ todos, setTodos ] = useState( initialTodosVal );
+
+    ...
+    ...
+}
+```
+
+And then while consuming the hook, we can pass a value for this argument.
+
+```jsx
+export default function App(){
+    const { todos, isLoading, error } = useFetchTodos( [] );
+    ...
+    ...
+}
+```
+
+## Summary
+
+- Custom hooks are regular JavaScript functions and are similar to React components with the exception that they don't return JSX. 
+- Within Custom hooks, you can call other built-in hooks including `useState()` and `useEffect()` and other custom hooks.
+- They are typically used for encapsulating related stateful logic and `useEffect()` calls.
+- They help with separation of concerns, readability and reusability.
+- Custom hook names always begin with the keyword "use" followed by a capital letter.
+- Custom hooks must be PURE.
+- Custom hooks help in sharing stateful logic between components but not stateful values.
+
+Hope this helps!🙏
