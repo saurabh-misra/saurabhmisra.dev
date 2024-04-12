@@ -1,0 +1,175 @@
+---
+title: "useMemo Hook in React | What is it and how and when to use it?"
+date: 2024-04-19
+slug: "/react-usememo-hook"
+tags:
+  - React
+  - Web Development
+  - Hooks
+description: "The useMemo hook is a built-in hook in React and is used to cache or memoize the results of an expensive operation against a given set of inputs to speed up re-renders."
+---
+import incrementDelayConsoleLogs from "./assets/images/increment-delay-console-logs.jpg"
+import incrementDelay from "./assets/images/increment-delay.gif"
+import incrementWithoutDelay from "./assets/images/increment-without-delay.gif"
+
+The `useMemo` hook is a built-in hook in React. It is used to cache or memoize the results of an expensive operation against a given set of inputs to speed up re-renders.
+
+**In this tutorial, we're going to look more into what `useMemo` is and how and when to use it.**
+
+## What is the meaning of "memo" in `useMemo`?
+Memo is short for ***memoization***.
+
+## What is memoization?
+As per <a href="https://en.wikipedia.org/wiki/Memoization" target="_blank"> Wikipedia</a>:
+
+>In computing, *memoization* or *memoisation* is an optimization technique used primarily to speed up computer programs by storing the results of expensive function calls to pure functions and returning the cached result when the same inputs occur again.
+
+So with `useMemo`, you're telling React to "remember" the result of an expensive operation for a given set of inputs.
+
+## How to determine whether an operation is expensive?
+As per the <a href="https://react.dev/reference/react/useMemo#how-to-tell-if-a-calculation-is-expensive" target="_blank">official React documentation</a>, if the operation is taking more than 1ms overall, then it would make sense to wrap it within a `useMemo`.
+
+In real-life application development, this may happen when you're looping over an array of hundreds or thousands of items, trying to filter, map, reverse or sort it.
+
+## How to use `useMemo`?
+Lets see `useMemo` in action in an example.
+
+Consider the below `<App />` component. It renders a simple "Counter" and an "Increment" button to increment the counter. It does this by storing the counter value into a state variable called `count`. 
+
+The other interesting thing about this component is that before rendering it performs an expensive operation by invoking `doExpensiveOperation()` which involves reversing a rather large array of objects. This is just for demonstration purposes to simulate a slow and expensive calculation.
+
+```jsx title=App.jsx
+import { useState } from "react";
+
+export default function App() {
+    const [ count, setCount ] = useState( 0 );
+
+    doExpensiveOperation();
+
+    return (
+        <>
+            <p>Counter: {count}</p>
+            <button type="button" onClick={() => setCount( count+1 )}>Increment</button>
+        </>
+    );
+}
+
+function doExpensiveOperation(){
+    console.time();
+    const hugeArrOfNums = Array.from(Array(99_99_999).keys());
+    const hugeArrOfObjs = hugeArrOfNums.map( i => ({ id: i+1 }) );
+    const reverseArray = hugeArrOfObjs.reverse();
+    console.timeEnd();
+    return reverseArray;
+}
+```
+
+If you click the "Increment" button, you'll notice that the updated count doesn't get rendered immediately. In fact, it gets rendered after a significant delay.
+
+<img src={incrementDelay} alt="screencast showing the delay in updating the counter on screen when click on the Increment button." />
+
+If you check the console logs, you'll see that the delay is almost 1 second. Please note that there are two console logs for each Increment button click because of double re-renders in `StrictMode`.
+
+<img src={incrementDelayConsoleLogs} alt="screenshot of the browser console logs showing the time spent in running the expensive operation." />
+
+This delay happens because when you hit "Increment", the `count` state value gets incremented. This causes the `<App />` component to re-render. A re-render causes all of the code inside `<App />` to run again which means `doExpensiveOperation()` runs again and blocks the `return` from returning JSX until the expensive operation is complete. This delays the re-rendering which results in bad UX.
+
+Lets use `useMemo` and see how it affects the app's performance.
+
+```jsx title=App.jsx
+import { useMemo, useState } from "react";
+
+export default function App() {
+    const [ count, setCount ] = useState( 0 );
+
+    useMemo( () => {
+        doExpensiveOperation();
+    }, [] );
+
+    return (
+        <>
+            <p>Counter: {count}</p>
+            <button type="button" onClick={() => setCount( count+1 )}>Increment</button>
+        </>
+    );
+}
+
+function doExpensiveOperation(){
+    console.time();
+    const hugeArrOfNums = Array.from(Array(99_99_999).keys());
+    const hugeArrOfObjs = hugeArrOfNums.map( i => ({ id: i+1 }) );
+    const reverseArray = hugeArrOfObjs.reverse();
+    console.timeEnd();
+    return reverseArray;
+}
+```
+
+The format for using `useMemo` is:
+
+```js
+useMemo( () => { /* expensive operation */ }, /* dependency array */ )
+```
+
+So in our example, we wrap the code that was causing our app to slowdown with an anonymous arrow function and pass that in as the first input argument. The second input argument is the dependency array which in this case is blank.
+
+```jsx
+useMemo( () => {
+    doExpensiveOperation();
+}, [] );
+```
+
+Now if you reload the page and click on "Increment", you'll notice that the incremented count gets rendered immediately without any delays. 
+
+<img src={incrementWithoutDelay} alt="screencast showing no delays in incrementing the counter after using useMemo." />
+
+If you check the console log, you'll notice that there is just one( or two in `StrictMode` ). This is from the initial render. During the initial render, React runs the expensive operation once and then caches it. The next time React needs to run that function, it will check the inputs(which in this case are none), and if they're the same, it'll directly return the memoized value instead of running that function again.
+
+## Specifying dependencies in `useMemo`
+
+If there are state values or any other reactive values being used within `useMemo` then we must specify them as dependecies in the dependency array which is the second argument.
+
+For example
+
+```jsx
+...
+const [ name, setName ] = useState( "" );
+
+useMemo( () => {
+    doExpensiveOperation();
+    console.log( name );
+}, [ name ] );
+...
+```
+
+## When should you use `useMemo`?
+
+As mentioned previously in this article, <a href="https://react.dev/reference/react/useMemo#how-to-tell-if-a-calculation-is-expensive" target="_blank">if an operation is expensive( i.e. it takes more than 1ms overall )</a>  then do consider wrapping it within a `useMemo`. It is not recommended to use `useMemo` for every operation or for operations that are not expensive because then it'll become overkill and the overhead of using `useMemo` will most probably make the whole thing more inefficient than what it was before.
+
+## I am using `useMemo` but my first render is still slow?
+This is expected. As mentioned above, during the first render, React runs the function within `useMemo` against the dependencies and inputs and caches it. The next time React needs to run the operation for the same inputs, it directly returns the memoized value and skips running the operation. So the first render will be slow but then subsequent renders will be faster.
+
+## I am using `useMemo` but most of the re-renders are still slow?
+This may happen if the dependencies change very frequently. In this case, React keeps creating new memoized value(s) and cannot use the existing ones because the inputs against which the operation has been memoized keep changing so the memoized value does not apply for that re-render.
+
+In this case, identify such dependencies and either try to remove them as a dependency or make them change less frequently.
+
+From our previous example, if the `count` state value were to become a dependency within `useMemo`, everytime "Increment" is clicked, it'll cause React to run `doExpensiveOperation()` since the dependency `count` will be different each time. This will cause delays everytime "Increment" was clicked which will effectively be the same behaviour as when `useMemo` wasn't being used.
+
+```jsx
+const [ count, setCount ] = useState( 0 );
+
+useMemo( () => {
+    doExpensiveOperation();
+    console.log( count );
+}, [ count ] );
+...
+```
+
+## Summary
+
+- `useMemo` speeds up re-renders by caching or memoizing the result of an expensive operation against a given set of inputs.
+- Use `useMemo` only when a calculation is really expensive i.e. <a href="https://react.dev/reference/react/useMemo#how-to-tell-if-a-calculation-is-expensive" target="_blank"> if it takes more than 1ms or more overall</a>.
+- Make sure the `useMemo` dependencies don't change very often because otherwise it will make `useMemo` less effective.
+
+---
+Hope this helps!🙏
