@@ -12,7 +12,7 @@ import incrementDelayConsoleLogs from "./assets/images/increment-delay-console-l
 import incrementDelay from "./assets/images/increment-delay.gif"
 import incrementWithoutDelay from "./assets/images/increment-without-delay.gif"
 
-The `useMemo` hook is a built-in hook in React. It is used to cache or memoize the results of an expensive operation against a given set of inputs to speed up re-renders.
+The `useMemo` hook is a built-in hook in React. It is used to cache or memoize the result of an expensive operation against a given set of inputs to speed up re-renders.
 
 **In this tutorial, we're going to look more into what `useMemo` is and how and when to use it.**
 
@@ -27,7 +27,7 @@ As per <a href="https://en.wikipedia.org/wiki/Memoization" target="_blank"> Wiki
 So with `useMemo`, you're telling React to "remember" the result of an expensive operation for a given set of inputs.
 
 ## How to determine whether an operation is expensive?
-As per the <a href="https://react.dev/reference/react/useMemo#how-to-tell-if-a-calculation-is-expensive" target="_blank">official React documentation</a>, if the operation is taking more than 1ms overall, then it would make sense to wrap it within a `useMemo`.
+As per the <a href="https://react.dev/reference/react/useMemo#how-to-tell-if-a-calculation-is-expensive" target="_blank">official React documentation</a>, if the operation is taking more than 1ms overall, then it qualifies as an expensive calculation.
 
 In real-life application development, this may happen when you're looping over an array of hundreds or thousands of items, trying to filter, map, reverse or sort it.
 
@@ -110,7 +110,9 @@ The format for using `useMemo` is:
 useMemo( () => { /* expensive operation */ }, /* dependency array */ )
 ```
 
-So in our example, we wrap the code that was causing our app to slowdown with an anonymous arrow function and pass that in as the first input argument. The second input argument is the dependency array which in this case is blank.
+So in our example, we wrap the code that was causing our app to slowdown with an anonymous arrow function and pass that in as the first input argument. This function does not take any input arguments and can return anything you want. It should also be a pure function meaning it should always return the same result for a given set of inputs.
+
+The second input argument is the dependency array which in this case is blank.
 
 ```jsx
 useMemo( () => {
@@ -128,7 +130,7 @@ If you check the console log, you'll notice that there is just one( or two in `S
 
 If there are state values or any other reactive values being used within `useMemo` then we must specify them as dependecies in the dependency array which is the second argument.
 
-For example
+For example:
 
 ```jsx
 ...
@@ -149,7 +151,7 @@ As mentioned previously in this article, <a href="https://react.dev/reference/re
 This is expected. As mentioned above, during the first render, React runs the function within `useMemo` against the dependencies and inputs and caches it. The next time React needs to run the operation for the same inputs, it directly returns the memoized value and skips running the operation. So the first render will be slow but then subsequent renders will be faster.
 
 ## I am using `useMemo` but most of the re-renders are still slow?
-This may happen if the dependencies change very frequently. In this case, React keeps creating new memoized value(s) and cannot use the existing ones because the inputs against which the operation has been memoized keep changing so the memoized value does not apply for that re-render.
+This may happen if the dependencies change very frequently. This frequent change invalidates the memoized value from the previous render and React has to run the expensive operation that many times which effectively makes it redundant to use `useMemo`.
 
 In this case, identify such dependencies and either try to remove them as a dependency or make them change less frequently.
 
