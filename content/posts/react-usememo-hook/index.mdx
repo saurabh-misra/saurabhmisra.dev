@@ -6,13 +6,13 @@ tags:
   - React
   - Web Development
   - Hooks
-description: "The useMemo hook is a built-in hook in React and is used to cache or memoize the results of an expensive operation against a given set of inputs to speed up re-renders."
+description: "The `useMemo` hook is a built-in hook in React which is used to cache or memoize the result of an expensive operation against a given set of inputs to speed up future re-renders provided the inputs remain the same."
 ---
 import incrementDelayConsoleLogs from "./assets/images/increment-delay-console-logs.jpg"
 import incrementDelay from "./assets/images/increment-delay.gif"
 import incrementWithoutDelay from "./assets/images/increment-without-delay.gif"
 
-The `useMemo` hook is a built-in hook in React. It is used to cache or memoize the result of an expensive operation against a given set of inputs to speed up re-renders.
+The `useMemo` hook is a built-in hook in React. It is used to cache or memoize the result of an expensive operation against a given set of inputs to speed up future re-renders provided the inputs remain the same.
 
 **In this tutorial, we're going to look more into what `useMemo` is and how and when to use it.**
 
@@ -169,7 +169,7 @@ useMemo( () => {
 
 ## Summary
 
-- `useMemo` speeds up re-renders by caching or memoizing the result of an expensive operation against a given set of inputs.
+- The `useMemo` hook is a built-in hook in React which is used to cache or memoize the result of an expensive operation against a given set of inputs to speed up future re-renders provided the inputs remain the same.
 - Use `useMemo` only when a calculation is really expensive i.e. <a href="https://react.dev/reference/react/useMemo#how-to-tell-if-a-calculation-is-expensive" target="_blank"> if it takes more than 1ms or more overall</a>.
 - Make sure the `useMemo` dependencies don't change very often because otherwise it will make `useMemo` less effective.
 
