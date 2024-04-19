@@ -1,0 +1,329 @@
+---
+title: "useCallback Hook in React | What is it and how and when to use it?"
+date: 2024-04-19
+slug: "/react-usecallback-hook"
+tags:
+  - React
+  - Web Development
+  - Hooks
+description: "The useCallback hook is a built-in hook in React which is used to cache or memoize a function's definition for future re-renders."
+---
+
+import howTodolistTodofilterWorks from "./assets/images/how-todolist-todofilter-works.gif"
+import screenshotTodolistTodofilter from "./assets/images/screenshot-todolist-todofilter.jpg"
+import todofilterDoesNotRerenderOnTodoClick from "./assets/images/todofilter-does-not-rerender-on-todo-click.gif"
+import todofilterRerendersOnTodoClick from "./assets/images/todofilter-rerenders-on-todo-click.gif"
+import useeffectRunsOnEveryRerender from "./assets/images/useeffect-runs-on-every-rerender.gif"
+
+The `useCallback` hook is a built-in hook in React. It is used to cache or memoize a function's definition for future re-renders.
+
+**In this tutorial, we're going to look more into what `useCallback` is and how and when to use it.**
+
+## How to use `useCallback`
+
+Lets consider an example of a list of todos and a filter that hides or shows completed todos in this list.
+
+<img src={screenshotTodolistTodofilter} alt="browser screenshot showing a list of todos and a checkbox filter that hides and shows completed todos from the list." style={{width: "100%", maxWidth: "400px"}} />
+
+First lets look at the code for the `<App />` component.
+
+```jsx title=App.jsx
+import { useState } from "react";
+import "./App.css";
+import TodoFilter from "./TodoFilter";
+
+const initialTodos = [
+    { id: 1, text: "Buy groceries", completed: false },
+    { id: 2, text: "Call Abhishek", completed: true },
+    { id: 3, text: "Publish blog post", completed: false },
+    { id: 4, text: "Record youtube video", completed: true },
+    { id: 5, text: "Go to the gym", completed: false }
+];
+
+function App() {
+    const [ todos, setTodos ] = useState( initialTodos );
+    const [ isFilterChecked, setIsFilterChecked ] = useState( false );
+
+    const handleToggleFilter = () => {
+        setIsFilterChecked( !isFilterChecked );
+    }
+
+    function handleTodoClick( id ){
+        const updatedTodos = todos.map( t => {
+            if( t.id == id ) {
+                t.completed = !t.completed;
+            }
+            return t;
+        });
+        setTodos( updatedTodos );
+    }
+
+    const filteredTodos = isFilterChecked 
+        ? todos.filter( t => !t.completed )
+        : todos;
+
+    return (
+        <>
+            <TodoFilter 
+                isFilterChecked={isFilterChecked} 
+                onToggleFilter={handleToggleFilter} 
+            />
+
+            {/* TODO LIST */}
+            {
+                filteredTodos.map( t => {
+                    return (
+                        <p 
+                            key={t.id} 
+                            className={`todo ${t.completed ? "completed" : ""}`} 
+                            onClick={() => handleTodoClick( t.id )}
+                            >
+                            {t.text}
+                        </p>
+                    )
+                })
+            }
+        </>
+    )
+}
+
+export default App
+```
+
+We have some hardcoded dummy data in the form of `initialTodos`. The state variable `todos` powers the todo list while the `isFilterChecked` state variable manages the checkbox filter.
+
+We also have the event handler `handleTodoClick()` that marks a todo as either complete or incomplete. We have another event handler `handleToggleFilter()` which toggles the checkbox to either show or hide completed todos in the todo list. 
+
+<img src={howTodolistTodofilterWorks} alt="browser screencast showing how the todo filter and todo list works." style={{width: "100%", maxWidth: "400px"}} />
+
+And the code for `<TodoFilter />` is as follows:
+
+```jsx title=TodoFilter.jsx
+export default function TodoFilter({ isFilterChecked, onToggleFilter }) {
+    
+    console.log( "TodoFilter rendered" );
+    
+    return (
+        <label>
+            <input type="checkbox" onChange={onToggleFilter} checked={isFilterChecked} />
+            &nbsp;
+            Hide Completed Todos
+        </label>
+    );
+};
+```
+
+This is a dumb component without any state of its own. Notice that we are logging everytime this component renders. We'll use this shortly for debugging. 
+
+Now if you run this in the browser, everything seems to work like it is supposed to but there is a small problem. 
+
+If you check the console logs, whenever you mark a todo as complete or incomplete, it re-renders the `<TodoFilter />` component.
+
+<img src={todofilterRerendersOnTodoClick} alt="browser screencast demonstrating how clicking on a todo unnecessarily causes the TodoFilter component to re-render and show a message in the console logs." style={{width: "100%", maxWidth: "400px"}} />
+
+Even though `isFilterChecked` doesn't change when a todo is either marked as complete or incomplete, the `<TodoFilter />` component being a child component re-renders every time its parent `<App />` re-renders. This is the usual behaviour in React.
+
+For times when we want a child component to not re-render every time its parent re-renders and instead re-render only when its own props change, we'll use `useCallback` and `memo`.
+
+The format for `useCallback()` is:
+
+```jsx
+useCallback( /* function definition */, /* dependencies */ );
+```
+
+We pass in the function whose definition we want to memoize as the first input argument. The second argument is an array of dependencies that the function definition uses. If there are no dependencies then we pass in an empty array.
+
+>Do not forget to pass atleast an empty array as the second argument otherwise `useCallback` will return a new function reference every time the component re-renders. 
+
+On the first render, `useCallback` will simply return the same function you have passed. On future re-renders, it will return the cached or memoized version provided the dependencies have not changed. If the dependencies have changed, it will return and memoize the changed function definition.
+
+Lets use `useCallback()` in `App.jsx`. We'll use it to wrap the function definition of the event handler `handleToggleFilter`. Since the function definition uses the state variable `isFilterChecked`, we'll pass it in as one of the dependencies.
+
+```jsx title=App.jsx
+import { useCallback, useState } from "react";
+import "./App.css";
+import TodoFilter from "./TodoFilter";
+
+const initialTodos = [
+    { id: 1, text: "Buy groceries", completed: false },
+    { id: 2, text: "Call Abhishek", completed: true },
+    { id: 3, text: "Publish blog post", completed: false },
+    { id: 4, text: "Record youtube video", completed: true },
+    { id: 5, text: "Go to the gym", completed: false }
+];
+
+function App() {
+    const [ todos, setTodos ] = useState( initialTodos );
+    const [ isFilterChecked, setIsFilterChecked ] = useState( false );
+
+    const handleToggleFilter = useCallback( () => {
+        setIsFilterChecked( !isFilterChecked );
+    }, [isFilterChecked] );
+
+    function handleTodoClick( id ){
+        const updatedTodos = todos.map( t => {
+            if( t.id == id ) {
+                t.completed = !t.completed;
+            }
+            return t;
+        });
+        setTodos( updatedTodos );
+    }
+
+    const filteredTodos = isFilterChecked 
+        ? todos.filter( t => !t.completed )
+        : todos;
+
+    return (
+        <>
+            <TodoFilter 
+                isFilterChecked={isFilterChecked} 
+                onToggleFilter={handleToggleFilter} 
+            />
+
+            {/* TODO LIST */}
+            {
+                filteredTodos.map( t => {
+                    return (
+                        <p 
+                            key={t.id} 
+                            className={`todo ${t.completed ? "completed" : ""}`} 
+                            onClick={() => handleTodoClick( t.id )}
+                            >
+                            {t.text}
+                        </p>
+                    )
+                })
+            }
+        </>
+    )
+}
+
+export default App
+```
+
+We'll also wrap the `<TodoFilter />` with the `memo()` React API method as shown below. This will make sure that `<TodoFilter />` doesn't re-render every time its parent component `<App />` re-renders unless its props have changed.
+
+```jsx title=TodoFilter.jsx
+import { memo } from "react";
+
+export default memo(function TodoFilter({ isFilterChecked, onToggleFilter }) {
+    console.log( "TodoFilter rendered" );
+    return (
+        <label>
+            <input type="checkbox" onChange={onToggleFilter} checked={isFilterChecked} />
+            &nbsp;
+            Hide Completed Todos
+        </label>
+    );
+});
+```
+
+These two changes will now make sure that marking todos as completed or incomplete won't cause the `<TodoFilter />` component to re-render.
+
+<img src={todofilterDoesNotRerenderOnTodoClick} alt="browser screencast demonstrating how using useCallback and memo prevents the TodoFilter component from re-rendering when a todo is clicked." style={{width: "100%", maxWidth: "400px"}} />
+
+Awesome!
+
+## Optimizing `useCallback`
+
+While using `useCallback`( or memoization in general ), the number of dependencies should be kept as few as possible. Lesser the number of dependencies, lesser the probability that the function definition will change and the more effective memoization will be.
+
+So in our case, we can remove the `isFilterChecked` dependency by using a state updater function like this:
+
+```jsx
+const handleToggleFilter = useCallback( () => {
+    setIsFilterChecked( ( isFilterChecked ) => !isFilterChecked );
+}, [] );
+```
+
+## When should I use `useCallback`? Should I use it everywhere?
+
+There is a certain overhead while using `useCallback`( or memoization in general ) that the cached value takes up memory and during every re-render, React compares the current value with the previous one. So in general, unless necessary, we shouldn't use `useCallback`.
+
+Lets look at some of the scenarios where using `useCallback` is either required or useful.
+
+### 1. Avoid re-rendering a child component if its props haven't changed by using `useCallback` and `memo`
+
+We have already looked at this scenario in our examples above. 
+
+You should use this combo of `useCallback` and `memo` only when re-rendering the child component is an expensive operation. If it does cause any lag in the UI while re-rendering the child component then memoization is unnecessary.
+
+### 2. Optimize the function dependencies in a `useEffect`
+
+Consider the below example.
+
+```jsx
+import { useEffect, useState } from "react";
+
+export default function App({ name="Saurabh" }) {
+    const [ count, setCount ] = useState( 0 );
+
+    const greet = () => { 
+        console.log( "Hello " + name ); 
+    };
+
+    useEffect( () => {
+        greet();
+    }, [greet]);
+
+    return (
+        <button type="button" onClick={ () => setCount( count+1 )}>Increment count</button>
+    );
+}
+```
+
+On every click of the button "Increment Count", the state gets updated and triggers a re-render. The re-render updates the `greet` function reference which triggers the `useEffect`. This means that the `useEffect` will run everytime the `<App />` component re-renders since `greet` will be a new function reference on every re-render.
+
+<img src={useeffectRunsOnEveryRerender} alt="browser screencast demonstrating that useEffect runs on every re-render if its function dependency is not optimized" style={{width: "100%", maxWidth: "600px"}} />
+
+If you want to prevent this then you should wrap `greet` within a `useCallback`.
+
+```jsx
+import { useCallback, useEffect, useState } from "react";
+
+export default function App({ name="Saurabh" }) {
+    const [ count, setCount ] = useState( 0 );
+
+    const greet = useCallback( () => { 
+        console.log( "Hello " + name ); 
+    }, [name]);
+
+    useEffect( () => {
+        greet();
+    }, [greet]);
+
+    return (
+        <button type="button" onClick={ () => setCount( count+1 )}>Increment count</button>
+    );
+}
+```
+
+Now the `useEffect` will only run when `greet` changes and `greet` will only change when `name` changes.
+
+### 3. Optimize functions returned by a custom hook
+
+It is recommended that functions returned from a custom hook be always wrapped within a `useCallback`.
+
+This is because in many cases, you might not be the only consumer of your custom hook. For example, many third-party libraries create their own custom hooks. If you're consuming a third-party custom hook and want to pass it as a prop to a child component or use it as a dependency within a useEffect, then it'd much more convenient to have it already optimized by the custom hook provider.
+
+```jsx
+function useCustomHook() {
+    const doSomething = useCallback( () => { ... }. [ ... ] );
+
+    return { doSomething };
+}
+```
+
+---
+
+## Summary
+
+- The `useCallback` hook is a built-in hook in React which is used to cache or memoize a function's definition for future re-renders.
+- It is used to:
+    - Avoid re-rendering a child component if its props haven't changed by using `useCallback` and `memo`
+    - Optimize the function dependencies in a `useEffect`
+    - Optimize functions returned by a custom hook
+
+
+Hope this helps!🙏
