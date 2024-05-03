@@ -1,0 +1,162 @@
+---
+title: "memo API function in React | What is it and how and when to use it?"
+date: 2024-05-03
+slug: "/react-memo-api-component-memoization"
+tags:
+  - React
+  - Web Development
+description: "The memo API function in React is used to cache or memoize a component to prevent it from re-rendering when its props have not changed."
+---
+
+import { Link } from "gatsby";
+
+The typical behaviour in React is that a child component will always re-render if the parent re-renders even if the child's props haven't changed.
+
+Sometimes and especially if, re-rendering the child component is an expensive operation that causes glitches and lags in the UI, then we must try to prevent this default behaviour and change it so that the child component only re-renders when its own props have changed.
+
+This is where the built-in `memo` API function in React comes in. It is used to cache or memoize a component to prevent it from re-rendering when its props have not changed.
+
+**In this tutorial, we're going to look more into what `memo` is and how and when to use it.**
+
+## How to use `memo`
+
+The format for `memo` is as follows:
+
+```js
+import { memo } from 'react';
+
+const MemoizedComponent = memo( /* The Component */, /* `arePropsEqual` function ( optional ) */ );
+```
+
+We use `memo` like we would invoke any other function. It takes two arguments. The first one is the component definition. This is the component that we want to memoize. 
+
+The second argument is an optional callback function definition called `arePropsEqual` where you can do props comparison yourself and override React's default props comparison behaviour. This is an optional argument and you won't need to specify this most of the times because React will take care of the props comparison for you. We'll look into this in more detail later.
+
+Here is an example of `memo` in action:
+
+>For the complete example, please refer to this post about the <Link to="/react-usecallback-hook">`useCallback` hook in React</Link> where I have explained how using `memo` along with `useCallback` can prevent the re-render of child components when its props haven't changed.
+
+```jsx title=TodoFilter.jsx
+import { memo } from "react";
+
+export default memo(
+    function TodoFilter({ isFilterChecked, onToggleFilter }) {
+        console.log( "TodoFilter rendered" );
+        return (
+            <label>
+                <input type="checkbox" onChange={onToggleFilter} checked={isFilterChecked} />
+                &nbsp;
+                Hide Completed Todos
+            </label>
+        );
+    }
+);
+```
+
+
+The `memo` function is usually used in conjunction with <Link to="/react-usecallback-hook">`useCallback`</Link> and <Link to="/react-usememo-hook">`useMemo`</Link>. Lets understand why that is the case.
+
+In order to memoize a component, React will cache its input props and before re-rendering it'll compare the current props with the previous ones. If the props are the same, it won't re-render the component but even if a single prop is different, it will re-render the component.
+
+If the parent component has any objects initialized or any functions defined within it and if these are passed as props to a memoized component, then this will break memoization because during every re-render of the parent component, the object reference will be re-initialized and function references will be re-defined. This will make these props different from the previous ones in the child component and cause it to re-render.
+
+In order to prevent this, we wrap object initialization statements with a `useMemo` and <Link to="/react-usecallback-hook">function definitions with a `useCallback`</Link>.
+
+Lets consider an example for this scenario using `memo` and `useMemo`.
+
+```jsx
+
+const Product = memo( 
+    function Product({ product }){
+        return (
+            ...
+        );
+    }
+);
+
+function App(){
+    const [ name, setName ] = setState( "" );
+    const [ price, setPrice ] = setState( 0 );
+
+    // Object initialization!!!
+    // This will create a new object and reference on every re-render.
+    const product = { name, price };
+
+    return (
+        <>
+            {/* 
+                The `product` prop will be different on every re-render.
+                <Product /> will re-render everytime thus breaking memoization. 
+            */}
+            <Product product={product} />
+        </Product>
+    )
+}
+```
+
+In the above example, even though `<Product />` is a memoized component, the presence of an object creation statement within `<App />` breaks memoization because on every re-render of the parent `<App />` component, a new object is created and its new reference is assigned to the variable `product`. This results in a new prop value being passed to `<Product />` which results in a re-render of the latter as well.
+
+In order to prevent this, we use `useMemo` to wrap the object creation statement.
+
+```jsx
+function App() {
+    const [ name, setName ] = setState( "" );
+    const [ price, setPrice ] = setState( 0 );
+
+    // `useMemo` will return cached result if `name` and `price` have not changed.
+    const product = useMemo( 
+        () => ({ name, price }), 
+        [ name, price ] 
+    );
+
+    return <Product product={product} />;
+}
+```
+
+Instead of directly creating the object, we wrap it within an inline arrow function and pass it as the first argument to `useMemo` which will cache the result of this function based on dependencies. Unless those dependencies change, the memoized return value of the function will always be the same. This will compliment the use of `memo` and prevent re-renders when props haven't changed.
+
+## The Second Argument: `arePropsEqual`
+
+In some rare cases, you may want to override React's default props comparison. This may be required if for some reason, using `useMemo` or `useCallback` to minimize prop changes is not an option. 
+
+The second argument to `memo` is a custom comparison function called `arePropsEqual`. It receives two objects as input arguments: `oldProps` and `newProps`. As the name suggests, these objects contain the component's props from the previous render and the current re-render respectively. 
+
+The idea is that you write custom comparison criteria for the old and new props. If this function returns `true`, it means that the `newProps` are the same as the `oldProps` and a re-render is not required. Otherwise if it returns `false` then that means that the component should be re-rendered.
+
+For example:
+
+```jsx title=Product.jsx highlight=7-9
+const Product = memo( 
+    function Product({ product }){
+        return (
+            ...
+        );
+    },
+    function arePropsEqual( oldProps, newProps ){
+        return oldProps.product.id === newProps.product.id;
+    }
+);
+```
+
+While this may seem very useful, there are lots of reasons to avoid writing your own comparison criteria.
+
+- You must compare every prop which means even functions. If you return `true` from `arePropsEqual` but forget to compare a function prop which has actually changed, your memoized component could end up calling the "previous" function instead of the new one. This could lead to bugs which will be very hard to debug.
+- Custom comparison criteria can potentially impact performance to the point where just allowing the child component to re-render might seem like the better alternative.
+
+## When to use `memo`
+
+You should aim to use `memo` to optimize the performance of a component only when re-rendering that component is an expensive operation which can cause glitches in the UI.
+
+>Please note that even after you use `memo`, under certain special circumstances, React may still decide to re-render the memoized component even when the props haven't changed. This is because `memo` is a performance optimization but not a guarantee.
+
+---
+
+## Summary
+
+- Using `memo`, we can memoize a child component so that it doesn't re-render every time its parent re-renders but instead only re-renders when the child component's props change.
+- It is used along with `useCallback` and `useMemo`.
+- The first argument to `memo` is the component that needs to be memoized.
+- The second argument is a custom comparison function called `arePropsEqual` which overrides React's default comparison behaviour. It receives two inputs, `oldProps` and `newProps` and returns `true` which implies that the child component will NOT re-render or `false` which implies that it will re-render. Use this sparingly as this could cause performance problems and bugs that are hard to debug.
+- You should use `memo` on a component only when re-rendering that component is an expensive operation. 
+
+Hope this helps!🙏
