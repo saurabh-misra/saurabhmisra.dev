@@ -1,0 +1,271 @@
+---
+title: "useEffect Hook in React | What is it and how and when to use it?"
+date: 2024-05-23
+slug: "/react-useeffect-hook"
+tags:
+  - React
+  - Web Development
+  - Hooks
+description: "useEffect is a built-in hook in React that is used to extract out side-effects from components."
+---
+
+import { Link } from "gatsby";
+
+**The `useEffect` hook is a built-in hook in React that is used to extract out side-effects from components. In this tutorial, we're going to look into what `useEffect` is, its syntax and when we should and should not use it.**
+
+## What is `useEffect` in React
+
+<a href="https://react.dev/learn/keeping-components-pure#why-does-react-care-about-purity" target="_blank">React components are supposed to be "pure"</a> which means they should behave as mathematical calculations. Given certain inputs they must always return the same JSX.
+
+The term "side-effects" refers to any operation which is not directly related to this calculation. Examples of side-effects include making network requests, setting timeouts and intervals, directly manipulating the DOM, using browser APIs or maybe something as simple as changing a global variable.
+
+Performing side-effects within components could potentially change the JSX calculation and make the component impure. So the idea is that we should not perform these side-effects "during" rendering.
+
+In any real-world application, performing side-effects is inevitable which is why React gives us two options to run side-effects. 
+
+- Side-effects caused by user interactions like clicking a button are handled within "event-handlers".
+- Side-effects caused because of a component being rendered are handled within `useEffect`. So, side-effects that need to run when a component is rendered for the first time or for future re-renders all go within `useEffect`.
+
+Both these options make sure that side-effects do not run "during" rendering which keeps the JSX calculation pure. A win-win for everyone! 
+
+## Syntax
+
+The syntax for `useEffect` is:
+
+```jsx
+import { useEffect } from 'react';
+
+function App(){
+
+    useEffect(
+        // 👉 1st arg is a "setup" function that encapsulates side-effects
+        () => {
+            // side-effects logic goes here...
+
+            return () => { ... } // 👉 clean-up function
+        }, 
+        [ ... ] // 👉 2nd arg is the dependency array
+    );
+
+    return <></>;
+}
+```
+
+There are three things to consider when writing `useEffect`.
+
+1. The first argument to `useEffect` is a "setup" function that encapsulates the side-effects you want to perform. 
+2. The second argument is an array of dependencies which basically includes `props`, `state` and any other reactive values that are used within the setup function.
+3. Within the setup function, it is recommended that you return a "clean-up function" that can for example, stop interval timers, ignore pending network requests, close an active chat connection, etc. The idea behind this is that when the component is unmounted, React will run this clean-up function and cancel any pending side-effect operations.
+
+Now that we know and understand `useEffect`'s syntax, lets look at some real examples. We'll start with a simple and minimal one and then, we'll gradually look at more complex ones.
+
+```jsx
+useEffect(
+    () => { 
+        window.scrollTo(0,0); 
+    },
+    [] // blank array -> run once after first render
+);
+```
+
+Since we're using a browser API which is an API external to React, this qualifies as a side-effect and is encapsulated within `useEffect` so that the component itself remains pure.
+
+In the above example, we setup a `useEffect` with an empty array as its dependency which means that `useEffect` will run the setup function only once after the component renders for the first time and the setup function will scroll the page to the top. 
+
+Lets look at the different ways we can specify dependencies via the dependency array.
+
+### Dependencies
+
+Dependencies include 
+1. Any `props` used within the setup function.
+2. Any `state` used within the setup function.
+3. Any reactive values( variables, objects or functions "defined" within the component but outside `useEffect` ) used within the setup function. 
+
+The idea is that we specify a list of such dependencies and React will run the setup function anytime even one of these values changes. 
+
+Lets take a closer look at how we can specify dependencies and how that affects the way `useEffect` works.
+
+#### 1. No value specified as dependency
+If you don't supply the second argument at all, then `useEffect` will run the setup function everytime the component re-renders. This will have the same effect as if you'd have specified the side-effect code directly within the component itself. 
+
+```jsx
+useEffect(
+    () => { ... } // only first argument supplied
+);
+```
+
+#### 2. Empty array as dependency
+
+We have already seen an example of this in the previous section where the setup function scrolled the page to the top after the first render. When you specify a blank array for the dependency, then that means that `useEffect` will run the setup function only once after the component renders for the first time.
+
+```jsx
+useEffect(
+    () => { 
+        window.scrollTo(0,0); 
+    },
+    [] // blank array -> run once after first render
+);
+```
+
+#### 3. Props and state specified as dependency
+
+If you reference any `props` or `state` values within the setup function then you must specify them as a dependency which tells React to run the setup function whenever these `props` or `state` values change. So `useEffect` will run the setup function once when the component renders for the first time and then during subsequent re-renders, it'll run ONLY IF any one of these `props` or `state` values have changed.
+
+```jsx
+function App({ userid }){
+    const [ name, setName ] = useState( "" );
+
+    useEffect(
+        () => { console.log( userid, name ); }, 
+        [ userid, name ]
+    );
+
+    return <></>;
+}
+```
+
+In the above example, since we are referencing the `userid` prop and the `name` state variable within the setup function, we must specify them as dependencies.
+
+#### 4. Any reactive value as dependency
+
+Not just `props` and `state`, but any reactive value used within `useEffect` must be specified as a dependency. Apart from `props` and `state`, reactive values are variables or functions defined within the component body.
+
+```jsx
+function App({ firstname, lastname }){
+    const fullName = `${firstname} ${lastname}`;
+
+    useEffect(
+        () => { console.log( fullName ); }, 
+        [ fullName ]
+    );
+
+    return <></>;
+}
+```
+
+In the above example, since the setup function references a variable defined within the component body but outside itself, `useEffect` requires that this variable should be specified as a dependency.
+
+Not just variables but even functions defined within the component body qualify as a reactive value and when referenced within the setup function, they must be specified as a dependency.
+
+```jsx
+function App({ firstname, lastname }){
+    
+    function getFullName(){
+        return `${firstname} ${lastname}`;
+    }
+
+    useEffect(
+        () => { console.log( getFullName() ); }, 
+        [ getFullName ]
+    );
+
+    return <></>;
+}
+```
+
+>Keep in mind that defining the function this way i.e. within the component but outside `useEffect` will re-define the function on every re-render which will eventually lead to the `useEffect` running on every re-render since it'll detect a change in its dependency even though the function definition is still the same. 
+>
+>To avoid these problems, you can:
+>1. Make the function non-reactive by defining it outside the component or
+>2. Make the function non-reactive by defining it inside the `useEffect` setup function or 
+>3. Wrap it with <Link to="/react-usecallback-hook/">the `useCallback` hook</Link>.  
+
+### The Clean-up function
+
+So the third and the final aspect of the syntax of `useEffect` is the clean-up function. If the setup function returns this clean-up function, `useEffect` will register it and will invoke it if and when the component unmounts. 
+
+As mentioned earlier, this clean-up function will perform activities such as close connections, clear timeouts or intervals, cancel/ignore network requests, etc.
+
+Here is an example of a clean-up function that cancels a `setTimeout` from being triggerred if the component un-mounts before the timeout ends. 
+
+```jsx
+useEffect(
+    () => { 
+        // Specify the side-effect. In this case, it is a timeout 
+        // that will be triggered after 10 seconds.
+        const timeout = setTimeout(
+            () => { console.log( "timeout triggerred" ); },
+            10_000
+        );
+        
+        // Return a "clean-up" function which will be invoked when the component unmounts 
+        // and will clear the timeout if it has not already been triggered.
+        return () => clearTimeout(timeout); 
+    }, 
+    []
+);
+```
+
+>Keep in mind that in DEVELOPMENT mode, React will be running in StrictMode and will render the component twice to make sure it is pure. During the first render, the setup function will run and will be immediately followed by the clean-up function since the component will be unmounted. Then the component will be rendered again which is when the setup function will run again.
+
+That wraps up everything we need to discuss regarding the syntax for `useEffect`.
+
+## Encapsulating `useEffect` within custom hooks.
+
+You can extract commonly used `useEffect` calls in your codebase into their own custom hook. This is a great way to make the code more readable and re-usable.
+
+In this below example, we make a network request to fetch todos from the <a href="https://jsonplaceholder.typicode.com/" target="_blank">"JSON Placeholder" dummy JSON API</a> within `useEffect` and we encapsulate within its own custom hook. 
+
+```js title=useFetchTodos.js
+import { useEffect, useState } from "react";
+
+export default function useFetchTodos(){
+    const [ todos, setTodos ] = useState( [] );
+
+    useEffect(
+        () => {
+            let cancelFetch = false;
+            fetch('https://jsonplaceholder.typicode.com/todos')
+                .then( response => response.json() )
+                .then( json => {     
+                    // Update the `todos` state only if the component has not un-mounted 
+                    // and the clean-up function has not cancelled this AJAX request.
+                    if( !cancelFetch ) {
+                        setTodos( json );
+                    }
+                } )
+                .catch( err => console.log( err ) );
+
+            // clean-up function cancels the AJAX request
+            return () => { cancelFetch = true; }
+        },
+        []
+    );
+
+    return { todos };
+}
+```
+
+And then in `App.jsx`, all we have to do is import and invoke the custom hook.
+
+```jsx title=App.jsx
+import useFetchTodos from './useFetchTodos';
+
+export default function App(){
+    const { todos } = useFetchTodos();
+    
+    return <ul>
+        { todos.map( t => <li key={t.id}>{t.title}</li> ) }
+    </ul>;
+}
+```
+
+As you can see the component stays clean and compact and the side-effect logic is extracted out into a custom hook making the component much more readable and the custom hook can also be re-used in other components.
+
+## Things to remember
+
+The `useEffect` hook is an escape-hatch which allows you to step outside React's domain and sync with external APIs which are not in-built into React( which is why they qualify as "side-effects" ). 
+
+As such you should use `useEffect` as a last resort when it is absolutely unavoidable. Try to first find ways in which you can avoid using `useEffect` altogether.
+
+Always try to use React's in-built APIs to express as much of your logic as possible.
+When that is not possible and you must specify side-effects, then try to do that with event-handlers first. When this is not possible, only then consider using `useEffect`.
+
+Remember, `useEffect`'s purpose is to extract side-effects out from the component and sync external APIs with React. If you find yourself using `useEffect` for things that are neither of those two then you may not need to use `useEffect`.
+
+Also if you have to use `useEffect` make sure you try to remove as many unnecessary dependencies as possible and keep the list of dependencies to a minimum to make sure the `useEffect` doesn't more times than intended.
+
+Also, if you find yourself using `useEffect` a lot for making network requests, you may want to consider using <a href="https://react.dev/learn/start-a-new-react-project" target="_blank">React-based frameworks</a>  or libraries like <a href="https://reactrouter.com/en/main" target="_blank">React Router</a> or <a href="https://tanstack.com/query/latest/docs/framework/react/overview" target="_blank">React Query</a>  because they will provide better options to handle network requests.
+
+---
+Hope this helps!🙏
