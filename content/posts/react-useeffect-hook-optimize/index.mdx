@@ -1,0 +1,739 @@
+---
+title: "Optimize React useEffect hook"
+date: 2024-06-21
+slug: "/optimize-react-useeffect-hook"
+tags:
+  - React
+  - Web Development
+  - Hooks
+description: "Replace useEffect with event handlers, use state updater functions and remove object and function dependencies are some of the ways we can optimize useEffect calls in our codebase."
+---
+
+import { Link } from "gatsby";
+
+In this tutorial, we'll learn several tips and techniques to optimize `useEffect` and in some cases, entirely replace it with better or more efficient alternatives.
+
+>This article assumes basic knowledge of `useEffect`. In case you're not yet familiar with it, please read the below article first and then come back to this one. 
+>
+><Link to="/react-useeffect-hook">useEffect Hook in React | What is it and how and when to use it?</Link>
+
+## Prefer event-handlers over `useEffect`
+
+It is always recommended to use `useEffect` as a last resort when the side-effects within it cannot be handled anywhere else, preferrably, in an event handler.
+
+So the first optimization strategy deals with carefully analyzing the side-effect code within `useEffect` and asking yourself whether it would make more sense to move this code within an event handler.
+
+Consider this example below. We have a `useEffect` with the state variable `accept` as a dependency. When the user accepts the cookie consent, we set the state variable `accept` to `true`. This will trigger the `useEffect` and make a network request using the `postCookieConsent()` method. 
+
+```jsx
+import { postCookieConsent } from "./api"; 
+
+function CookieConsent(){
+    const [ accept, setAccept ] = useState( false );
+
+    useEffect(
+        () => { postCookieConsent( accept ) },
+        [ accept ]
+    );
+
+    return <>
+        <p>...</p>
+        <button type="button" onClick={ ()=>setAccept(true) }>Accept</button>
+    </>
+}
+```
+
+This workflow while functional is unnecessary. We can simply choose to create an event handler instead of the `useEffect` which will set the state `accept` to `true` and will also make the network request by calling `postCookieConsent()`.
+
+```jsx
+import { postCookieConsent } from "./api"; 
+
+function CookieConsent(){
+    const [ accept, setAccept ] = useState( false );
+
+    function handleAcceptClick(){
+        setAccept( accept );
+        postCookieConsent( accept );
+    }
+
+    return <>
+        <p>...</p>
+        <button type="button" onClick={ handleAcceptClick }>Accept</button>
+    </>
+}
+```
+
+This feels much more intuitive and is also more efficient since our side-effect is encapsulated within an event handler which is more efficient than a `useEffect`.
+
+## Remove unnecessary dependencies
+
+The other most common approach for optimizing `useEffect` is to remove dependencies that unnecessarily trigger `useEffect`.
+
+### Remove state dependencies using a state updater function
+
+More often than not, you will find yourself updating state within `useEffect` in a way where you will use the current state to calculate the next state value.
+
+Consider the example below where we are making a network request within `useEffect` to create a new todo. This will usually go inside an event handler but we're going to make an exception for demo purposes. 
+
+We're appending the new todo into the `todos` state variable once the network request succeeds. This makes `todos` a dependency of the `useEffect`.
+
+But this results in an infinite loop since as soon as `todos` is updated, the `useEffect` notices that its dependency has changed which causes it to re-run the network request and the `todos` array is once again updated and this goes on and on.
+
+```jsx
+function Todos(){
+    const [ todos, setTodos ] = useState( [] );
+
+    useEffect(
+        () => {
+            let cancelFetch = false;
+            const requestOptions = {
+                method: 'POST',
+                body: JSON.stringify({
+                    title: "Publish blog post",
+                    userId: 1,
+                }),
+                headers: {
+                    'Content-type': 'application/json; charset=UTF-8',
+                }
+            };
+            
+           fetch('https://jsonplaceholder.typicode.com/posts', requestOptions )
+                .then((response) => response.json())
+                .then( newTodo => {     
+                    if( !cancelFetch ) {
+                        // merge new todo into existing todos
+                        setTodos( [ ...todos, newTodo ] );
+                    }
+                })
+                .catch( err => console.log( err ) );
+
+            // clean-up function cancels the AJAX request and clears the interval.
+            return () => { cancelFetch = true; }
+        },
+        [ todos ] // 👈 Boo! Dependency causes infinite loop.
+    );
+
+    return <>...</>;
+}
+```
+
+In such situations, it is recommended that you use a <a href="https://react.dev/reference/react/useState#updating-state-based-on-the-previous-state" target="_blank">"state updater function"</a>.
+
+In the below updated example, instead of directly using the state variable `todos`, we'll be passing a state updater function  to `setTodos`. This state updater function will receive `todos` as an input argument referenced by `t`. Since, we're not using the state variable directly, we can remove it from the dependencies array.
+
+```jsx
+function Todos(){
+    const [ todos, setTodos ] = useState( [] );
+
+    useEffect(
+        () => {
+            let cancelFetch = false;
+            const requestOptions = {
+                method: 'POST',
+                body: JSON.stringify({
+                    title: "Publish blog post",
+                    userId: 1,
+                }),
+                headers: {
+                    'Content-type': 'application/json; charset=UTF-8',
+                }
+            };
+            
+           fetch('https://jsonplaceholder.typicode.com/posts', requestOptions )
+                .then((response) => response.json())
+                .then( newTodo => {     
+                    if( !cancelFetch ) {
+                        // merge new todo into existing todos
+                        setTodos( t => [ ...t, newTodo ] );
+                    }
+                })
+                .catch( err => console.log( err ) );
+
+            // clean-up function cancels the AJAX request and clears the interval.
+            return () => { cancelFetch = true; }
+        },
+        [] // 👈 Yay! Dependency removed.
+    );
+
+    return <>...</>;
+}
+```
+
+### Removing object dependencies
+
+When we define an object within the component and then use it within a `useEffect` then we must declare it as a dependency. The problem is that this object will be re-created in every render of the component and this will cause the `useEffect` dependency to renew and trigger the `useEffect` in every render as well.
+
+In order to avoid this, it is always recommended to remove object dependencies from `useEffect`'s dependency array.
+
+Lets look at some of the ways through which we can achieve this.
+
+#### Define static objects outside the component
+
+Consider the below example where a static object is defined within the component and then used within `useEffect` as a dependency.
+
+As you'll notice, `defaultOptions` will be re-defined on every re-render and will in turn trigger `useEffect` to also run on every re-render.
+
+```jsx
+function Page(){
+    const defaultOptions = {
+        method: "get",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    };
+
+    useEffect(
+        () => {
+            fetch( "https://jsonplaceholder.typicode.com/todos/1", defaultOptions )
+                .then( response => response.json() )
+                .then( json => console.log( json ))
+                .catch( err => console.log( err ) );
+        },
+        [ defaultOptions ] // 👈 Boo! Object dependency.
+    );
+
+    return <>...</>;
+}
+```
+
+In cases like these where static objects are being used as dependencies, you should move the object creation statement outside the component. This will make `defaultOptions` non-reactive and using it within `useEffect` will no longer require it to be declared as a dependency.
+
+```jsx
+const defaultOptions = {
+    method: "get",
+    headers: {  
+        "Content-Type": "application/json"
+    }
+};
+
+function Page(){
+    useEffect(
+        () => {
+            fetch( "https://jsonplaceholder.typicode.com/todos/1", defaultOptions )
+                .then( response => response.json() )
+                .then( json => console.log( json ))
+                .catch( err => console.log( err ) );
+        },
+        [] // 👈 Yay! Object dependency removed.
+    );
+
+    return <>...</>;
+}
+```
+
+#### Define dynamic objects within `useEffect`
+
+In situations where the object is dynamic i.e. the object's definition uses props or state or other reactive values, we cannot define it outside the component. In such cases, we move that object creation statement within `useEffect` so that it becomes a local variable within the setup function and no longer needs to be specified as a dependency.
+
+Consider the example code below where `analyticsData` is defined within the component but is dynamic since it uses the prop `userid`. When used within `useEffect`, it must be specified as a dependency.
+
+```jsx
+function Page({ userid }) {
+
+    const analyticsData = {
+        userid,
+        type: "pageload"
+    };
+
+    useEffect(
+        () => {
+            const url = `https://analytics.example.com/api/`;
+
+            fetch( url, {
+                method: "post",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                data: JSON.stringify( analyticsData )
+            })
+            .then( response => response.json() )
+            .then( json => console.log( json ))
+            .catch( err => console.log( err ) );
+        },
+        [ analyticsData ] // 👈 Boo! Object dependency.
+    );
+
+    return <>...</>;
+}
+```
+
+In order to remove it as a dependency, we'll define it within `useEffect` and remove it from the dependency array like this:
+
+```jsx
+function Page({ userid }) {
+
+    useEffect(
+        () => {
+            const analyticsData = {
+                userid,
+                type: "pageload"
+            };
+
+            const url = `https://analytics.example.com/api/`;
+
+            fetch( url, {
+                method: "post",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                data: JSON.stringify( analyticsData )
+            })
+            .then( response => response.json() )
+            .then( json => console.log( json ))
+            .catch( err => console.log( err ) );
+        },
+        [ userid ] // 👈 Yay! Object dependency removed.
+    );
+
+    return <>...</>;
+}
+```
+
+<br/>
+
+#### Memoize the object using `useMemo`
+
+In the previous example, in case it is not possible to define the object within the `useEffect`( maybe because it is being used elsewhere within the component as well ), then another option is to wrap the object definiton within a <Link to="/react-usememo-hook">`useMemo`</Link>.
+
+This will make React memoize `analyticsData` so that it will always remain the same unless there is a change in `userid`.
+
+This means that the component may re-render multiple times but as long as the `userid` value remains the same, `analyticsData` will always point to the same object and `useEffect` will not be triggered on every re-render.
+
+```jsx
+function Page({ userid }) {
+
+    // memoize
+    const analyticsData = useMemo( 
+        () => ({
+            userid,
+            type: "pageload"
+        }),
+        [ userid ]
+    );
+
+    useEffect(
+        () => {
+            const url = `https://analytics.example.com/api/`;
+
+            fetch( url, {
+                method: "post",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                data: JSON.stringify( analyticsData )
+            })
+            .then( response => response.json() )
+            .then( json => console.log( json ))
+            .catch( err => console.log( err ) );
+        },
+        [ analyticsData ] // 👈 Yay! Object dependency memoized.
+    );
+
+    return <>...</>;
+}
+```
+
+#### Use primitive object properties as dependencies
+
+If none of the above approaches work in your case, then another thing you can try is to extract the primitive values from the object that are being used within `useEffect` and then add those values as dependencies rather than the object.
+
+This also solves our problem since even though the object will still be re-defined on every re-render, but since our `useEffect` doesn't have the object reference as a dependency, it won't re-run the same number of times. It only needs to run when the primitive values from within the object change and they won't unless there is a real change.
+
+Consider the example code below. The `useEffect` uses the `id` from the `currentUser` prop object which requires adding `currentUser` as a dependency.
+
+```jsx
+function Todos({ currentUser }) {
+
+    useEffect(
+        () => {
+            const url = `https://api.example.com/users/${currentUser.id}/todos`;
+
+            fetch( url, {
+                method: "get",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+            .then( response => response.json() )
+            .then( json => console.log( json ))
+            .catch( err => console.log( err ) );
+        },
+        [ currentUser ] // 👈 Boo! Object dependency.
+    );
+
+    return <>...</>;
+}
+```
+
+In order to remove `currentUser` as a dependency, we can extract the property `currentUser.id` into its own variable `id` and then use that within `useEffect` as a dependency. Since `id` is a primitive value, our `useEffect` will not be triggered every time the component re-renders. It will only run when `id` changes.
+
+```jsx
+function Todos({ currentUser }) {
+    const { id } = currentUser;
+
+    useEffect(
+        () => {
+            const url = `https://api.example.com/users/${id}/todos`;
+
+            fetch( url, {
+                method: "get",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+            .then( response => response.json() )
+            .then( json => console.log( json ))
+            .catch( err => console.log( err ) );
+        },
+        [ id ] // 👈 Yay! Object dependency replaced with primitive!
+    );
+
+    return <>...</>;
+}
+```
+
+### Removing function dependencies
+
+Similar to objects, functions defined within components will also be re-defined on every re-render. These functions are reactive and when defined within `useEffect` they'll need to be added as a dependency. But this will make the `useEffect` run on every re-render as the function will be re-defined on every re-render and even though the function definition will be the same, the function reference will be re-created and will cause a re-run of `useEffect`.
+
+In order to avoid this, it is always recommended to remove function dependencies from `useEffect`'s dependency array.
+
+Lets look at some of the ways through which we can achieve this.
+
+#### Define the function outside the component
+
+Functions that are defined within the component but do not reference any reactive value like props or state within them are safe to use within `useEffect`. You can invoke them within `useEffect` without adding them as dependency. Since the function is not a dependency, it will not cause the `useEffect` to run on every re-render. 
+
+But it is still strongly recommended that you define such functions outside the component to make the code more readable.
+
+Consider the example below. We define a function `getCurrUserFromStore()` within the component and then invoke it within `useEffect`. But this function is not a dependency and does not cause the `useEffect` to run on every re-render.
+
+```jsx
+function Todos() {
+    // This function should be defined outside the component.
+    function getCurrUserFromStore() {
+        return localStorage.getItem( "current_user" );
+    }
+
+    useEffect(
+        () => {
+            const { id } = getCurrUserFromStore();
+            const url = `https://api.example.com/users/${id}/todos`;
+
+            fetch( url, {
+                method: "get",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+            .then( response => response.json() )
+            .then( json => console.log( json ))
+            .catch( err => console.log( err ) );
+        },
+        [] // 👈 Yay! No need to add function as a dependency
+    );
+
+    return <>...</>;
+}
+```
+
+#### Define the function within `useEffect`
+
+If the function does use reactive values defined within the component, then it cannot be defined outside the component. In such cases, consider moving the function definition within the `useEffect`.
+
+Consider the example below where we define a function `getRequestOptions()`. This function generates an object of parameters required for a network request that happens within the `useEffect`. We cannot define it outside the component as it uses the prop `authToken`. This makes the function a dependency in the `useEffect`.
+
+```jsx
+function Page({ currentUser }){
+    const { authToken } = currentUser;
+
+    function getRequestOptions() {
+        return {
+            method: "get",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + authToken
+            }
+        }
+    }
+
+    useEffect(
+        () => {
+            fetch( "https://api.example.com/", getRequestOptions())
+                .then( response => response.json() )
+                .then( json => console.log( json ))
+                .catch( err => console.log( err ) );
+        },
+        [getRequestOptions] // 👈 Boo! Function dependency.
+    );
+
+    return <>...</>;
+}
+```
+
+In this case, what we can do is to move the function definition within the `useEffect` and then remove it from the dependency array.
+
+```jsx
+function Page({ currentUser }){
+    const { authToken } = currentUser;
+
+    useEffect(
+        () => {
+            function getRequestOptions() {
+                return {
+                    method: "get",
+                    credentials: "include",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + authToken
+                    }
+                }
+            }
+            fetch( "https://api.example.com/", getRequestOptions())
+                .then( response => response.json() )
+                .then( json => console.log( json ))
+                .catch( err => console.log( err ) );
+        },
+        [authToken] // 👈 Yay! Function dependency removed.
+    );
+
+    return <>...</>;
+}
+```
+
+#### Memoize the function using `useCallback`
+
+In the previous example, in case it is not possible to define the function within the `useEffect`( maybe because it is being used elsewhere within the component as well ), then another option is to wrap the function definiton within a <Link to="/react-usecallback-hook">`useCallback`</Link>.
+
+Check this out in action in the example code below.
+
+```jsx
+function Page({ currentUser }){
+    const { authToken } = currentUser;
+
+    const getRequestOptions = useCallback( () => ({
+            method: "get",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + authToken
+            }
+        }),
+        [ authToken ]
+    );
+
+    useEffect(
+        () => {
+            fetch( "https://api.example.com/", getRequestOptions())
+                .then( response => response.json() )
+                .then( json => console.log( json ))
+                .catch( err => console.log( err ) );
+        },
+        [getRequestOptions] // 👈 Yay! Memoized function dependency.
+    );
+
+    return <>...</>;
+}
+```
+
+This will make React memoize `getRequestOptions()` so that the function will not be redefined unless there is a change in `authToken`.
+
+This means that the component may re-render multiple times but as long as the `authToken` value remains the same, the function `getRequestOptions()` will be defined only once and `useEffect` will not be triggered on every re-render.
+
+#### Use primitive return value from function as dependencies
+
+If none of the above approaches work in your case, then another thing you can try is to define the function outside `useEffect` but use the primitive return value from the function if it returns one and then use this value within `useEffect` instead of invoking the function. This way we can replace the function dependency with a primitive value dependency.
+
+Even though the function will still be re-defined on every re-render, but since our `useEffect` doesn't have the function as a dependency, it won't re-run the same number of times. It only needs to run when the return value from within the function change.
+
+Consider the example below. The `useEffect` uses the `id` from the `currentUser` variable which requires adding `currentUser` as a dependency.
+
+```jsx
+function Todos({ ... }) {
+
+    function getCurrentUserFromStore(){
+        // reactive code
+    }
+
+    useEffect(
+        () => {
+            const currentUser = getCurrentUserFromStore();
+            fetch( `https://api.example.com/users/${currentUser.id}/todos` )
+                .then( response => response.json() )
+                .then( json => console.log( json ))
+                .catch( err => console.log( err ) );
+        },
+        [ getCurrentUserFromStore ] // 👈 Boo! Function dependency.
+    );
+
+    return <>...</>;
+}
+```
+
+In order to remove `getCurrentUserFromStore()` as a dependency, we'll we will extract the property `id` from the object returned by this function which contains information about the current user. We'll then use this `id` variable within `useEffect` and as a dependency. Since `id` is a primitive value, our `useEffect` will not be triggered every time the component re-renders. It will only run when `id` changes.
+
+```jsx
+function Todos({ ... }) {
+
+    function getCurrentUserFromStore(){
+        // reactive code
+    }
+
+    const { id } = getCurrentUserFromStore();
+        
+    useEffect(
+        () => {
+            fetch( `https://api.example.com/users/${id}/todos` )
+                .then( response => response.json() )
+                .then( json => console.log( json ))
+                .catch( err => console.log( err ) );
+        },
+        [ id ] // 👈 Yay! Function dependency replaced with primitive.
+    );
+
+    return <>...</>;
+}
+```
+
+## Separation of concerns
+
+You should always try to keep a single `useEffect` focused on solving a single problem. If there are multiple unrelated side-effects happening within a single `useEffect` then you should consider separating them into multiple `useEffect` calls.
+
+Consider the example below where we are making two unrelated network requests in the same `useEffect`.
+
+```jsx
+function Page({ currentUser }){
+    const { id } = currentUser;
+
+    useEffect(
+        () => {
+            // fetch todos
+            fetch( `https://api.example.com/users/${id}/todos` )
+                .then( response => response.json() )
+                .then( todos => console.log(todos) )
+                .catch( err => console.log(err) );
+
+
+            // fetch messages
+            fetch( `https://api.example.com/users/${id}/messages` )
+                .then( response => response.json() )
+                .then( messages => console.log(messages) )
+                .catch( err => console.log(err) );
+        },
+        [ id ]
+    );
+
+    return <>...</>;
+}
+```
+
+This presents a great opportunity to implement some separation of concerns and separate out the two network requests into two different `useEffect` calls.
+
+```jsx
+function Page({ currentUser }){
+    const { id } = currentUser;
+
+    // fetch todos
+    useEffect(
+        () => {
+            fetch( `https://api.example.com/users/${id}/todos` )
+                .then( response => response.json() )
+                .then( todos => console.log(todos) )
+                .catch( err => console.log(err) );
+        },
+        [ id ]
+    );
+
+    // fetch messages
+    useEffect(
+        () => {
+            fetch( `https://api.example.com/users/${id}/messages` )
+                .then( response => response.json() )
+                .then( messages => console.log( messages ) )
+                .catch( err => console.log( err ) );
+        },
+        [ id ]
+    );
+
+    return <>...</>;
+}
+```
+
+## Extract `useEffect` into a custom hook
+
+It is highly recommended to extract each `useEffect` into its own <Link to="/react-custom-hooks-tutorial">custom hook</Link>. This keeps your components super-compact and focused on rendering logic rather than side-effect logic. This not just improves readability but also re-usability since the custom hooks can easily be used in other components all across your codebase.
+
+In the example code below, we make a network request to fetch `posts` from the <a href="https://jsonplaceholder.typicode.com/" target="_blank">JSON Placeholder dummy JSON API</a> within `useEffect` and we encapsulate it within its own custom hook `useFetchPosts`.
+
+Here is the code for the custom hook `useFetchPosts`.
+
+```js title=useFetchPosts.js
+import { useEffect, useState } from "react";
+
+export default function useFetchPosts(){
+    const [ posts, setPosts ] = useState( [] );
+
+    useEffect(
+        () => {
+            let cancelFetch = false;
+            fetch('https://jsonplaceholder.typicode.com/posts')
+                .then( response => response.json() )
+                .then( json => {     
+                    // Update the `posts` state only if the component has not un-mounted 
+                    // and the clean-up function has not cancelled this AJAX request.
+                    if( !cancelFetch ) {
+                        setPosts( json );
+                    }
+                } )
+                .catch( err => console.log( err ) );
+
+            // clean-up function cancels the AJAX request
+            return () => { cancelFetch = true; }
+        },
+        []
+    );
+
+    return { posts };
+}
+```
+
+And then in `App.jsx`, all we have to do is import and invoke the custom hook.
+
+```jsx title=App.jsx
+import useFetchPosts from './useFetchPosts';
+
+export default function App(){
+    const { posts } = useFetchPosts();
+    
+    return (
+        <ul>
+            { posts.map( p => <li key={p.id}>{p.title}</li> ) }
+        </ul>
+    );
+}
+```
+
+## Summary
+
+Here are the strategies that we have discussed in this post about how to optimize `useEffect`.
+
+- Try to replace `useEffect` with event handlers wherever possible
+- Remove unnecessary dependencies
+    - Remove state dependencies using the state updater function
+    - Remove object dependencies
+        - Define static objects outside the component
+        - Define dynamic objects within `useEffect`
+        - Memoize the object using `useMemo`
+        - Use primitive properties from the object as dependencies
+    - Remove function dependencies
+        - Define the function outside the component
+        - Define the function within `useEffect`
+        - Memoize the function using `useCallback`
+        - Use primitive return value from the function as dependency
+- Separation of concerns
+- Extract `useEffect` into a custom hook
+
+---
+
+Hope this helps!🙏
