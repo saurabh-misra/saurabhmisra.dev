@@ -1,0 +1,43 @@
+---
+title: "Update data in one table by SELECTing data from another table in SQL Server"
+date: 2024-06-28
+slug: "/sql-server-update-from-select"
+tags:
+  - SQL Server
+description: "We can use UPDATE-SET-FROM-WHERE instead of the usual UPDATE-SET-WHERE to select rows from another table different from the one we are trying to update."
+---
+
+Usually, an `UPDATE` statement references columns from the one table that it is updating.
+
+But sometimes, you may need to update one table with data from another table. In such scenarios, you may need the ability to UPDATE this table with a SELECT clause that selects rows from another table.
+
+Consider the example below. The context is that of a shopping cart where the user selects a shipping address from one of his several saved addresses. This selected saved address needs to be copied over to the shopping cart table into the shipping address columns.
+
+So the problem here is that we want to execute an UPDATE statement on the `tbl_shopping_cart` table but we want to source the data from the `tbl_saved_addersses` table.
+
+Lets see how we can construct the `UPDATE` query to achieve this.
+
+```
+UPDATE 
+    c
+SET
+    c.shipping_name = sa.name,
+    c.shipping_addr1 = sa.addr1,
+    c.shipping_addr2 = sa.addr2,
+    c.shipping_city = sa.city,
+    c.shipping_state = sa.state,
+    c.shipping_zip = sa.zip,
+    c.shipping_country = sa.country
+FROM
+    tbl_shopping_cart c
+    INNER JOIN tbl_saved_addresses sa ON c.userid = sa.userid 
+WHERE
+    sa.id = @p_selected_shipping_address_id
+    AND c.id = @p_shopping_cart_id;
+```
+
+Normally, we'd have the `UPDATE-SET-WHERE` construct but here we have a `UPDATE-SET-FROM-WHERE` construct. The `FROM` clause is where we specify all the tables involved. One of those tables will be specified after the `UPDATE` statement which will indicate that this is the table we want to update. All other tables will be used to source data.
+
+The params `@p_selected_shipping_address_id` and `@p_shopping_cart_id` indicate placeholder variables used for demo purposes.
+
+Hope this helps!🙏

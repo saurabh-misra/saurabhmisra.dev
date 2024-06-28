@@ -1,0 +1,73 @@
+---
+title: "How to fix array of objects not getting updated within foreach loop in PHP"
+date: 2024-06-28
+slug: "/php-foreach-loop-pass-by-reference"
+tags:
+  - PHP
+description: "Array items are by default passed by value within the foreach loop. Append '&' before initializing the array item in order to pass by reference."
+---
+
+In PHP, when looping over an array of objects( or an associative array ), the objects are passed by value. So if you update this object within the `foreach` loop, the original array remains unchanged.
+
+For example:
+
+```php
+<?php
+$arrUsers = [
+    [ "id" => 1, "name" => "Gurunath" ],
+    [ "id" => 2, "name" => "Roopesh" ],
+    [ "id" => 3, "name" => "Sanil" ]
+];
+
+// `$user` is being passed by value
+foreach( $arrUsers as $user ) {
+    $user[ "isActive" ] = 1;
+}
+
+print_r( $arrUsers );
+?>
+
+/*
+Array ( 
+    [0] => Array ( [id] => 1 [name] => Gurunath ) 
+    [1] => Array ( [id] => 2 [name] => Roopesh ) 
+    [2] => Array ( [id] => 3 [name] => Sanil ) 
+) 
+*/
+```
+
+Even though you are adding another key-value , `isActive` to `$user` within the `foreach` loop, the original array `$arrUsers` remains unchanged.
+
+This happens because `$user` is being passed by value and not by reference in the `foreach` loop initialization statement.
+
+In order to pass `$user` by reference, we need to append `&` before `$user` when initializing the `foreach` loop. Lets see this in action.
+
+```php highlight=9
+<?php
+$arrUsers = [
+    [ "id" => 1, "name" => "Gurunath" ],
+    [ "id" => 2, "name" => "Roopesh" ],
+    [ "id" => 3, "name" => "Sanil" ]
+];
+
+// `$user` is being passed by reference
+foreach( $arrUsers as &$user ) {
+    $user[ "isActive" ] = 1;
+}
+
+print_r( $arrUsers );
+?>
+
+/*
+Array ( 
+    [0] => Array ( [id] => 1 [name] => Gurunath [isActive] => 1 ) 
+    [1] => Array ( [id] => 2 [name] => Roopesh  [isActive] => 1 ) 
+    [2] => Array ( [id] => 3 [name] => Sanil    [isActive] => 1 ) 
+) 
+*/
+```
+---
+
+Now the original array gets updated as expected.
+
+Hope this helps!🙏
