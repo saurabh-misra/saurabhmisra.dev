@@ -1,0 +1,101 @@
+---
+title: "3 ways to loop over the keys in a JavaScript object"
+date: 2024-07-05
+slug: "/js-loop-over-object-keys"
+tags:
+  - JavaScript
+description: "Using for-in and for-of loop with Object.keys() and Object.entries() are three ways we can loop over keys in an object in JavaScript."
+---
+
+In this tutorial, we're going to look at 3 different ways to loop over the keys in a JavaScript object. 
+
+These methods are:
+
+1. The `for-in` loop
+2. The `for-of` loop with `Object.keys()`
+3. The `for-of` loop with `Object.entries()`
+
+In the examples that follow, we'll be using the JS object below.
+
+```js
+const user = {
+    user_id: 123,
+    name: "Saurabh Misra",
+    email: "hello@saurabhmisra.dev"
+}
+```
+
+## The `for-in` loop
+
+This is how we can use the `for-in` construct to loop over all the keys in an object.
+
+```js
+for( var key in user ) {
+    if( user.hasOwnProperty( key ) ) {
+        console.log( key );
+    }
+}
+
+/*
+user_id
+name
+email
+*/
+```
+
+Notice the `if` condition with the `hasOwnProperty()` call. If you do not specify this condition then the `for-in` loop will not only loop over all the immediate properties in the object but will also loop over all the objects and properties nested in the prototype chain.
+
+Consider this example where the object `employee` has the object `user` in its prototype chain. If you do not specify the `hasOwnProperty()` condition, then the `for-in` loop will display all properties within the `employee` object and then all properties within the `user` object as well.
+
+```js
+function Employee(){
+    this.employee_id = "123";
+}
+
+Employee.prototype = user;
+
+const employee = new Employee();
+
+for( var key in employee ) {
+    console.log( key );
+}
+
+/*
+employee_id 
+user_id 
+name 
+email
+*/
+```
+
+If this is what you want then you can omit the condition but otherwise make sure you specify this condition.
+
+## The `for-of` loop with `Object.keys()`
+
+```js
+for( var key of Object.keys( user ) ) {
+    console.log( key );
+}
+
+/*
+user_id
+name
+email
+*/
+```
+
+## The `for-of` loop with `Object.entries()`
+
+```js
+for( var [key, value] of Object.entries( user ) ) {
+    console.log( key );
+}
+
+/*
+user_id
+name
+email
+*/
+```
+
+Hope this helps!🙏
