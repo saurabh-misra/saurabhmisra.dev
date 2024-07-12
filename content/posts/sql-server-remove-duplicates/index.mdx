@@ -1,0 +1,150 @@
+---
+title: "Remove duplicate records from a table in SQL Server"
+date: 2024-07-12
+slug: "/sql-server-remove-duplicates"
+tags:
+  - SQL Server
+description: "We can delete duplicate records using MIN(), MAX() or ROW_NUMBER()."
+---
+
+**In this tutorial, we'll look at four different ways to delete duplicate records from a table in SQL Server.**
+
+In most cases where you need to delete duplicates, you'd come with a criteria to either delete the most recent or the oldest and keep just the one original record.
+
+Lets look at both these scenarios and apply two different approaches to them both.
+
+We'll first quickly setup a table with some duplicate records for our demo purposes. With the below setup code, we'll create a table that will hold user data mainly the "email". We are intentionally going to insert duplicate records with the same email address.
+
+```sql
+CREATE TABLE tbl_users(
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    email VARCHAR(200) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT( getdate() )
+);
+
+INSERT INTO tbl_users( email ) VALUES( 'abhishek@example.com' );
+INSERT INTO tbl_users( email ) VALUES( 'abhishek@example.com' );
+INSERT INTO tbl_users( email ) VALUES( 'abhishek@example.com' );
+INSERT INTO tbl_users( email ) VALUES( 'ganesh@example.com' );
+INSERT INTO tbl_users( email ) VALUES( 'ganesh@example.com' );
+INSERT INTO tbl_users( email ) VALUES( 'ganesh@example.com' );
+INSERT INTO tbl_users( email ) VALUES( 'ganesh@example.com' );
+INSERT INTO tbl_users( email ) VALUES( 'atul@example.com' ); 
+```
+
+After setting this up, the table data will look something like this.
+
+```sql
+SELECT * FROM tbl_users;
+
+/*
+id          email                     created_at
+----------- ------------------------- -----------------------
+1           abhishek@example.com      2024-07-04 13:00:00:000
+2           abhishek@example.com      2024-07-04 14:00:00:000
+3           abhishek@example.com      2024-07-04 15:00:00:000
+4           ganesh@example.com        2024-07-04 16:00:00:000
+5           ganesh@example.com        2024-07-04 17:00:00:000
+6           ganesh@example.com        2024-07-04 18:00:00:000
+7           ganesh@example.com        2024-07-04 19:00:00:000
+8           atul@example.com          2024-07-04 20:00:00:000
+*/
+```
+
+## 1. Retain oldest record and delete other duplicate records
+
+We'll first see how we can delete most recent records and retain the oldest one as the original record.
+
+So using both approaches mentioned below, you'll end up deleting 5 records from our demo table and will be left with the below records.
+
+```sql
+SELECT * FROM tbl_users;
+
+/*
+id          email                       created_at
+----------- --------------------------- -----------------------
+2           abhishek@example.com        2024-07-06 13:00:00:000
+5           ganesh@example.com          2024-07-06 16:00:00:000
+7           atul@example.com            2024-07-06 20:00:00:000
+*/
+```
+
+### 1.1. Using `MIN()`
+
+```sql
+DELETE u1
+FROM tbl_users u1
+WHERE u1.created_at > ( 
+    SELECT MIN(u2.created_at) 
+    FROM tbl_users u2 
+    WHERE u2.email = u1.email 
+)
+```
+
+### 1.2. Using `ROW_NUMBER()`
+
+```sql
+DELETE 
+FROM tbl_users
+WHERE id IN (
+    SELECT id FROM (
+        SELECT 
+            *, 
+            ROW_NUMBER() OVER ( 
+                PARTITION BY email ORDER BY created_at ASC 
+            ) as 'row_num'
+        FROM tbl_users
+    ) temp
+    WHERE row_num > 1
+)
+```
+
+## 2. Retain newest record and delete other duplicate records
+
+We'll now look at how we can delete oldest records and retain the most recent one as the original record.
+
+So using both approaches mentioned below, you'll end up deleting 5 records from our demo table and will be left with the below records.
+
+```sql
+SELECT * FROM tbl_users;
+
+/*
+id          email                       created_at
+----------- --------------------------- -----------------------
+2           abhishek@example.com        2024-07-06 15:00:00:000
+5           ganesh@example.com          2024-07-06 19:00:00:000
+7           atul@example.com            2024-07-06 20:00:00:000
+*/
+```
+
+### 2.1. Using `MAX()`
+
+```sql
+DELETE u1
+FROM tbl_users u1
+WHERE u1.created_at < ( 
+    SELECT MAX(u2.created_at) 
+    FROM tbl_users u2 
+    WHERE u2.email = u1.email 
+)
+```
+
+### 2.2. Using `ROW_NUMBER()`
+
+```sql
+DELETE 
+FROM tbl_users
+WHERE id IN (
+    SELECT id FROM (
+        SELECT 
+            *, 
+            ROW_NUMBER() OVER ( 
+                PARTITION BY email ORDER BY created_at DESC 
+            ) as 'row_num'
+        FROM tbl_users
+    ) temp
+    WHERE row_num > 1
+)
+```
+
+Hope this helps!🙏
