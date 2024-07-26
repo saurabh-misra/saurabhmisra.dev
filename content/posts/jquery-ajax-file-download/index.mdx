@@ -1,0 +1,55 @@
+---
+title: "How to download a file using jQuery AJAX"
+date: 2024-07-26
+slug: "/jquery-ajax-download-file"
+tags:
+  - jQuery
+description: "File downloads while using jQuery AJAX is made possible by the URL.createObjectURL() API."
+---
+
+**In this tutorial, we'll learn how to download a file using jQuery AJAX and the `createObjectURL()` method of the `URL` web api.**
+
+Consider the below example, we target a file using jQuery AJAX. We set the `xhrFields` property to indicate we need to receive the response as a "blob".
+
+```js
+$(document).ready(function(){
+    $.ajax({
+        url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/1000_years_Old_Thanjavur_Brihadeeshwara_Temple_View_at_Sunrise.jpg/1599px-1000_years_Old_Thanjavur_Brihadeeshwara_Temple_View_at_Sunrise.jpg",
+        method: "get",
+        xhrFields: {
+            responseType: 'blob'
+        },
+        success: function( data ) {
+            // create an object URL of the blob response.
+            var url = window.URL.createObjectURL( data )
+
+            // create a hidden anchor element to download the blob as a file.
+            var anchorElem = document.createElement( "a" );
+            anchorElem.style.display = "none";
+            anchorElem.href = url;
+            anchorElem.download = "Brihadeeswara.jpg";
+
+            // append the anchor element on to the document body.
+            $("body").append( anchorElem );
+
+            // trigger a click event on this anchor element.
+            anchorElem.click();
+
+            // clean-up
+            window.URL.revokeObjectURL( url );
+        }
+    })
+});
+```
+
+**Step 1:** Within the `success` callback, we use the `URL.createObjectURL()` API function and pass it the blob response as an input. 
+
+**Step 2:** This creates an object URL which we pass to the `href` attribute of an anchor element. 
+
+**Step 3:** We attach this anchor element to the `body` but we make sure that it is hidden and we also set its `download` attribute to the object URL.
+
+**Step 4:** We then trigger the `click` event of this anchor element which downloads the file onto the local filesystem.
+
+**Step 5:** As a final step, we perform some clean-up by revoking the object URL that clears up any memory occupied by it.
+
+Hope this helps!🙏
