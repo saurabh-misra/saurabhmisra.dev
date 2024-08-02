@@ -1,0 +1,93 @@
+---
+title: "Database Naming Conventions | SQL Server"
+date: 2024-08-02
+slug: "/database-naming-conventions-sql-server"
+tags:
+  - SQL Server
+description: "We'll look at some of the naming conventions for database schema objects and T-SQL scripts specfically for Microsoft SQL Server"
+---
+
+In this blog post, we'll look at some of the naming conventions for database schema objects and T-SQL scripts specfically for Microsoft SQL Server.
+
+Naming conventions ensure that your database design and scripts look and feel consistent. This makes your code more readable and schema design more predictable enabling your future self or your team members to easily interpret your work.
+
+Before we start, please note that there is no single standard for database naming conventions. There are some popular ones like:
+- <a href="https://stackoverflow.com/a/3593804/1932141" target="_blank">Microsoft's AdventureWorks database naming convention</a>  
+- <a href="https://www.oreilly.com/library/view/joe-celkos-sql/9780120887972/" target="_blank">Joe Celko's SQL Programming Style</a>
+- <a href="https://github.com/ktaranov/sqlserver-kit/blob/master/SQL%20Server%20Name%20Convention%20and%20T-SQL%20Programming%20Style.md" target="_blank">Konstantin Taranov's guide on SQL Standards</a>
+
+Naming conventions can differ from person-to-person, project-to-project and team-to-team. So the best naming convention is the one that works for you or your project or your team. 
+
+Here we'll discuss naming conventions that I have found to be acceptable by the community and that make sense to me as well. These are not mandates or rules that need to be followed but more like suggestions or guidelines that can hopefully inspire you to adopt a certain naming convention.
+
+Let's begin.
+
+## Database Naming Convention
+
+A database can be named in PascalCase.
+
+For example: `AdventureWorks`
+
+## Table Naming Convention
+
+Tables also follow the same PascalCase format.
+
+For example: `SalesOrderHeaders`
+
+You can choose either singular or plural names for example, `User` or `Users`. The community seems to be divided between which one to use so you can choose either. 
+
+My personal preference is to use plural.
+
+## Column Naming Convention
+
+Columns also follow PascalCase format.
+
+For example: `TaxableAmt`, `DateCreated`
+
+## Primary Key Naming Convention
+
+Primary Keys can be named by prefixing `PK_` to the table name.
+
+For example: `PK_SalesOrderHeaders`
+
+You can also include the column(s) if you want like this:
+
+`PK_SalesOrderHeaders_SalesOrderId`
+
+## Foreign Key Naming Convention
+
+Foreign Keys can be named by prefixing `FK_` to the source and destination table name and column names.
+
+For example: `FK_ThisTable_ThisCol_ThatTable_ThatCol`
+
+## View Naming Convention
+
+Views have a prefix of `v_` followed by the view name in PascalCase.
+
+For example: `v_MyViewName`
+
+## Stored Procedure Naming Convention
+
+Stored procedure have a prefix of `usp_` followed the name in PascalCase format.
+
+For example: `usp_MyStoredProc`
+
+## Variable Naming Convention
+
+Variables follow the camelCase format. 
+
+For example: `@freightAmt` or `@userId`
+
+### Stored Proc Params Naming Convention
+
+The input params have a prefix of `@p_` followed by the identifier name in camelCase format.
+
+For example: `@p_shippingTaxAmt`
+
+Output variables have a prefix of `@o_` followed by the identifier name in camelCase format.
+
+For example: `@o_insertedUserId`
+
+---
+
+Hope this helps!🙏
