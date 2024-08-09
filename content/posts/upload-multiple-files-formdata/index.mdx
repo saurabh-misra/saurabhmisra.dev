@@ -1,0 +1,100 @@
+---
+title: "How to upload multiple files with FormData"
+date: 2024-08-09
+slug: "/upload-multiple-files-formdata"
+tags:
+  - JavaScript
+description: "While appending selected files to the FormData object, we need to specify the name of object property as an array."
+---
+
+In this tutorial, we'll look at how to upload multiple files from a file input element using `FormData` and `jQuery` AJAX.
+
+First, lets look at how to upload a single file using `FormData`.
+
+Here is how to script the file input which will by default, only select a single file.
+
+```html
+ <form>
+    <input type="file" name="selectedFile" id="selectedFile" />
+    <button type="submit">Upload</button>
+</form>
+```
+
+And this is how the jQuery AJAX script will look like.
+
+```js
+$(document).ready(function(){
+    $( "form" ).submit(function(){
+        // Initialize and populate the FormData object.
+        var fd = new FormData();
+        var selectedFile = $( "#selectedFile" )[0].files[0];
+        fd.append( "selectedFile", selectedFile );
+
+        $.ajax({
+            type: 'POST',
+            url: "https://api.example.com/uploads",
+            cache: false,
+            contentType: false,
+            processData: false,
+            data : fd,
+            success: function( data ) {
+                console.log( data );
+            },
+            error: function( err ) {
+                console.log( err );
+            }
+        });
+
+        return false;
+    });
+});
+```
+
+Now lets extend this code to work for multiple file uploads.
+
+In the HTML code, we'll set the `multiple` attribute which will enable us to select multiple files. Also, we'll change the `name` and `id` attributes to plural.
+
+```html
+ <form>
+    <input type="file" name="selectedFiles" id="selectedFiles" multiple />
+    <button type="submit">Upload</button>
+</form>
+```
+
+In the `jQuery` code, we'll loop over all the files selected in the input element and then append them to the `FormData` object. 
+
+We'll also name the property within the `FormData` object as an array. So we'll refer to it as `selectedFiles[]` instead of just `selectedFile`. 
+
+```js
+$(document).ready(function(){
+    $( "form" ).submit(function(){
+        // Initialize and populate the FormData object.
+        var fd = new FormData();
+        var selectedFiles = $( "#selectedFiles" )[0].files;
+        for (let i = 0; i < selectedFiles.length; i++) {
+            fd.append( "selectedFiles[]", selectedFiles[i] );
+        }
+
+        $.ajax({
+            type: 'POST',
+            url: "https://api.example.com/uploads",
+            cache: false,
+            contentType: false,
+            processData: false,
+            data : fd,
+            success: function( data ) {
+                console.log( data );
+            },
+            error: function( err ) {
+                console.log( err );
+            }
+        });
+
+        return false;
+    });
+});
+```
+
+---
+
+Hope this helps!🙏
