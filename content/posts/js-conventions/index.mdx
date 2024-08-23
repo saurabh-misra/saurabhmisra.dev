@@ -1,0 +1,124 @@
+---
+title: "JavaScript Naming Conventions and Best Practices"
+date: 2024-08-23
+slug: "/javascript-naming-conventions-best-practices"
+tags:
+  - Web Development
+  - JavaScript
+description: "We'll look at naming conventions and some basic best practices aimed at beginners. These conventions are inspired by widely-accepted standards within the community as well as my personal preferences."
+---
+
+There are no standards that are set in stone when it comes to naming conventions in software development.
+
+You can choose a convention based on what makes most sense for you or your team or your project. 
+
+The important thing is to choose a naming convention and stick to it. This approach goes a long way in making sure that the codebase remains consistent and is easier to manage between different team members.
+
+**In this blog post, we'll look at naming conventions and some "basic" best practices aimed at beginners. These conventions are inspired by widely-accepted standards within the community as well as my personal preferences.**
+
+You're free to mix and match and come up with your own because again the important thing is to actually use a naming convention.
+
+>These conventions can be applied to other programming languages as well but it may happen that a certain language or library or framework has its own conventions so be sure to read the official documentation and follow the naming convention that makes most sense.
+
+Lets get right into it.
+
+## Variables
+
+Variables can be named in camelCase like this: `name`, `userId`, `shippingAddr1`, etc.
+
+Constants will be all uppercase separated by underscore like: `PI`, `AJAX_REQUEST_TIMEOUT`, etc.
+
+Globals can be named like variables i.e. in camelCase. You can also use a prefix like this:
+
+- `gUserType` 
+- `gblUserType`
+- `glblUserType`
+- `g_userType` ( My personal recommendation )
+- `gbl_userType`
+- `glbl_userType`  
+
+Since global variables can become a source of bugs if handled improperly, a prefix like this makes it absolutely clear at a glance that this is a global variable thus bringing down the probability of improper usage especially when multiple team members are working on the same codebase.
+
+You can use such prefixes in other scenarios as well. For example, if you're working with variables that handle user inputs, then you can prefix these variables to indicate that they are safe or unsafe as:
+
+- `usFirstName` => `sFirstName` OR `us_firstName` => `s_firstName`
+- `unsfLastName` => `sfLastName` OR `unsf_lastName` => `sf_lastName`
+
+## Functions
+
+Functions are also camelCase-d.
+
+For example: `fetchMessages()`
+
+## Classes or React Components
+
+The convention for these is to name them in PascalCase. For example: `SalesOrder` and `<NavBar />`.
+
+## Object properties and methods
+
+Object properties and methods can also be named in the same way as variables i.e. in camelCase.
+
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_properties" target="_blank">Object properties and methods can be marked as "private"</a> by prefixing them with `#`.
+
+For example: 
+- `this.#privateProperty` 
+- `this.#privateMethod()`
+
+However, before this was implemented, there are was no in-built way within JavaScript to mark a property or method as private which is why, it was a convention to use underscore as the prefix. Some codebases, libraries or frameworks might still be using this convention.
+
+For example:
+- `this._privateProperty`
+- `this._privateMethod()`
+
+## Commenting best practices
+
+Comments are incredibly useful for describing the developer's intent and rationale behind writing code. 
+
+Again, there are no hardcore conventions here but MDN recommends always using single-line comments `//...` even for multiple lines. Multi-line comments `/* ... */` are only to be used for commenting blocks of code while debugging.
+
+For example:
+
+```
+// lorem ipsum dolor sit amet
+
+// Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+// Fusce id ipsum luctus, vulputate ligula vitae, porta leo. 
+// Vivamus libero lacus, tristique at efficitur a, aliquet eget arcu. 
+// Pellentesque id nisi in nisi rutrum molestie. Vivamus vel dictum eros. 
+// Quisque viverra in lorem fermentum posuere.
+ 
+/*
+...
+some code commented while debugging
+...
+*/
+```
+
+There are also JSDoc style comments which enable the automatic generation of documentation by writing comments in this format.
+
+```js
+/**
+ * Generate the full name of a person
+ * @param {string} firstName - The first name of the person 
+ * @param {string} lastName - The last name of the person
+ * @returns {string} - The full name of the person
+ */
+function getFullName( firstName, lastName ) {
+    return firstName + " " + lastName;
+}
+
+```
+
+## Indentation best practices
+
+2 spaces seems to be the standard way for indenting in JavaScript and a variety of other programming languages but again this will depend on your project or personal preferences.
+
+## References and Further Reading
+
+- <a href="https://developer.mozilla.org/en-US/docs/MDN/Writing_guidelines/Writing_style_guide/Code_style_guide/JavaScript" target="_blank">Guidelines for writing JavaScript code examples - MDN</a>
+- <a href="https://www.joelonsoftware.com/2005/05/11/making-wrong-code-look-wrong/" target="_blank">Making Wrong Code Look Wrong - Joel on Software</a>
+- <a href="https://www.robinwieruch.de/javascript-naming-conventions/" target="_blank">JavaScript Naming Conventions - Robin Weiruch</a>
+
+---
+
+Hope this helps!🙏
