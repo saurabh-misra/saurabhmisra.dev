@@ -1,0 +1,94 @@
+---
+title: "JavaScript operators that check for 'null' or 'undefined' and provide defaults"
+date: 2024-08-30
+slug: "/javascript-operators-null-undefined"
+tags:
+  - Web Development
+  - JavaScript
+description: "We'll look at the Nullish coalescing assignment operator(??=), Nullish coalescing operator(??) and Optional Chaining operator(?.)."
+---
+
+You may have used the ternary operator or the Logical OR ( || ) operator to work with `null` or `undefined` values and define defaults.
+
+For example: 
+
+```js
+console.log( null ? "exists" : "doesn't exist" );
+// "doesn't exist"
+
+console.log( null || 120 );
+// 120
+```
+
+In this tutorial, we're going to learn about some lesser known operators in JavaScript that also work with `null` or `undefined` values.
+
+## Nullish coalescing assignment operator ( `??=` )
+
+Also known as the logical nullish assignment operator, this operator assigns the RHS to the LHS only when the LHS is not `null` or `undefined`.
+
+```js
+var person = { name: "Saurabh" };
+
+// `person.age` is `undefined` 
+// so `??=` will define `person.age` and assign "35" to it.
+person.age ??= 35;
+
+// `person.name` is not `null` or `undefined` 
+// so `??=` will NOT assign the value "Arpita" to it.
+person.name ??= "Arpita";
+
+console.log( person.age ); // 35
+console.log( person.name ); // Saurabh
+```
+
+## Nullish coalescing operator ( `??` )
+
+This operator returns the RHS as a default value if the LHS is `null` or `undefined` otherwise returns the LHS value.
+
+```js
+var person = { name: "Saurabh" };
+
+// Returns the LHS value of `person.name` 
+// as it is not `null` or `undefined`
+console.log( person.name ?? "Arpita" ); 
+// Output: Saurabh
+
+// Returns the RHS value 35 
+// since `person.age` is `undefined`
+console.log( person.age ?? 35 ); 
+// Output: 35
+```
+
+## Optional chaining ( ?. )
+
+If you try to call a non-existent property or a function on an object, JS throws an error.
+
+```js
+var person = { name: "Saurabh" };
+
+console.log( person.address.country );
+// Uncaught TypeError: person.address is undefined
+
+console.log( person.getFullName() );
+// Uncaught TypeError: person.getFullName is not a function
+```
+
+With the optional chaining operator we can make such expressions return `undefined` instead of throwing an error like this:
+
+```js
+var person = { name: "Saurabh" };
+
+// if `person.address` exists, then logs `person.address.country`
+// else logs `undefined`.
+console.log( person.address?.country );
+// undefined
+
+// if `person.getFullName` is defined, then invokes `person.getFullName()`
+// else logs `undefined`.
+console.log( person.getFullName?.() );
+// undefined
+```
+
+---
+
+Hope this helps!🙏
