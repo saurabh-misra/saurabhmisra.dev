@@ -1,0 +1,204 @@
+---
+title: "Semantic Layout Tags in HTML"
+date: 2024-10-25
+slug: "/semantic-layout-tags-html"
+tags:
+  - Web Development
+  - HTML
+description: "Tags like <header>, <nav>, <main>, <section> and <footer> are some of the semantic HTML elements that we'll look into in this post."
+---
+
+import websiteLayoutTagsStructure from "./assets/images/website-layout-tags-structure.jpg"
+import devtoGlobalSiteHeader from "./assets/images/devto_global_site_header.jpg"
+import devtoMainContentHeader from "./assets/images/devto_main_content_header.jpg"
+import devtoArticleHeader from "./assets/images/devto_article_header.jpg"
+import devToNavTabs from "./assets/images/devto_nav_tabs.jpg"
+import devToAsideNavTabs from "./assets/images/devto_aside_nav_tabs.jpg"
+import devToMainTagHomepage from "./assets/images/devto_main_tag_homepage.jpg"
+import devToMainTagBlogPost from "./assets/images/devto_main_tag_blog_post.jpg"
+import devToAsideHomepage from "./assets/images/devto_aside_homepage.jpg"
+import devToAsideBlogPost from "./assets/images/devto_aside_blog_post.jpg"
+import devtoArticleTagBlogPost from "./assets/images/devto_article_tag_blog_post.jpg"
+import devtoArticleTagHomepage from "./assets/images/devto_article_tag_homepage.jpg"
+import devtoSectionTagBlogPost from "./assets/images/devto_section_tag_blog_post.jpg"
+import devtoSectionTagHomepage from "./assets/images/devto_section_tag_homepage.jpg"
+import smdevSectionTagHomepage from "./assets/images/smdev_section_tag_homepage.jpg"
+import devtoFooter from "./assets/images/devto_footer.jpg"
+import hashnodeArticleTagComments from "./assets/images/hashnode_article_tag_comments.jpg"
+
+There are certain tags in HTML that have special meaning and purpose for creating a basic web page layout in HTML.
+
+Tags like `<div>` and `<span>` are generic. They have no special meaning which is why they are *non-semantic* tags. Just by looking at a `<div>` tag, you'll not be able to derive any information about the content within it. You'll have to specify a `class` or `id` to convey some idea about the purpose of that `<div>` tag.
+
+This is why HTML provides certain semantic tags which convey special meaning to the browser and the developer. These tags have a specific purpose and even without `class` or `id`, they provide a basic idea of the content within them.
+
+These tags are:
+
+1. `<header>`
+2. `<nav>`
+3. `<main>`
+4. `<aside>`
+5. `<article>`
+6. `<section>`
+7. `<footer>`
+
+We'll look at each of these tags in detail but before that, lets look at this diagram to get a better overall understanding of how these tags together make up a basic website layout structure.
+
+<img src={websiteLayoutTagsStructure} className="output-screenshots" alt="Illustration showing how semantic tags are used to implement a typical website layout." />
+
+## 1. The `<header>` tag
+
+As the name suggests, this tag typically contains headings that introduce the content that follows. It can also include navigation menus, website logo, a search bar, etc.
+
+There can be multiple headers on a webpage. This tag can be used to implement a global site header with navigation menus and website logo and it can also be used within `<section>`s or `<article>`s. 
+
+For example, lets take the example of the <a href="https://dev.to" target="_blank">Dev.to</a> homepage. 
+
+It has a global `<header>` tag that encompasses the website logo, a search bar and logged-in session information and other buttons. 
+
+<img src={devtoGlobalSiteHeader} className="output-screenshots" alt="browser screenshot showing the use of the header tag as the global site header in the dev.to homepage." />
+
+But it also has another `<header>` tag within the `<main>` tag and it includes the inner tabbed navigation menu.
+
+<img src={devtoMainContentHeader} className="output-screenshots" alt="browser screenshot showing the use of the header tag within the body of the webpage in the dev.to homepage." />
+
+If you navigate to a <a href="https://dev.to/saurabhmisra/es6-modules-cheatsheet-quick-reference-guide-5338" target="_blank">blog post page</a>, you'll notice that the `<article>` has a `<header>` tag that encompasses the blog banner image, the title, author info and other metadata.
+
+<img src={devtoArticleHeader} className="output-screenshots" alt="browser screenshot showing the use of the header tag within the article tag in the dev.to homepage." />
+
+## 2. The `<nav>` tag
+
+The `<nav>` tag represents a special section within the page that contains navigation menus and links. A web page can have multiple instances of the `<nav>` tag.
+
+The contents of this tag can be links that point to other web pages for example dropdown menus and breadcrumbs. It can also contain links to sections within the same web page as well for example tabbed-navigation menus.
+
+We'll again look at instances of the `<nav>` tag in the <a href="https://dev.to" target="_blank">Dev.to</a> homepage.
+
+The homepage has a `<nav>` with a tabbed navigation menu within the `<main>` tag.
+
+<img src={devToNavTabs} className="output-screenshots" alt="browser screenshot showing the use of the nav tag to implement an in-page tabbed navigation menu in the dev.to homepage." />
+
+But there are also other nav tabs within the left `<aside>` tag.
+
+<img src={devToAsideNavTabs} className="output-screenshots" alt="browser screenshot showing the use of the nav tag within a sidebar to expose various links to other pages within the dev.to website." />
+
+## 3. The `<main>` tag
+
+As the name suggests, the `<main>` tag represents the "main" content area of the entire web-page. This will usually occur between `<header>` and `<footer>` vertically.
+
+Technically, there can be only a single `<main>` tag. If there are multiple then they must be hidden and should also have the <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#hidden" target="_blank">`hidden` attribute</a> specified.
+
+In the <a href="https://dev.to" target="_blank">Dev.to</a> homepage, here is the how the `<main>` tag has been implemented.
+
+<img src={devToMainTagHomepage} className="output-screenshots" alt="browser screenshot showing the use of the main tag in the dev.to homepage." />
+
+And for a <a href="https://dev.to/saurabhmisra/using-commonjs-modules-in-nodejs-with-moduleexports-and-require-cheatsheet-2kbf" target="_blank">blog post page</a>:
+
+<img src={devToMainTagBlogPost} className="output-screenshots" alt="browser screenshot showing the use of the main tag in a blog post page in the dev.to website." />
+
+## 4. The `<aside>` tag
+
+The `<aside>` tag represents content that complements but is not directly related to the main content of the web-page. It is typically used to implement sidebars.
+
+There can be multiple `<aside>` tags within a single web page.
+
+In the <a href="https://dev.to" target="_blank">Dev.to</a> homepage, here is the how `<aside>` tags have been implemented.
+
+<img src={devToAsideHomepage} className="output-screenshots" alt="browser screenshot showing the use of the aside tag in the dev.to homepage." />
+
+And for a <a href="https://dev.to/saurabhmisra/using-commonjs-modules-in-nodejs-with-moduleexports-and-require-cheatsheet-2kbf" target="_blank">blog post page</a>:
+
+<img src={devToAsideBlogPost} className="output-screenshots" alt="browser screenshot showing the use of the aside tag within the dev.to blog post page." />
+
+## 5. The `<article>` tag
+
+The `<article>` tag is an independent, self-contained and re-usable module within a web page or even the entire website. A single web page can have multiple `<article>` tags.
+
+The `<article>` tag typically contains a heading( `<h1>` - `<h6>` ) and some author information along with information on the date and time when the article was posted.
+
+For example:
+
+```html
+<article>
+    <h1>Top 10 Apps for Boosting Productivity</h1>
+    <p>...</p>
+    <footer>
+        <p>Posted on <time datetime="2024-10-17 18:20">Oct 17</time> by Atul Mundhe.</p>
+    </footer>
+</article>
+```
+
+The most common use-case for using this tag is for a blog post type web page where there is an actual "blog article" that will be contained within this tag. In this case, the `<article>` tag will encapsulate the article banner image, title, author bio, the blog post content, comments section, etc.
+
+This is what we see in the blog post pages of the <a href="https://dev.to/saurabhmisra/using-commonjs-modules-in-nodejs-with-moduleexports-and-require-cheatsheet-2kbf" target="_blank">Dev.to</a> website.
+
+<img src={devtoArticleTagBlogPost} className="output-screenshots" alt="browser screenshot showing the use of the article tag in a blog post webpage within the dev.to website." />
+
+But there are other use cases for the `<article>` tag as well. It can also be used to represent each item within a list of blog post article cards like the <a href="https://dev.to" target="_blank">Dev.to</a> homepage.
+
+<img src={devtoArticleTagHomepage} className="output-screenshots" alt="browser screenshot showing the use of the article tag in the dev.to homepage." />
+
+The `<article>` tag is also used for encapsulating each comment in a list of comments like in this <a href="https://hashnode.com/discussions/post/66fbad4cfc1aa928c8ced2ee?source=discuss_feed_card_button" target="_blank">Hashnode blog post</a>.
+
+<img src={hashnodeArticleTagComments} className="output-screenshots" alt="browser screenshot showing the use of the article tag to implemented comments in the Hashnode website." />
+
+So basically we can have nested `<article>` tags with the outer one representing the blog post and multiple `<article>` tags in the comment section representing different comments from readers.
+
+Just like a list of comments, `<article>` tags can also be used within a list of a forum thread's posts, user reviews, etc. 
+
+## 6. The `<section>` tag
+
+A `<section>` is a more generic alternative to represent a "section" of a web page. When there are no other more specific semantic tags that can be used, you can use `<section>`.
+
+Examples include the Hero section of a website's homepage followed by services or product features, testimonials, sponsors, features, contact us section, location( maps ), etc.
+
+Lets look at how the `<section>` tag has been used in the <a href="https://dev.to" target="_blank">Dev.to</a> homepage.
+
+<img src={devtoSectionTagHomepage} className="output-screenshots" alt="browser screenshot showing the use of the section tag in the dev.to homepage." />
+
+And here's how it has been used in a <a href="https://dev.to/saurabhmisra/using-commonjs-modules-in-nodejs-with-moduleexports-and-require-cheatsheet-2kbf" target="_blank">blog post page</a>.
+<img src={devtoSectionTagBlogPost} className="output-screenshots" alt="browser screenshot showing the use of the section tag in a blog post page within the dev.to website." />
+
+As an additional example, here is how <a href="https://www.gatsbyjs.com/" target="_blank">Gatsby</a> has used the `<section>` tag within this website's homepage.
+<img src={smdevSectionTagHomepage} className="output-screenshots" alt="browser screenshot showing the use of the section tag in the homepage of the website saurabhmisra.dev." />
+
+The `<section>` tag can be used not just for major high-level layout areas but also for smaller areas as well like a pagination bar with Previous and Next buttons and page number buttons between them.
+
+```html
+<section id="pagination">
+    <a href="#">Previous</a>
+    <a href="#">1</a>
+    <a href="#">2</a>
+    <a href="#">...</a>
+    <a href="#">10</a>
+    <a href="#">Next</a>
+</section>
+```
+
+## 7. The `<footer>` tag
+
+The `<footer>` tag is typicall used to implement a page-level footer section at the end of the web page that contains useful links to related web pages within the website, contact information, subscription forms, etc. 
+
+Here is an example of the `<footer>` element used in the <a href="https://dev.to" target="_blank">Dev.to</a> homepage.
+
+<img src={devtoFooter} className="output-screenshots" alt="browser screenshot showing the use of the footer tag in the dev.to homepage." />
+
+But that's not all, the `<footer>` element can also be used within an `<article>` tag to include author information and other metadata like the publishing date, copyright, author's contact information like email, phone, address, etc.
+
+```html
+<article>
+    <h1>Top 10 Apps for Boosting Productivity</h1>
+    <p>...</p>
+    <footer>
+        <p>Posted on <time datetime="2024-10-17 18:20">Oct 17</time> by Atul Mundhe.</p>
+        <address>
+            <a href="mailto:atul@example.com">atul@example.com</a><br />
+            <a href="tel:+91231231234">+1 (123) 123-1234</a>
+        </address>
+    </footer>
+</article>
+```
+
+---
+
+Hope this helps!🙏
