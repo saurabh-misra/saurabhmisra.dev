@@ -1,0 +1,46 @@
+---
+title: "Git diff: Compare files between two different branches"
+date: 2024-11-01
+slug: "/git-diff-between-two-branches"
+tags:
+  - Git
+description: "You can checkout a branch and then specify the other branch's name after 'git diff' followed by a path to a file or a directory that needs to be compared."
+---
+
+We usually use `git diff` to compare the committed version and the working copy version of the file in the same branch to view what has changed.
+
+In this article, we'll learn how to compare files between two different branches with `git diff`.
+
+This can be useful when you want to merge one branch with another but want to compare what has changed prior to the merge.
+
+Here is the syntax for comparing files between two different branches. First checkout one of the branches in this case named `branch1`.
+
+```bash
+git checkout branch1
+```
+
+Next, use the below command to compare a file called `file.txt` with another branch called `branch2`.
+
+```bash
+git diff branch2 -- file.txt
+```
+
+You can similarly compare multiple files like this:
+
+```bash
+git diff branch2 -- file1.txt file2.txt file3.txt
+```
+
+You can also compare all files within the current directory using the below command:
+
+```bash
+git diff branch2 -- .
+```
+
+Or you can specify a path and compare all files within that path.
+
+```bash
+git diff branch2 -- ./path/to/files/
+```
+
+Hope this helps!🙏
