@@ -1,0 +1,44 @@
+---
+title: Return ID of last inserted row from a Stored Procedure | SQL Server 
+date: 2024-11-08
+slug: "/sql-server-stored-procedure-return-inserted-row-id"
+tags:
+  - "SQL Server"
+description: "We can use SCOPE_IDENTITY() to return the ID of the last inserted row either using an OUTPUT parameter or as a result set using the SELECT clause."
+---
+
+In this tutorial, we'll learn two ways of returning the ID of an inserted row from within a stored procedure using `SCOPE_IDENTITY()`.
+
+## Method 1: Using an OUTPUT parameter
+
+You can specify an output parameter in the stored procedure using the OUT keyword and then assign the value of `SCOPE_IDENTITY()` to this variable after the row has been inserted.
+
+```sql highlight=2,7
+CREATE PROC usp_InsertMyTable
+    @o_insertedRowId INT OUT
+AS
+BEGIN
+    INSERT INTO MyTable( [name] ) VALUES( 'Saurabh' );
+
+    SET @o_insertedRowId = SCOPE_IDENTITY();
+END
+```
+
+> Please note that some server-side languages may not support output parameters.
+
+## Method 2: Returning the ID as a result set 
+
+You can return the value of the `SCOPE_IDENTITY()` as a result set using a `SELECT` clause after the row has been inserted. This is a generic solution and works with all server-side languages.
+
+```sql highlight=6
+CREATE PROC usp_InsertMyTable
+AS
+BEGIN
+    INSERT INTO MyTable( [name] ) VALUES( 'Saurabh' );
+
+    SELECT SCOPE_IDENTITY() as 'InsertedRowId';
+END
+```
+---
+
+Hope this helps!🙏
