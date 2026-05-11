@@ -1,8 +1,7 @@
-import github from "prism-react-renderer/themes/github"
-import nightOwl from "prism-react-renderer/themes/nightOwl"
+import { themes } from "prism-react-renderer"
 import { themeWithCssVariables } from "@lekoarts/gatsby-theme-minimal-blog/src/utils/prism-utils"
 
-const { theme: lightTheme, variables: lightThemeVars } = themeWithCssVariables(github)
-const { theme: darkTheme, variables: darkThemeVars } = themeWithCssVariables(nightOwl)
+const { theme: lightTheme, variables: lightThemeVars } = themeWithCssVariables(themes.github)
+const { theme: darkTheme, variables: darkThemeVars } = themeWithCssVariables(themes.nightOwl)
 
 export { lightTheme, darkTheme, lightThemeVars, darkThemeVars }
