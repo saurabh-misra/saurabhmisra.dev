@@ -66,8 +66,8 @@ module.exports = {
         ],
         externalLinks: [
           {
-            name: `Twitter`,
-            url: `https://twitter.com/saurabh__misra`,
+            name: `LinkedIn`,
+            url: `https://www.linkedin.com/in/saurabh--misra/`,
           },
           {
             name: `Email`,

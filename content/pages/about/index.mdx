@@ -3,20 +3,67 @@ title: About
 slug: "/about"
 ---
 
-Hey there 👋, I’m **Saurabh Misra**, a software engineer based in Mumbai, India. 
+import { Flex, Box, Image } from "theme-ui"
+
+I'm Saurabh Misra, a senior software engineer based in Mumbai, India, working remotely with US-based clients and teams.
 
 <img src="/me-small.jpg" width="400px" className="about-me-page-pic" />
 
-I am currently working as a remote and freelance web developer creating software solutions that help my clients grow their businesses.
+Most of my career — over 13 years of it — has been spent on large, legacy ColdFusion codebases: the kind that quietly run critical operations for years and need a senior engineer who can maintain them, extend them, integrate new systems with them, or modernize them gradually. I've typically worked as the sole developer or as part of a small team of senior engineers, with each of us owning our own projects end-to-end.
 
-I have been involved in software development professionally since more than 12 years. 
+## Current availability
 
-I started out working for <a href="https://infosys.com" target="_blank">Infosys</a> as a Software Engineer and later as a Senior Software Engineer. 
+I'm currently open to senior full-time remote roles and freelance contract work, with a particular focus on ColdFusion and CFML-adjacent engagements — maintenance, modernization, REST API design, SQL Server work, and integration projects.
 
-Around 6 years ago, I co-founded my own Software Development firm, CodeSphere Solutions where I juggled many roles but was mainly involved in web development.
+## The work I'm proudest of
 
-As a part of my current paid work, I get to work on server-side technologies like PHP, Coldfusion, Wordpress and SQL Server. Front-ends mostly involve working on jQuery, React, Angular and Twitter Bootstrap.
+For a US-based healthcare client, I single-handedly designed and built the API layer powering their new e-commerce platform, including a custom integration with their Sage ERP, payment processing via Paya, and inventory and shipping logistics. Within three years the platform was generating roughly $2M/year in revenue, replacing a phone-only sales process that had been the company's primary channel for years.
 
-In my free time, I like working on hobby projects or sharing what I learn by writing about it here on this blog. 
+For the same client, I also built a private, mobile-friendly social media platform exclusively for their customers — originally in ColdFusion, SQL Server, and Bootstrap, and later rebuilt as a React/Vite PWA backed by a ColdBox REST API. 
 
-My language of interest is JavaScript and I enjoy exploring it in detail. I love using React and React Native for web and mobile app development. Nowadays, I am also getting my hands dirty with some NodeJS.
+Along the way, I also single-handedly shipped a 100+ field, 16-section medical onboarding system with admin review workflows, and a REST API suite that helped migrate a monolithic Coldfusion web application into a layered application architecture with a Wordpress powered front-end.
+
+## How I work
+
+I've spent most of my career working remotely with US-based teams, which means I'm comfortable with asynchronous communication, written-first documentation, and the kind of independent ownership that remote engineering actually requires. I think the best engineering work comes from understanding the business context first — what the system is for, who depends on it, what failure modes are tolerable — and then choosing the simplest design that fits.
+
+## Beyond ColdFusion
+
+While CFML is my deepest specialty, I've also shipped production work in Node.js, Next.js, Fastify, React, Vite, Flutter/Dart, AWS (Cognito, S3), and Docker. I'm fluent with AI-augmented development workflows — particularly Claude Code, which I've used extensively to work across stacks and accelerate delivery. This range is most useful for teams who want to keep an existing ColdFusion system stable while building new services alongside it, or who are planning a gradual migration off CF and want someone who can credibly work on both sides.
+
+## Before the freelance years
+
+I co-founded CodeSphere Solutions, a small software development firm, where I led the business and technical direction on client projects — bringing in new clients, scoping and pricing engagements, working directly with clients on prototypes and feedback, hiring and managing junior developers, and owning architecture, design, and code review on every project before it went to production. Before that, I worked for 3 years at Infosys as part of a large team on enterprise client projects.
+
+## Outside of work
+
+When I'm not on client work, I write on [this blog](https://www.saurabhmisra.dev/blog/) about engineering problems I've recently worked through — usually CFML, REST API design, SQL Server, or whichever modern stack I'm currently using. Writing things up is how I think them through properly.
+
+## Recommendation
+
+> Over more than a decade of collaboration, Saurabh has proven himself to be a highly capable, dependable, and technically strong developer. He has played a meaningful role in long-running enterprise projects... contributing to systems that operate in production at scale.
+>
+> I confidently recommend Saurabh for senior-level software engineering roles involving enterprise systems, long-term projects, and modern full-stack development. Any organization engaging him would benefit from his experience, technical depth, and work ethic.
+
+<Flex sx={{ alignItems: `center`, gap: 3, mt: 3 }}>
+  <Image
+    src="/dusty-hale.jpg"
+    alt="Dusty Hale"
+    sx={{
+      width: `64px`,
+      height: `64px`,
+      borderRadius: `50%`,
+      objectFit: `cover`,
+      objectPosition: `top center`,
+      flexShrink: 0,
+    }}
+  />
+  <Box sx={{ fontSize: 1, lineHeight: `1.5` }}>
+    <strong>Dusty Hale</strong><br />
+    Founder & Project Director, <a href="https://hale.group" target="_blank" rel="noopener noreferrer">hale.group</a>
+  </Box>
+</Flex>
+
+## Get in touch
+
+The fastest ways to reach me are [hello@saurabhmisra.dev](mailto:hello@saurabhmisra.dev) and [LinkedIn](https://www.linkedin.com/in/saurabh--misra/). I respond to all serious inquiries within a business day.

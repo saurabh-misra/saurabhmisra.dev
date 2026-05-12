@@ -44,12 +44,14 @@ const Homepage = ({ posts }: MBHomepageProps) => {
         <Link to={replaceSlashes(`/${basePath}/${blogPath}`)}>Read all posts</Link>
       </Title>
       <Listing posts={posts} showTags={false} className="latest-posts-section" />
+      {/* 
       <List className="publications-section">
         <Publications />
       </List>
       <List className="projects-section">
         <Projects />
       </List>
+       */}
     </Layout>
   )
 }

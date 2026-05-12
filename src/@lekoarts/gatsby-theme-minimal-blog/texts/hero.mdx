@@ -1,3 +1,21 @@
-<Text sx={{ fontSize: [4], fontWeight: `bold`, color: `heading` }}>Namaste🙏! I'm Saurabh Misra, a full-stack Software Developer from Mumbai, India.</Text>
+import { Flex, Box, Image, Text } from "theme-ui"
 
-I have been building software since 14 years. This blog serves as a means for me to share my knowledge and expertise with the software development community.
+<Flex sx={{ alignItems: `center`, gap: [3, 4], flexDirection: [`column`, `row`] }}>
+  <Image
+    src="/me-small.jpg"
+    alt="Saurabh Misra"
+    sx={{
+      width: [`120px`, `150px`],
+      height: [`120px`, `150px`],
+      borderRadius: `50%`,
+      border: `5px solid bisque`,
+      objectFit: `cover`,
+      objectPosition: `top center`,
+      flexShrink: 0,
+    }}
+  />
+  <Box>
+    <Text sx={{ fontSize: [4], fontWeight: `bold`, color: `heading` }}>Namaste🙏 — I'm Saurabh Misra, a senior full-stack developer from Mumbai, India.</Text>
+    <p>This blog is where I document notes, tutorials, and hard-won lessons from over 15 years of writing software.</p>
+  </Box>
+</Flex>
